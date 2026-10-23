@@ -13,6 +13,8 @@ export default defineConfig({
   retries: isCI ? 2 : 0,
   reporter: isCI ? [["github"], ["html", { open: "never" }]] : "list",
   use: {
+    // The site is French-first: browsers default to a French Accept-Language unless a test opts out.
+    locale: "fr-FR",
     baseURL,
     trace: "on-first-retry",
   },

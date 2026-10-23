@@ -29,13 +29,12 @@ async function collectCspViolations(page: Page): Promise<readonly string[]> {
 }
 
 test.describe("home page", () => {
-  test("renders the placeholder in French", async ({ page }) => {
+  test("renders the home page in French by default", async ({ page }) => {
     await page.goto("/");
 
+    await expect(page).toHaveURL(/\/fr$/);
     await expect(page.locator("html")).toHaveAttribute("lang", "fr");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-      "Portfolio en construction",
-    );
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Orion");
   });
 
   test("is kept out of search engines until launch", async ({ page }) => {
@@ -46,6 +45,17 @@ test.describe("home page", () => {
       "noindex, nofollow",
     );
   });
+});
+
+test.describe("paths outside the locale tree", () => {
+  for (const path of ["/api/csp-report", "/.well-known/security.txt"]) {
+    test(`never redirects ${path} to a locale`, async ({ request }) => {
+      const response = await request.get(path, { maxRedirects: 0 });
+
+      expect(response.headers().location).toBeUndefined();
+      expect(response.headers()[CSP_HEADER]).toBeDefined();
+    });
+  }
 });
 
 test.describe("security", () => {

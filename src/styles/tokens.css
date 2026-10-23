@@ -1,0 +1,33 @@
+/*
+ * Graphite design tokens (visual direction chosen on 2026-10-23).
+ * Light is the default; the theme store (src/features/theme) sets the `dark` class on <html>.
+ * Every text pair is checked against WCAG AA by tokens.test.ts.
+ */
+
+:root {
+  --ground: #fafafa;
+  --surface: #ffffff;
+  --surface-muted: #f4f4f5;
+  --fg: #09090b;
+  --fg-muted: #52525b;
+  --accent: #047857;
+  --signal: #10b981;
+  --line: #e4e4e7;
+  --focus: #047857;
+  --dot: rgb(9 9 11 / 0.09);
+  color-scheme: light;
+}
+
+.dark {
+  --ground: #09090b;
+  --surface: #111113;
+  --surface-muted: #18181b;
+  --fg: #fafafa;
+  --fg-muted: #a1a1aa;
+  --accent: #34d399;
+  --signal: #34d399;
+  --line: #27272a;
+  --focus: #34d399;
+  --dot: rgb(250 250 250 / 0.07);
+  color-scheme: dark;
+}

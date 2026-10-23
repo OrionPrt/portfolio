@@ -1,0 +1,50 @@
+{
+  "Metadata": {
+    "title": "Orion — Ingénieur logiciel",
+    "description": "Ingénieur logiciel : fullstack, DevOps et cybersécurité."
+  },
+  "Layout": {
+    "skipLink": "Aller au contenu",
+    "home": "Accueil",
+    "footerSource": "Code source",
+    "footerRights": "© {year} Orion"
+  },
+  "LocaleSwitcher": {
+    "label": "Langue",
+    "fr": "Français",
+    "en": "English"
+  },
+  "ThemeSwitcher": {
+    "label": "Thème",
+    "light": "Clair",
+    "dark": "Sombre",
+    "system": "Système"
+  },
+  "Home": {
+    "status": "disponible — [type de poste]",
+    "role": "Ingénieur logiciel — fullstack, DevOps et cybersécurité.",
+    "pitch": "[Ton accroche en une phrase : ce que tu apportes, pour qui.]",
+    "featuredProject": "projet phare",
+    "experience": "expérience",
+    "experienceRole": "[Poste]",
+    "experienceCompany": "[Entreprise] · depuis [année]"
+  },
+  "Project": {
+    "label": "projet",
+    "placeholderName": "[Nom du projet phare]",
+    "placeholderVisual": "[capture ou visuel du projet]",
+    "backHome": "Retour à l'accueil",
+    "summary": "[Le contexte, ce que tu as fait et le résultat, en deux phrases lisibles par tous.]"
+  },
+  "NotFound": {
+    "title": "Page introuvable",
+    "description": "Cette page n'existe pas, ou elle a été déplacée.",
+    "home": "Retour à l'accueil"
+  },
+  "Error": {
+    "label": "erreur",
+    "title": "Une erreur est survenue",
+    "description": "Tu peux réessayer, ou revenir un peu plus tard.",
+    "retry": "Réessayer"
+  }
+}

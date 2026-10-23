@@ -6,25 +6,26 @@ import { CSP_MODE, cspHeaderName } from "@/lib/csp";
 
 import { config, proxy } from "./proxy";
 
+const ORIGIN = "https://portfolio.test";
 const CSP_HEADER = cspHeaderName(CSP_MODE);
 const OTHER_CSP_HEADER = cspHeaderName(
   CSP_MODE === "enforce" ? "report-only" : "enforce",
 );
 
-function handle(path = "/", headers: HeadersInit = {}): Response {
-  return proxy(new NextRequest(`https://portfolio.test${path}`, { headers }));
+function handle(path = "/fr", headers: HeadersInit = {}): Response {
+  return proxy(new NextRequest(`${ORIGIN}${path}`, { headers }));
 }
 
 function nonceOf(policy: string | null): string | undefined {
   return /'nonce-([^']+)'/.exec(policy ?? "")?.[1];
 }
 
-/** NextResponse.next({ request: { headers } }) exposes forwarded request headers as x-middleware-request-*. */
+/** NextResponse.next/rewrite({ request: { headers } }) expose forwarded request headers as x-middleware-request-*. */
 function forwardedHeader(response: Response, name: string): string | null {
   return response.headers.get(`x-middleware-request-${name.toLowerCase()}`);
 }
 
-describe("proxy", () => {
+describe("proxy — content security policy", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
   });
@@ -50,8 +51,19 @@ describe("proxy", () => {
     expect(forwardedHeader(response, "x-nonce")).toBe(nonceOf(policy));
   });
 
+  it("keeps forwarding them when a localized path is rewritten", () => {
+    const response = handle("/fr/projets/demo");
+    const policy = response.headers.get(CSP_HEADER);
+
+    expect(response.headers.get("x-middleware-rewrite")).toBe(
+      `${ORIGIN}/fr/projects/demo`,
+    );
+    expect(forwardedHeader(response, CSP_HEADER)).toBe(policy);
+    expect(forwardedHeader(response, "x-nonce")).toBe(nonceOf(policy));
+  });
+
   it("drops a client-supplied policy header, which Next.js would read instead of ours", () => {
-    const response = handle("/", {
+    const response = handle("/fr", {
       [OTHER_CSP_HEADER]: "default-src *",
       [CSP_HEADER]: "default-src *",
     });
@@ -66,6 +78,109 @@ describe("proxy", () => {
     vi.stubEnv("NODE_ENV", "development");
 
     expect(handle().headers.get(CSP_HEADER)).toContain("'unsafe-eval'");
+  });
+});
+
+describe("proxy — locale routing", () => {
+  it.each([
+    ["no preference", {}, "/fr"],
+    ["an English browser", { "accept-language": "en-GB,en;q=0.9" }, "/en"],
+    [
+      "a French browser",
+      { "accept-language": "fr-FR,fr;q=0.9,en;q=0.8" },
+      "/fr",
+    ],
+    [
+      "a saved English preference",
+      { cookie: "NEXT_LOCALE=en", "accept-language": "fr" },
+      "/en",
+    ],
+  ])("redirects / for %s", (_label, headers, target) => {
+    const response = handle("/", headers);
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(`${ORIGIN}${target}`);
+  });
+
+  it("serves an English URL that already matches its internal route without rewriting", () => {
+    const response = handle("/en/projects/demo");
+
+    expect(response.headers.get("x-middleware-rewrite")).toBeNull();
+    expect(response.status).toBe(200);
+  });
+
+  it("redirects a French page requested with its English slug", () => {
+    const response = handle("/fr/projects/demo");
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(`${ORIGIN}/fr/projets/demo`);
+  });
+});
+
+describe("proxy — paths outside the locale tree", () => {
+  it.each([
+    "/api/csp-report",
+    "/.well-known/security.txt",
+    "/_vercel/insights/script.js",
+    "/assets/hero.webp",
+  ])("serves %s under the CSP without redirecting it to a locale", (path) => {
+    const response = handle(path);
+    const policy = response.headers.get(CSP_HEADER);
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
+    expect(forwardedHeader(response, "x-nonce")).toBe(nonceOf(policy));
+  });
+});
+
+describe("proxy — fail closed", () => {
+  it("rejects a path that cannot be decoded, before any routing", () => {
+    const response = handle("/fr/%E0%A4%A");
+
+    expect(response.status).toBe(400);
+    expect(response.headers.get(CSP_HEADER)).not.toBeNull();
+  });
+
+  it.each(["TRACE", "PUT", "DELETE", "OPTIONS"])(
+    "rejects the %s method with 405",
+    (method) => {
+      // Fetch refuses to build some of these requests, so the method is overridden.
+      const request = Object.defineProperty(
+        new NextRequest(`${ORIGIN}/fr`),
+        "method",
+        { value: method },
+      );
+
+      const response = proxy(request);
+
+      expect(response.status).toBe(405);
+      expect(response.headers.get("allow")).toBe("GET, HEAD, POST");
+      expect(response.headers.get(CSP_HEADER)).not.toBeNull();
+    },
+  );
+});
+
+describe("proxy — locale redirects and cookie", () => {
+  it("keeps the language redirect out of shared caches", () => {
+    const response = handle("/", { "accept-language": "en" });
+
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    expect(response.headers.get("vary")).toContain("Accept-Language");
+    expect(response.headers.get("vary")).toContain("Cookie");
+  });
+
+  it("remembers the language for a year in a Secure cookie", () => {
+    const cookie = handle("/en").headers.get("set-cookie") ?? "";
+
+    expect(cookie).toContain("NEXT_LOCALE=en");
+    expect(cookie).toContain("Max-Age=31536000");
+    expect(cookie).toContain("Secure");
+  });
+
+  it("does not build hreflang links from client-supplied host headers", () => {
+    const response = handle("/fr", { "x-forwarded-host": "evil.example" });
+
+    expect(response.headers.get("link")).toBeNull();
   });
 });
 
@@ -104,13 +219,13 @@ describe("proxy matcher", () => {
     expect(prefetch).toBe(true);
   });
 
-  it("skips in-app router prefetches, which return flight data rather than HTML", () => {
+  it("runs on in-app router prefetches, so their localized pathnames get rewritten", () => {
     const prefetch = unstable_doesMiddlewareMatch({
       config,
-      url: "/fr",
+      url: "/fr/projets/demo",
       headers: { "next-router-prefetch": "1" },
     });
 
-    expect(prefetch).toBe(false);
+    expect(prefetch).toBe(true);
   });
 });

@@ -11,6 +11,9 @@ export default defineConfig({
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
   test: {
+    // next-intl's ESM build imports "next/server" without an extension, which Node's own
+    // resolver rejects; letting Vite transform it resolves the import like Next.js does.
+    server: { deps: { inline: ["next-intl"] } },
     // Server and utility code runs in Node; React components run in jsdom.
     projects: [
       {

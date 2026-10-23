@@ -1,0 +1,50 @@
+{
+  "Metadata": {
+    "title": "Orion — Software engineer",
+    "description": "Software engineer: fullstack, DevOps and cybersecurity."
+  },
+  "Layout": {
+    "skipLink": "Skip to content",
+    "home": "Home",
+    "footerSource": "Source code",
+    "footerRights": "© {year} Orion"
+  },
+  "LocaleSwitcher": {
+    "label": "Language",
+    "fr": "Français",
+    "en": "English"
+  },
+  "ThemeSwitcher": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "Home": {
+    "status": "available — [type of role]",
+    "role": "Software engineer — fullstack, DevOps and cybersecurity.",
+    "pitch": "[Your one-line pitch: what you bring, and for whom.]",
+    "featuredProject": "featured project",
+    "experience": "experience",
+    "experienceRole": "[Role]",
+    "experienceCompany": "[Company] · since [year]"
+  },
+  "Project": {
+    "label": "project",
+    "placeholderName": "[Featured project name]",
+    "placeholderVisual": "[project screenshot or visual]",
+    "backHome": "Back to home",
+    "summary": "[The context, what you did and the outcome, in two sentences anyone can read.]"
+  },
+  "NotFound": {
+    "title": "Page not found",
+    "description": "This page does not exist, or it has moved.",
+    "home": "Back to home"
+  },
+  "Error": {
+    "label": "error",
+    "title": "Something went wrong",
+    "description": "You can try again, or come back a little later.",
+    "retry": "Try again"
+  }
+}
