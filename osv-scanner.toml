@@ -1,0 +1,7 @@
+# Accepted dependency risks. Every entry needs a justification and an expiry date,
+# after which the scan fails again and the decision must be reviewed.
+
+[[IgnoredVulns]]
+id = "GHSA-vfj7-8cjw-p6xm"
+ignoreUntil = 2027-01-23
+reason = "braces stack exhaustion on deeply nested patterns. Dev-only: reached through eslint-config-next > fast-glob > micromatch at lint time, on globs controlled by this repository. No patched version exists yet; pnpm audit --prod is clean."
