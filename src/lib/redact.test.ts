@@ -98,6 +98,8 @@ describe("redact — secrets inside values", () => {
       "postgres://[REDACTED]@ep-cool.eu.aws.neon.tech/db",
     ],
     ["https://user:secretpw@example.com/x", "https://[REDACTED]@example.com/x"],
+    // An unencoded "@" inside the password: everything up to the host goes.
+    ["postgresql://u:pa@ss@host/db", "postgresql://[REDACTED]@host/db"],
     [
       "Authorization: Bearer abc.DEF-123_xyz",
       "Authorization: Bearer [REDACTED]",

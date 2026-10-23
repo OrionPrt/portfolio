@@ -1,12 +1,16 @@
 import { defineRouting } from "next-intl/routing";
 
+import { DEFAULT_LOCALE, LOCALES } from "./locales";
+
+export type { Locale } from "./locales";
+
 /**
  * Internal routes are English folders under app/[locale]; `pathnames` maps
  * them to the URL shown in each language. P3 adds the remaining pages.
  */
 export const routing = defineRouting({
-  locales: ["fr", "en"],
-  defaultLocale: "fr",
+  locales: LOCALES,
+  defaultLocale: DEFAULT_LOCALE,
   localePrefix: "always",
   // Remembers the language for a year. Not HttpOnly: next-intl's Link updates it client-side.
   localeCookie: { maxAge: 60 * 60 * 24 * 365, sameSite: "lax", secure: true },
@@ -20,5 +24,3 @@ export const routing = defineRouting({
     },
   },
 });
-
-export type Locale = (typeof routing.locales)[number];

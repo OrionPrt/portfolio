@@ -7,6 +7,15 @@ function emptyAsUndefined(value: unknown): unknown {
   return value === "" ? undefined : value;
 }
 
+/**
+ * Neon re-parses the connection string as an http URL, and on failure quotes it
+ * whole, password included, in its error. Refusing such a value here keeps it
+ * out of any error message.
+ */
+function isNeonParsable(value: string): boolean {
+  return URL.canParse(`http:${value.slice(value.indexOf(":") + 1)}`);
+}
+
 const serverSchema = z.object({
   NODE_ENV: z.preprocess(
     emptyAsUndefined,
@@ -17,6 +26,18 @@ const serverSchema = z.object({
     z.enum(["development", "preview", "production"]).optional(),
   ),
   LOG_LEVEL: z.preprocess(emptyAsUndefined, z.enum(LOG_LEVELS).default("info")),
+  // Optional until the public pages read the database (P3); without it,
+  // withDatabase() logs the gap and reads fail as DB_UNAVAILABLE.
+  DATABASE_URL: z.preprocess(
+    emptyAsUndefined,
+    z
+      .url({ protocol: /^postgres(ql)?$/ })
+      .refine(
+        isNeonParsable,
+        "must be a connection string the Neon driver can read",
+      )
+      .optional(),
+  ),
 });
 
 /** The value is inlined into the client bundle: scheme, host and port only, never credentials. */

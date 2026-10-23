@@ -70,6 +70,39 @@ describe("parseServerEnv", () => {
 
     expect(error.message).not.toContain("s3cr3t-value");
   });
+
+  it.each([
+    "postgres://app:pw@ep-cool.eu-central-1.aws.neon.tech/neondb?sslmode=require",
+    "postgresql://app:pw@localhost:5432/portfolio",
+  ])("accepts the database URL %s", (url) => {
+    expect(parseServerEnv({ DATABASE_URL: url }).DATABASE_URL).toBe(url);
+  });
+
+  it("leaves the database URL optional until a page reads the database", () => {
+    expect(parseServerEnv({ DATABASE_URL: "" }).DATABASE_URL).toBeUndefined();
+  });
+
+  it("rejects a database URL the Neon driver could not parse, without echoing it", () => {
+    // Valid for the URL standard, but Neon re-parses the host and would quote
+    // the whole connection string, password included, in its error.
+    const error = captureEnvError(() =>
+      parseServerEnv({
+        DATABASE_URL: "postgres://u:s3cr3t-pw@ho%20st.neon.tech/db",
+      }),
+    );
+
+    expect(error.message).toContain("DATABASE_URL");
+    expect(error.message).not.toContain("s3cr3t-pw");
+  });
+
+  it("rejects a non-Postgres database URL without echoing its credentials", () => {
+    const error = captureEnvError(() =>
+      parseServerEnv({ DATABASE_URL: "https://app:s3cr3t-pw@example.com/db" }),
+    );
+
+    expect(error.message).toContain("DATABASE_URL");
+    expect(error.message).not.toContain("s3cr3t-pw");
+  });
 });
 
 describe("parseClientEnv", () => {

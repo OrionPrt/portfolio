@@ -1,0 +1,78 @@
+import "server-only";
+
+import { cacheLife, cacheTag } from "next/cache";
+
+import { withDatabase } from "@/db/client";
+import type { Locale } from "@/i18n/locales";
+import { CACHE_TAGS } from "@/lib/cache-tags";
+import type { Result } from "@/lib/result";
+
+import {
+  createCatalogRepository,
+  type CertificationView,
+  type EducationView,
+  type SkillView,
+  type TileView,
+} from "./repository";
+
+// Cached reads for the public pages: see features/profile/queries.ts.
+
+export async function getSkills(): Promise<Result<readonly SkillView[]>> {
+  "use cache";
+  cacheTag(CACHE_TAGS.skills);
+  const result = await withDatabase((db) =>
+    createCatalogRepository(db).listSkills(),
+  );
+  if (result.ok) {
+    cacheLife("hours");
+  } else {
+    cacheLife("seconds");
+  }
+  return result;
+}
+
+export async function getEducation(
+  locale: Locale,
+): Promise<Result<readonly EducationView[]>> {
+  "use cache";
+  cacheTag(CACHE_TAGS.education);
+  const result = await withDatabase((db) =>
+    createCatalogRepository(db).listEducation(locale),
+  );
+  if (result.ok) {
+    cacheLife("hours");
+  } else {
+    cacheLife("seconds");
+  }
+  return result;
+}
+
+export async function getCertifications(
+  locale: Locale,
+): Promise<Result<readonly CertificationView[]>> {
+  "use cache";
+  cacheTag(CACHE_TAGS.certifications);
+  const result = await withDatabase((db) =>
+    createCatalogRepository(db).listCertifications(locale),
+  );
+  if (result.ok) {
+    cacheLife("hours");
+  } else {
+    cacheLife("seconds");
+  }
+  return result;
+}
+
+export async function getBentoTiles(): Promise<Result<readonly TileView[]>> {
+  "use cache";
+  cacheTag(CACHE_TAGS.bento);
+  const result = await withDatabase((db) =>
+    createCatalogRepository(db).listVisibleTiles(),
+  );
+  if (result.ok) {
+    cacheLife("hours");
+  } else {
+    cacheLife("seconds");
+  }
+  return result;
+}

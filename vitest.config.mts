@@ -5,6 +5,14 @@ import { defineConfig } from "vitest/config";
 
 const COVERAGE_THRESHOLD = 80;
 
+// Server modules import "server-only", which throws outside React Server Components;
+// Node tests stand in for the server, so they get the package's no-op build.
+const serverOnlyStub = {
+  "server-only": fileURLToPath(
+    new URL("./node_modules/server-only/empty.js", import.meta.url),
+  ),
+};
+
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -18,19 +26,25 @@ export default defineConfig({
     projects: [
       {
         extends: true,
-        resolve: {
-          // Server modules import "server-only", which throws outside React Server Components;
-          // Node tests stand in for the server, so they get the package's no-op build.
-          alias: {
-            "server-only": fileURLToPath(
-              new URL("./node_modules/server-only/empty.js", import.meta.url),
-            ),
-          },
-        },
+        resolve: { alias: serverOnlyStub },
         test: {
           name: "node",
           environment: "node",
           include: ["src/**/*.test.ts"],
+          exclude: ["src/**/*.db.test.ts"],
+        },
+      },
+      {
+        extends: true,
+        resolve: { alias: serverOnlyStub },
+        test: {
+          // Each file boots its own PGlite database (WebAssembly) and migrates it.
+          // Booting several at once starved the CPU past the hook timeout,
+          // so these files run one at a time, alongside the other projects.
+          name: "db",
+          environment: "node",
+          include: ["src/**/*.db.test.ts"],
+          fileParallelism: false,
         },
       },
       {

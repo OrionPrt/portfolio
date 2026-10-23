@@ -1,5 +1,12 @@
 allowBuilds:
   "@parcel/watcher": false
   "@swc/core": false
+  esbuild: false
   sharp: false
   unrs-resolver: false
+
+# drizzle-kit's loader (@esbuild-kit) pins esbuild 0.18, affected by
+# GHSA-67mh-4wv8-2f99 (dev server open to any origin). It only calls the
+# transform API, unchanged in 0.25, the version drizzle-kit already uses.
+overrides:
+  "@esbuild-kit/core-utils>esbuild": 0.25.12

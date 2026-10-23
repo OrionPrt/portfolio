@@ -56,8 +56,9 @@ const VALUE_SCRUBBERS: readonly (readonly [
   pattern: RegExp,
   replacement: string,
 ])[] = [
-  // Credentials in URLs: postgres://user:password@host, https://user@host
-  [/\b([a-z][a-z0-9+.-]{0,31}:\/\/)[^\s/?#@]{1,256}@/gi, `$1${REDACTED}@`],
+  // Credentials in URLs: postgres://user:password@host, https://user@host. Greedy up to
+  // the last "@" before the host, so an unencoded "@" in a password does not leak its tail.
+  [/\b([a-z][a-z0-9+.-]{0,31}:\/\/)[^\s/?#]{1,256}@/gi, `$1${REDACTED}@`],
   // Authorization header values
   [/\b(Bearer|Basic)\s+[A-Za-z0-9._~+/=-]{1,4096}/gi, `$1 ${REDACTED}`],
   // JSON Web Tokens

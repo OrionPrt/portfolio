@@ -29,6 +29,15 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm format:check
+      # A schema change must ship with its migration: regenerating must leave drizzle/ unchanged.
+      - name: Check that migrations match the schema
+        run: |
+          pnpm db:generate
+          if [ -n "$(git status --porcelain -- drizzle)" ]; then
+            git status --porcelain -- drizzle
+            echo "::error::The schema and drizzle/ differ: run pnpm db:generate and commit the result."
+            exit 1
+          fi
       # Before lint: route types (LayoutProps…) are generated here and needed by type-aware rules.
       - run: pnpm typecheck
       - run: pnpm lint
