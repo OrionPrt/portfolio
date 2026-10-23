@@ -12,6 +12,10 @@ updates:
     groups:
       minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      # Node typings must match the runtime (Node 24 LTS, see .nvmrc), not the newest Node.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
     open-pull-requests-limit: 10
     commit-message:
       prefix: chore
