@@ -9,6 +9,7 @@ const SECTIONS = [
   ["/experiences", "experiences"],
   ["/skills", "skills"],
   ["/about", "about"],
+  ["/contact", "contact"],
 ] as const;
 
 /** The site's sections; the current one (or its parent) is marked for assistive tech. */

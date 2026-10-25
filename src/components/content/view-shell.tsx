@@ -36,7 +36,7 @@ export function ViewShell({
     >
       <Link
         href="/"
-        className="text-fg-muted hover:text-fg rounded-control self-start font-mono text-xs"
+        className="text-fg-muted hover:text-fg rounded-control inline-flex min-h-6 items-center self-start font-mono text-xs"
       >
         <span aria-hidden="true">← </span>
         {t("backHome")}

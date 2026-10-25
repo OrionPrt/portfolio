@@ -2,13 +2,13 @@
 
 Personal portfolio of a software engineer working across fullstack web, DevOps and security. Bilingual (FR/EN), and built as a showcase in itself: code quality, security hardening and delivery practices are part of what it demonstrates.
 
-> **Status: P3 — first public version (MVP 1).** A bento hub whose tiles open into full-screen views, read from PostgreSQL. The contact form, the admin and the blog come in the next phases.
+> **Status: P4 — contact form.** A bento hub whose tiles open into full-screen views, read from PostgreSQL, and a contact form protected by Turnstile and a shared rate limit. The admin and the blog come in the next phases.
 
 ## Stack
 
-Next.js 16 (App Router, Cache Components) · React 19 · TypeScript (strict) · Tailwind CSS 4 · next-intl · PostgreSQL on Neon with Drizzle · Zod · Vitest · Playwright · GitHub Actions · Vercel.
+Next.js 16 (App Router, Cache Components) · React 19 · TypeScript (strict) · Tailwind CSS 4 · next-intl · PostgreSQL on Neon with Drizzle · Zod · Cloudflare Turnstile · Upstash Redis · Resend · Vitest · Playwright · GitHub Actions · Vercel.
 
-Decisions and their rationale live in [`docs/adr/`](docs/adr): [stack](docs/adr/0001-stack.md), [CSP](docs/adr/0002-csp.md), [hub, transitions and 404s](docs/adr/0003-transitions.md), [data layer](docs/adr/0004-data-layer.md).
+Decisions and their rationale live in [`docs/adr/`](docs/adr): [stack](docs/adr/0001-stack.md), [CSP](docs/adr/0002-csp.md), [hub, transitions and 404s](docs/adr/0003-transitions.md), [data layer](docs/adr/0004-data-layer.md), [contact form](docs/adr/0005-contact-form.md).
 
 ## Getting started
 
@@ -63,6 +63,7 @@ Actions are pinned to commit SHAs; Dependabot keeps dependencies and actions cur
 ## Security
 
 - Enforced Content Security Policy with a per-request nonce and `strict-dynamic`, and a rate-limited endpoint collecting violation reports — see [ADR-0002](docs/adr/0002-csp.md).
+- Contact form: Turnstile verified on the server, a honeypot, 5 messages an hour per sender and 30 overall (senders known by a keyed hash, never by their address), messages stored before any email is sent — see [ADR-0005](docs/adr/0005-contact-form.md).
 - HSTS, `nosniff`, framing protection, strict referrer and permissions policies, cross-origin isolation headers.
 - Environment validated at startup; structured logs with secrets redacted and emails masked.
 
@@ -70,7 +71,7 @@ Found a vulnerability? Please follow the [security policy](SECURITY.md).
 
 ## Deployment
 
-Vercel, with the database on Neon: see [`docs/deploy.md`](docs/deploy.md).
+Vercel, with the database on Neon, and Turnstile, Upstash and Resend for the contact form: see [`docs/deploy.md`](docs/deploy.md).
 
 ## License
 

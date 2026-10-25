@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { clientIp } from "./client-ip";
+import { clientIp, senderNetwork } from "./client-ip";
 
 describe("clientIp", () => {
   it.each([
@@ -14,5 +14,22 @@ describe("clientIp", () => {
     [{ "x-real-ip": "not-an-ip" }, "unknown"],
   ])("reads %j as %s", (headers, ip) => {
     expect(clientIp(new Headers(headers))).toBe(ip);
+  });
+});
+
+describe("senderNetwork", () => {
+  it.each([
+    ["203.0.113.7", "203.0.113.7"],
+    // An IPv4 client reached over IPv6 is still that IPv4 address.
+    ["::ffff:203.0.113.7", "203.0.113.7"],
+    // One subscriber usually holds a whole /64: it counts as one sender.
+    ["2001:db8:1:2:3:4:5:6", "2001:db8:1:2::/64"],
+    ["2001:db8::1", "2001:db8:0:0::/64"],
+    ["2001:DB8:0001:0002::abcd", "2001:db8:1:2::/64"],
+    ["64:ff9b::192.0.2.1", "64:ff9b:0:0::/64"],
+    ["fe80::1%eth0", "fe80:0:0:0::/64"],
+    ["unknown", "unknown"],
+  ])("counts %s as %s", (ip, network) => {
+    expect(senderNetwork(ip)).toBe(network);
   });
 });

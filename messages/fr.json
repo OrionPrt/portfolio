@@ -25,7 +25,8 @@
     "about": "À propos",
     "skills": "Compétences",
     "projects": "Projets",
-    "experiences": "Expériences"
+    "experiences": "Expériences",
+    "contact": "Contact"
   },
   "Domains": {
     "web": "web",
@@ -68,7 +69,8 @@
     "certifications": "certifications",
     "contact": "contact",
     "contactLead": "Une question, une mission, un poste ?",
-    "moreSkillsLabel": "et {count} autres"
+    "moreSkillsLabel": "et {count} autres",
+    "writeMessage": "Écrire un message"
   },
   "TwoLevel": {
     "essentials": "L'essentiel",
@@ -131,6 +133,41 @@
   "Experience": {
     "label": "expérience",
     "stack": "Technologies"
+  },
+  "Contact": {
+    "label": "contact",
+    "title": "Me contacter",
+    "description": "Une question, une mission, un poste ? Le formulaire m'arrive directement, et je réponds personnellement.",
+    "formTitle": "Écrire un message",
+    "allRequired": "Tous les champs sont obligatoires.",
+    "name": "Nom",
+    "email": "E-mail",
+    "subject": "Objet",
+    "message": "Message",
+    "messageHint": "Entre {min} et {max} caractères.",
+    "honeypot": "Ne pas remplir ce champ",
+    "submit": "Envoyer",
+    "sending": "Envoi du message…",
+    "checking": "Vérification anti-robot en cours…",
+    "sent": "Message envoyé, merci. Une réponse arrive sous quelques jours.",
+    "privacy": "Les données envoyées servent uniquement à répondre, et sont conservées 12 mois. L'adresse IP n'est jamais conservée en clair : seule une empreinte sert à limiter les abus.",
+    "errors": {
+      "required": "Ce champ est obligatoire.",
+      "too_short": "Le message doit contenir au moins {min} caractères.",
+      "too_long": "Ce champ ne peut pas dépasser {max} caractères.",
+      "invalid": "Ce champ contient un caractère non autorisé.",
+      "invalid_email": "Cette adresse e-mail n'est pas valide (exemple : nom@domaine.fr).",
+      "summary": "Le message n'est pas parti : vérifiez les champs signalés."
+    },
+    "failures": {
+      "captcha": "La vérification anti-robot a échoué : merci de réessayer.",
+      "rate_limited": "Trop de messages pour le moment : merci de réessayer dans une heure, ou d'écrire par e-mail.",
+      "unavailable": "Le formulaire est momentanément indisponible : écrivez-moi plutôt par e-mail."
+    },
+    "turnstileFailed": "La vérification anti-robot n'a pas pu se charger : écrivez-moi plutôt par e-mail.",
+    "noscript": "Le formulaire a besoin de JavaScript pour sa vérification anti-robot. Sans JavaScript, écrivez-moi par e-mail ou sur LinkedIn.",
+    "disabled": "Le formulaire n'est pas disponible pour le moment. Écrivez-moi par e-mail ou sur LinkedIn.",
+    "direct": "Me joindre directement"
   },
   "DataUnavailable": {
     "title": "Contenu momentanément indisponible",

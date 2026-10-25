@@ -28,5 +28,6 @@ export const routing = defineRouting({
       fr: "/experiences/[slug]",
       en: "/experiences/[slug]",
     },
+    "/contact": "/contact",
   },
 });

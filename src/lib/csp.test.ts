@@ -103,6 +103,24 @@ describe("buildContentSecurityPolicy", () => {
   );
 });
 
+describe("third parties", () => {
+  it("lets only Cloudflare Turnstile be framed, for the contact form", () => {
+    const policy = buildContentSecurityPolicy({
+      nonce: NONCE,
+      mode: "enforce",
+      isDev: false,
+    });
+
+    expect(sourcesOf(policy, "frame-src")).toEqual([
+      "https://challenges.cloudflare.com",
+    ]);
+    // Its loader runs because our signed code inserts it ('strict-dynamic').
+    expect(sourcesOf(policy, "script-src")).not.toContain(
+      "https://challenges.cloudflare.com",
+    );
+  });
+});
+
 describe("violation reports", () => {
   it("go to the reporting endpoint through report-to, and report-uri as a fallback", () => {
     const policy = buildContentSecurityPolicy({

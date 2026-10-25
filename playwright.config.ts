@@ -24,6 +24,8 @@ export default defineConfig({
     ? undefined
     : {
         command: `pnpm build && pnpm start --port ${PORT}`,
+        // No notification email, whatever .env.local holds.
+        env: { RESEND_API_KEY: "" },
         url: baseURL,
         reuseExistingServer: false,
         timeout: 180_000,

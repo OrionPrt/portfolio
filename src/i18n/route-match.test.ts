@@ -10,6 +10,7 @@ describe("matchRoute", () => {
     ["/en/skills", "en"],
     ["/fr/projects", "fr"],
     ["/en/experiences", "en"],
+    ["/fr/contact", "fr"],
   ])("knows the page %s", (pathname, locale) => {
     expect(matchRoute(pathname)).toEqual({ kind: "page", locale });
   });

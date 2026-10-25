@@ -3,6 +3,7 @@ import { pgEnum } from "drizzle-orm/pg-core";
 import {
   CONTENT_STATUSES,
   EMPLOYMENT_TYPES,
+  MESSAGE_STATUSES,
   SKILL_DOMAINS,
   SOCIAL_KINDS,
   TILE_KINDS,
@@ -23,3 +24,5 @@ export const socialKindEnum = pgEnum("social_kind", SOCIAL_KINDS);
 export const tileKindEnum = pgEnum("tile_kind", TILE_KINDS);
 
 export const tileSizeEnum = pgEnum("tile_size", TILE_SIZES);
+
+export const messageStatusEnum = pgEnum("message_status", MESSAGE_STATUSES);

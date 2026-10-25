@@ -37,6 +37,15 @@ describe("PrimaryNav", () => {
     );
   });
 
+  it("links to the contact page", () => {
+    renderNav("/");
+
+    expect(screen.getByRole("link", { name: "Contact" })).toHaveAttribute(
+      "href",
+      "/fr/contact",
+    );
+  });
+
   it("marks the current section as the page itself", () => {
     renderNav("/projects");
 

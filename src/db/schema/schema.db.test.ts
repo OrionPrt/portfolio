@@ -34,7 +34,7 @@ function newProject(overrides: Partial<typeof projects.$inferInsert> = {}) {
 }
 
 describe("migrations", () => {
-  it("create every content table on an empty database", async () => {
+  it("create every table on an empty database", async () => {
     const tables = await testDb.query<{ table_name: string }>(
       "select table_name from information_schema.tables where table_schema = 'public' order by table_name",
     );
@@ -43,6 +43,7 @@ describe("migrations", () => {
       "bento_tiles",
       "certification_translations",
       "certifications",
+      "contact_messages",
       "education",
       "education_translations",
       "experience_skills",

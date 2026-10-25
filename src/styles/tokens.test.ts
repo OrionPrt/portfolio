@@ -20,6 +20,8 @@ const TEXT_PAIRS = [
   ["accent", "ground"],
   ["accent", "surface"],
   ["accent", "surface-muted"],
+  ["danger", "ground"],
+  ["danger", "surface"],
 ] as const;
 
 const UI_PAIRS = [
@@ -27,6 +29,7 @@ const UI_PAIRS = [
   ["focus", "surface"],
   ["control-border", "ground"],
   ["control-border", "surface"],
+  ["danger", "surface"],
 ] as const;
 
 function tokensOf(selector: RegExp): ReadonlyMap<string, string> {

@@ -60,18 +60,58 @@ export function pickTranslation<T extends { readonly locale: Locale }>(
     : { value: fallback, isFallback: true };
 }
 
+interface RunQueryOptions {
+  /**
+   * The query's values are personal data. Drizzle quotes them in its error,
+   * and Postgres repeats a refused row in its detail: only what identifies the
+   * failure is logged then.
+   */
+  readonly hasPersonalData?: boolean;
+}
+
+/** Fields of a driver error (postgres.js, Neon) that never hold a value. */
+const FAILURE_FIELDS: ReadonlySet<string> = new Set([
+  "code",
+  "constraint",
+  "constraint_name",
+  "table",
+  "table_name",
+  "column",
+  "column_name",
+]);
+
+/** An error reduced to its kind and SQL diagnostics: no message, query or values. */
+function failureOf(error: unknown): Readonly<Record<string, string>> {
+  const source = error instanceof Error ? (error.cause ?? error) : error;
+  const fields =
+    typeof source === "object" && source !== null
+      ? Object.entries(source).filter(
+          (entry): entry is [string, string] =>
+            FAILURE_FIELDS.has(entry[0]) && typeof entry[1] === "string",
+        )
+      : [];
+  return {
+    kind: error instanceof Error ? error.name : typeof error,
+    ...Object.fromEntries(fields),
+  };
+}
+
 /**
- * Runs a read and turns a database failure into a Result. The failure is logged
- * once, with its context; callers only see a generic code and message.
+ * Runs a query and turns a database failure into a Result. The failure is
+ * logged once, with its context; callers only see a generic code and message.
  */
 export async function runQuery<T>(
   event: string,
   read: () => Promise<T>,
+  { hasPersonalData = false }: RunQueryOptions = {},
 ): Promise<Result<T>> {
   try {
     return ok(await read());
   } catch (error) {
-    logger.error(event, { error });
+    logger.error(
+      event,
+      hasPersonalData ? { failure: failureOf(error) } : { error },
+    );
     return err(DB_UNAVAILABLE);
   }
 }

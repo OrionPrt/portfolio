@@ -34,4 +34,5 @@ export const FRENCH_PAGES = [
   ["projects", "/fr/projets"],
   ["project", `/fr/projets/${FEATURED_PROJECT.slug}`],
   ["experiences", "/fr/experiences"],
+  ["contact", "/fr/contact"],
 ] as const;

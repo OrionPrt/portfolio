@@ -1,6 +1,7 @@
-import { expect, test, type APIResponse, type Page } from "@playwright/test";
+import { expect, test, type APIResponse } from "@playwright/test";
 
 import { FEATURED_PROJECT, FRENCH_PAGES } from "./support/content";
+import { collectCspViolations } from "./support/csp";
 
 // Enforced since the end of P3 (ADR-0002).
 const CSP_HEADER = "content-security-policy";
@@ -14,23 +15,6 @@ function scriptTagsOf(html: string): string[] {
   return (html.match(/<script\b[^>]*>/g) ?? []).filter(
     (tag) => !tag.includes('type="application/ld+json"'),
   );
-}
-
-/** Records every CSP violation the page raises, from the first byte of the next navigation. */
-async function collectCspViolations(page: Page): Promise<readonly string[]> {
-  const violations: string[] = [];
-  await page.exposeFunction("reportCspViolation", (violation: string) => {
-    violations.push(violation);
-  });
-  await page.addInitScript(() => {
-    const report = (
-      window as unknown as { reportCspViolation: (violation: string) => void }
-    ).reportCspViolation;
-    document.addEventListener("securitypolicyviolation", (event) => {
-      report(`${event.effectiveDirective} ${event.blockedURI}`);
-    });
-  });
-  return violations;
 }
 
 test.describe("home page", () => {
@@ -112,7 +96,9 @@ test.describe("security", () => {
   }) => {
     const violations = await collectCspViolations(page);
 
-    for (const [, path] of [...FRENCH_PAGES, ["not found", "/fr/inconnu"]]) {
+    // Turnstile keeps the contact page's network busy: contact.spec.ts covers it.
+    const pages = FRENCH_PAGES.filter(([name]) => name !== "contact");
+    for (const [, path] of [...pages, ["not found", "/fr/inconnu"]]) {
       await page.goto(path);
       await page.waitForLoadState("networkidle");
     }

@@ -12,6 +12,12 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   poweredByHeader: false,
+  experimental: {
+    // The contact form is the only action. A 5,000-character message, its
+    // Turnstile token and the previous state useActionState sends back (the
+    // values echoed after a refusal) stay near 35 KB at worst (default 1 MB).
+    serverActions: { bodySizeLimit: "64kb" },
+  },
   headers: () =>
     Promise.resolve([{ source: "/:path*", headers: [...SECURITY_HEADERS] }]),
   turbopack: {

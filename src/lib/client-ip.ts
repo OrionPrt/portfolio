@@ -21,3 +21,37 @@ export function clientIp(headers: Headers): string {
     "unknown"
   );
 }
+
+const IPV4_MAPPED = /^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/i;
+
+/** Hextets an IPv6 part stands for: an embedded IPv4 address counts as two. */
+function widthOf(parts: readonly string[]): number {
+  return parts.reduce((width, part) => width + (part.includes(".") ? 2 : 1), 0);
+}
+
+/** The /64 an IPv6 address belongs to, written in a canonical form. */
+function ipv6Network(address: string): string {
+  const [head = "", tail = ""] = address.split("::");
+  const headParts = head === "" ? [] : head.split(":");
+  const tailParts = tail === "" ? [] : tail.split(":");
+  const zeros = Array<string>(
+    Math.max(0, 8 - widthOf(headParts) - widthOf(tailParts)),
+  ).fill("0");
+  const prefix = [...headParts, ...zeros, ...tailParts]
+    .slice(0, 4)
+    .map((hextet) => Number.parseInt(hextet, 16).toString(16));
+  return `${prefix.join(":")}::/64`;
+}
+
+/**
+ * What counts as one sender: an IPv4 address, or the /64 of an IPv6 address,
+ * since one subscriber usually holds a whole /64 and could rotate within it.
+ * An IPv4 client reached over IPv6 is still that IPv4 address.
+ */
+export function senderNetwork(ip: string): string {
+  const address = ip.split("%")[0] ?? ip;
+  if (isIP(address) !== 6) {
+    return address;
+  }
+  return IPV4_MAPPED.exec(address)?.[1] ?? ipv6Network(address);
+}

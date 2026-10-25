@@ -38,9 +38,12 @@ export const TILE_KINDS = [
 
 export const TILE_SIZES = ["sm", "md", "lg", "xl"] as const;
 
+export const MESSAGE_STATUSES = ["unread", "read", "archived"] as const;
+
 export type SkillDomain = (typeof SKILL_DOMAINS)[number];
 export type ContentStatus = (typeof CONTENT_STATUSES)[number];
 export type EmploymentType = (typeof EMPLOYMENT_TYPES)[number];
 export type SocialKind = (typeof SOCIAL_KINDS)[number];
 export type TileKind = (typeof TILE_KINDS)[number];
 export type TileSize = (typeof TILE_SIZES)[number];
+export type MessageStatus = (typeof MESSAGE_STATUSES)[number];

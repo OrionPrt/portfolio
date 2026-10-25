@@ -91,4 +91,40 @@ describe("runQuery", () => {
       "projects.list_failed",
     );
   });
+
+  it("logs what failed, never the values, when they are personal data", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    // As Drizzle reports a failed insert: the values are in its message and
+    // fields, and Postgres repeats the row in its detail.
+    const cause = Object.assign(
+      new Error('new row violates check constraint "contact_name_length"'),
+      {
+        code: "23514",
+        constraint_name: "contact_name_length",
+        detail: "Failing row contains (Ada Lovelace, secret body).",
+      },
+    );
+    const failure = Object.assign(
+      new Error("Failed query: insert … params: Ada Lovelace,secret body", {
+        cause,
+      }),
+      { query: "insert …", params: ["Ada Lovelace", "secret body"] },
+    );
+
+    const result = await runQuery(
+      "contact.create_failed",
+      () => Promise.reject(failure),
+      { hasPersonalData: true },
+    );
+
+    expect(result.ok).toBe(false);
+    const logged = consoleError.mock.calls.flat().map(String).join("\n");
+    expect(logged).toContain("contact.create_failed");
+    expect(logged).toContain("23514");
+    expect(logged).toContain("contact_name_length");
+    expect(logged).not.toContain("Ada Lovelace");
+    expect(logged).not.toContain("secret body");
+  });
 });

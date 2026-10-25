@@ -149,3 +149,30 @@ describe("parseClientEnv", () => {
     expect(error.message).not.toContain("s3cr3t");
   });
 });
+
+describe("parseServerEnv — contact form", () => {
+  it("accepts the contact services' settings", () => {
+    expect(
+      parseServerEnv({
+        TURNSTILE_SITE_KEY: "0x4AAAAAAA",
+        IP_HASH_SALT: "s".repeat(32),
+        UPSTASH_REDIS_REST_URL: "https://eu1-x.upstash.io",
+        CONTACT_TO_EMAIL: "prieto.orion@gmail.com",
+      }),
+    ).toMatchObject({
+      TURNSTILE_SITE_KEY: "0x4AAAAAAA",
+      UPSTASH_REDIS_REST_URL: "https://eu1-x.upstash.io",
+    });
+  });
+
+  it.each([
+    ["IP_HASH_SALT", "too-short-salt"],
+    ["UPSTASH_REDIS_REST_URL", "http://eu1-x.upstash.io"],
+    ["CONTACT_TO_EMAIL", "not-an-email"],
+  ])("rejects an invalid %s without echoing it", (name, value) => {
+    const error = captureEnvError(() => parseServerEnv({ [name]: value }));
+
+    expect(error.message).toContain(name);
+    expect(error.message).not.toContain(value);
+  });
+});

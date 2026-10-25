@@ -102,7 +102,8 @@ describe("BentoHub", () => {
       />,
     );
 
-    expect(tileTitles()).toEqual(["identity-title-fr"]);
+    // The contact form is always there, even with no link to show.
+    expect(tileTitles()).toEqual(["identity-title-fr", "contact-title-fr"]);
   });
 
   it("keeps the identity tile, which holds the h1, even when left out", () => {
@@ -182,10 +183,21 @@ describe("BentoHub", () => {
       within(contact)
         .getAllByRole("link")
         .map((link) => link.textContent),
-    ).toEqual(["E-mail", "LinkedIn"]);
+    ).toEqual(["Écrire un message", "E-mail", "LinkedIn"]);
     expect(
       within(contact).getByRole("link", { name: "LinkedIn" }),
     ).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
+  it("opens the contact page from the contact tile", () => {
+    renderWithIntl(<BentoHub data={hub()} />);
+
+    expect(
+      within(screen.getByRole("region", { name: "contact" })).getByRole(
+        "link",
+        { name: "Écrire un message" },
+      ),
+    ).toHaveAttribute("href", "/fr/contact");
   });
 
   it("lists the latest certifications", () => {

@@ -25,7 +25,8 @@
     "about": "About",
     "skills": "Skills",
     "projects": "Projects",
-    "experiences": "Experience"
+    "experiences": "Experience",
+    "contact": "Contact"
   },
   "Domains": {
     "web": "web",
@@ -68,7 +69,8 @@
     "certifications": "certifications",
     "contact": "contact",
     "contactLead": "A question, a project, a role?",
-    "moreSkillsLabel": "and {count} more"
+    "moreSkillsLabel": "and {count} more",
+    "writeMessage": "Write a message"
   },
   "TwoLevel": {
     "essentials": "In short",
@@ -131,6 +133,41 @@
   "Experience": {
     "label": "experience",
     "stack": "Technologies"
+  },
+  "Contact": {
+    "label": "contact",
+    "title": "Get in touch",
+    "description": "A question, a project, a role? The form reaches me directly, and I answer personally.",
+    "formTitle": "Write a message",
+    "allRequired": "All fields are required.",
+    "name": "Name",
+    "email": "Email",
+    "subject": "Subject",
+    "message": "Message",
+    "messageHint": "Between {min} and {max} characters.",
+    "honeypot": "Leave this field empty",
+    "submit": "Send",
+    "sending": "Sending your message…",
+    "checking": "Anti-bot check in progress…",
+    "sent": "Message sent, thank you. A reply follows within a few days.",
+    "privacy": "What you send is only used to reply, and kept for 12 months. Your IP address is never stored as such: only a fingerprint, used to limit abuse.",
+    "errors": {
+      "required": "This field is required.",
+      "too_short": "The message needs at least {min} characters.",
+      "too_long": "This field cannot exceed {max} characters.",
+      "invalid": "This field contains a character that is not allowed.",
+      "invalid_email": "This email address is not valid (for example: name@example.com).",
+      "summary": "The message was not sent: please check the fields marked."
+    },
+    "failures": {
+      "captcha": "The anti-bot check failed: please try again.",
+      "rate_limited": "Too many messages right now: please try again in an hour, or write by email.",
+      "unavailable": "The form is temporarily unavailable: please write to me by email instead."
+    },
+    "turnstileFailed": "The anti-bot check could not load: please write to me by email instead.",
+    "noscript": "The form needs JavaScript for its anti-bot check. Without JavaScript, write to me by email or on LinkedIn.",
+    "disabled": "The form is not available right now. Write to me by email or on LinkedIn.",
+    "direct": "Reach me directly"
   },
   "DataUnavailable": {
     "title": "Content temporarily unavailable",

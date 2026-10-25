@@ -8,6 +8,7 @@ import type { Locale } from "@/i18n/locales";
 export const VIEW_TRANSITIONS = {
   identity: "identity",
   stack: "stack",
+  contact: "contact",
 } as const;
 
 export function projectTransitionName(slug: string): string {

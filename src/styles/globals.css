@@ -14,6 +14,7 @@
   --color-line: var(--line);
   --color-control-border: var(--control-border);
   --color-focus: var(--focus);
+  --color-danger: var(--danger);
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }

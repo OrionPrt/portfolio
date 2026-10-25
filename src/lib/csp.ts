@@ -3,6 +3,8 @@ export type CspMode = "report-only" | "enforce";
 /** Enforced since the end of P3, before the first user-input form ships (ADR-0002). */
 export const CSP_MODE: CspMode = "enforce";
 
+const TURNSTILE_ORIGIN = "https://challenges.cloudflare.com";
+
 /** Where browsers send violation reports (src/app/api/csp-report/route.ts). */
 export const CSP_REPORT_PATH = "/api/csp-report";
 
@@ -55,6 +57,9 @@ export function buildContentSecurityPolicy({
     ["img-src", "'self'", "data:", "blob:"],
     ["font-src", "'self'"],
     ["connect-src", "'self'"],
+    // Cloudflare Turnstile renders its challenge in an iframe (contact form).
+    // Its loader needs no host here: our signed code inserts it ('strict-dynamic').
+    ["frame-src", TURNSTILE_ORIGIN],
     ["object-src", "'none'"],
     ["base-uri", "'none'"],
     ["form-action", "'self'"],

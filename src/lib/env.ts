@@ -16,6 +16,17 @@ function isNeonParsable(value: string): boolean {
   return URL.canParse(`http:${value.slice(value.indexOf(":") + 1)}`);
 }
 
+function optionalText() {
+  return z.preprocess(emptyAsUndefined, z.string().max(1000).optional());
+}
+
+function optionalHttpsUrl() {
+  return z.preprocess(
+    emptyAsUndefined,
+    z.url({ protocol: /^https$/ }).optional(),
+  );
+}
+
 const serverSchema = z.object({
   NODE_ENV: z.preprocess(
     emptyAsUndefined,
@@ -26,6 +37,25 @@ const serverSchema = z.object({
     z.enum(["development", "preview", "production"]).optional(),
   ),
   LOG_LEVEL: z.preprocess(emptyAsUndefined, z.enum(LOG_LEVELS).default("info")),
+  // Contact form (P4). All optional: without them, development runs on
+  // Cloudflare's test keys and in-memory limits, and production disables the
+  // form (src/features/contact/config.ts).
+  TURNSTILE_SITE_KEY: optionalText(),
+  TURNSTILE_SECRET_KEY: optionalText(),
+  /** Keys the HMAC that replaces stored IP addresses. */
+  IP_HASH_SALT: z.preprocess(
+    emptyAsUndefined,
+    z.string().min(32, "must be at least 32 characters").optional(),
+  ),
+  UPSTASH_REDIS_REST_URL: optionalHttpsUrl(),
+  UPSTASH_REDIS_REST_TOKEN: optionalText(),
+  // The same, as named by Vercel's Upstash integration.
+  KV_REST_API_URL: optionalHttpsUrl(),
+  KV_REST_API_TOKEN: optionalText(),
+  RESEND_API_KEY: optionalText(),
+  CONTACT_TO_EMAIL: z.preprocess(emptyAsUndefined, z.email().optional()),
+  /** "Name <address>"; without a verified domain, Resend only sends from onboarding@resend.dev. */
+  CONTACT_FROM_EMAIL: optionalText(),
   // Set by Vercel: the production domain, a bare host. Base of canonical URLs
   // when NEXT_PUBLIC_SITE_URL is not set.
   VERCEL_PROJECT_PRODUCTION_URL: z.preprocess(

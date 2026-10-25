@@ -1,5 +1,3 @@
-import { useTranslations } from "next-intl";
-
 import type {
   CertificationView,
   SkillView,
@@ -12,6 +10,7 @@ import type { ProjectView } from "@/features/projects/types";
 
 import { BentoGrid } from "./bento-grid";
 import { CertificationsTile } from "./tiles/certifications-tile";
+import { ContactTile } from "./tiles/contact-tile";
 import { ExperienceTile } from "./tiles/experience-tile";
 import { FeaturedProjectTile } from "./tiles/featured-project-tile";
 import { IdentityTile } from "./tiles/identity-tile";
@@ -55,7 +54,6 @@ interface HubTileProps {
 
 /** One tile of the configured layout; a tile without content renders nothing. */
 function HubTile({ tile: { kind, size }, data }: HubTileProps) {
-  const t = useTranslations("Home");
   const links = data.profile?.socialLinks ?? [];
   const platforms = links.filter((link) => PLATFORM_KINDS.includes(link.kind));
   const contacts = links.filter((link) => CONTACT_KINDS.includes(link.kind));
@@ -95,16 +93,8 @@ function HubTile({ tile: { kind, size }, data }: HubTileProps) {
         )
       );
     case "contact":
-      return (
-        contacts.length > 0 && (
-          <LinksTile
-            size={size}
-            kind="contact"
-            links={contacts}
-            lead={t("contactLead")}
-          />
-        )
-      );
+      // Always shown: the contact form needs no published link.
+      return <ContactTile size={size} links={contacts} />;
     case "latest_post":
     case "cv":
       // The blog (P7) and the generated CV (P9) do not exist yet.
