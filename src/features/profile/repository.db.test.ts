@@ -66,6 +66,7 @@ describe("getProfile", () => {
     expect(result.ok && result.data).toMatchObject({
       headline: "headline (fr)",
       isFallback: true,
+      contentLocale: "fr",
     });
   });
 

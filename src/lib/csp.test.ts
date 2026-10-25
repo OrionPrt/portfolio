@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildContentSecurityPolicy,
+  CSP_REPORT_GROUP,
+  CSP_REPORT_PATH,
   createNonce,
   CSP_MODE,
   cspHeaderName,
@@ -101,6 +103,19 @@ describe("buildContentSecurityPolicy", () => {
   );
 });
 
+describe("violation reports", () => {
+  it("go to the reporting endpoint through report-to, and report-uri as a fallback", () => {
+    const policy = buildContentSecurityPolicy({
+      nonce: NONCE,
+      mode: "enforce",
+      isDev: false,
+    });
+
+    expect(sourcesOf(policy, "report-to")).toEqual([CSP_REPORT_GROUP]);
+    expect(sourcesOf(policy, "report-uri")).toEqual([CSP_REPORT_PATH]);
+  });
+});
+
 describe("cspHeaderName", () => {
   it("maps each mode to its response header", () => {
     expect(cspHeaderName("enforce")).toBe("Content-Security-Policy");
@@ -109,7 +124,7 @@ describe("cspHeaderName", () => {
     );
   });
 
-  it("stays in report-only mode until enforcement at the end of P3 (ADR-0002)", () => {
-    expect(CSP_MODE).toBe("report-only");
+  it("is enforced since the end of P3, before any user input (ADR-0002)", () => {
+    expect(CSP_MODE).toBe("enforce");
   });
 });

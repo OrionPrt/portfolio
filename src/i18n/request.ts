@@ -13,6 +13,9 @@ export default getRequestConfig(async ({ locale: explicitLocale }) => {
 
   return {
     locale,
+    // Fixed, so server and browser format dates alike; stored calendar days
+    // are formatted in UTC on top of it (src/lib/dates.ts).
+    timeZone: "Europe/Paris",
     messages: (
       (await import(`../../messages/${locale}.json`)) as {
         default: Record<string, unknown>;

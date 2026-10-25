@@ -64,6 +64,7 @@ describe("listPublished", () => {
       summary: { result: "current result (en)" },
       isCurrent: true,
       isFallback: false,
+      contentLocale: "en",
       skills: [{ slug: "docker", name: "DOCKER" }],
     });
   });

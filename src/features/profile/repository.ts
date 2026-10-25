@@ -22,6 +22,7 @@ export interface ProfileView {
   readonly lookingFor: string | null;
   readonly socialLinks: readonly SocialLinkView[];
   readonly isFallback: boolean;
+  readonly contentLocale: Locale;
 }
 
 // One link per kind (unique column), so the enum size bounds the list.
@@ -65,6 +66,7 @@ export function createProfileRepository(db: Database): ProfileRepository {
           lookingFor: value.lookingFor,
           socialLinks: links,
           isFallback: translation.isFallback,
+          contentLocale: value.locale,
         };
       }),
   };

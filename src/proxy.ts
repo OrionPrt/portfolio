@@ -1,6 +1,10 @@
 import createMiddleware from "next-intl/middleware";
 import { NextRequest, NextResponse, type ProxyConfig } from "next/server";
 
+import { createPathGate } from "@/features/content/path-gate";
+import { loadPublishedSlugs } from "@/features/content/published-slugs";
+import { createSlugRegistry } from "@/features/content/slug-registry";
+import { renderNotFoundPage } from "@/i18n/not-found-page";
 import { routing } from "@/i18n/routing";
 import {
   buildContentSecurityPolicy,
@@ -8,6 +12,7 @@ import {
   CSP_MODE,
   cspHeaderName,
 } from "@/lib/csp";
+import { isNonLocalized, isUnroutedPath } from "@/lib/non-localized-routes";
 
 const CSP_HEADER_NAMES = [
   cspHeaderName("enforce"),
@@ -17,15 +22,16 @@ const CSP_HEADER_NAMES = [
 /** Methods the site answers; anything else is refused before routing. */
 const ALLOWED_METHODS: readonly string[] = ["GET", "HEAD", "POST"];
 
-/** Paths outside the [locale] tree: they get the CSP, but no locale redirect. */
-const NON_LOCALIZED_PREFIXES: readonly string[] = [
-  "/api/",
-  "/_vercel/",
-  "/.well-known/",
-  "/assets/",
-];
-
 const handleI18nRouting = createMiddleware(routing);
+
+// Published slugs are trusted for a minute; after a failed load, retried in ten seconds.
+const pathGate = createPathGate(
+  createSlugRegistry({
+    load: loadPublishedSlugs,
+    maxAgeMs: 60_000,
+    retryAfterMs: 10_000,
+  }),
+);
 
 /** Request headers for the renderer: our policy and nonce, never a client-supplied policy. */
 function withPolicy(
@@ -61,11 +67,43 @@ function reachesRenderer(response: NextResponse): boolean {
   );
 }
 
-function routeRequest(
+/** The route Next.js will render: next-intl's rewrite target, else the path itself. */
+function internalPathname(
+  request: NextRequest,
+  response: NextResponse,
+): string {
+  const rewrite = response.headers.get("x-middleware-rewrite");
+  return rewrite === null
+    ? request.nextUrl.pathname
+    : new URL(rewrite).pathname;
+}
+
+/**
+ * A real 404 for paths no page claims, or entries not published. Under Cache
+ * Components a rendered route streams (status 200) before a page could call
+ * notFound(), and a proxy rewrite cannot change that: the proxy answers itself,
+ * with a static page (ADR-0003).
+ */
+function notFoundResponse(pathname: string): NextResponse {
+  const [first] = pathname.split("/").filter(Boolean);
+  const locale =
+    routing.locales.find((candidate) => candidate === first) ??
+    routing.defaultLocale;
+  return new NextResponse(renderNotFoundPage(locale), {
+    status: 404,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      // A slug published later must not stay cached as missing.
+      "Cache-Control": "private, no-store",
+    },
+  });
+}
+
+async function routeRequest(
   request: NextRequest,
   forwardedHeaders: Headers,
   nonce: string,
-): NextResponse {
+): Promise<NextResponse> {
   if (!ALLOWED_METHODS.includes(request.method)) {
     return new NextResponse(null, {
       status: 405,
@@ -77,8 +115,10 @@ function routeRequest(
   if (!isDecodable(pathname)) {
     return new NextResponse(null, { status: 400 });
   }
-  if (NON_LOCALIZED_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
-    return NextResponse.next({ request: { headers: forwardedHeaders } });
+  if (isNonLocalized(pathname)) {
+    return isUnroutedPath(pathname)
+      ? notFoundResponse(pathname)
+      : NextResponse.next({ request: { headers: forwardedHeaders } });
   }
 
   const response = handleI18nRouting(
@@ -92,14 +132,17 @@ function routeRequest(
     response.headers.set("Cache-Control", "private, no-store");
     response.headers.set("Vary", "Accept-Language, Cookie");
   }
+  if (!reachesRenderer(response)) {
+    return response;
+  }
   // Fail closed: anything rendered must carry our nonce, or its scripts would go unsigned.
-  if (
-    reachesRenderer(response) &&
-    response.headers.get("x-middleware-request-x-nonce") !== nonce
-  ) {
+  if (response.headers.get("x-middleware-request-x-nonce") !== nonce) {
     return new NextResponse(null, { status: 500 });
   }
-  return response;
+  const rendered = internalPathname(request, response);
+  return (await pathGate.isKnown(rendered))
+    ? response
+    : notFoundResponse(rendered);
 }
 
 /**
@@ -108,7 +151,7 @@ function routeRequest(
  * next-intl forwards the request headers it receives, so Next.js still reads
  * the nonce and signs its own scripts while rendering (ADR-0002).
  */
-export function proxy(request: NextRequest): NextResponse {
+export async function proxy(request: NextRequest): Promise<NextResponse> {
   const nonce = createNonce();
   const headerName = cspHeaderName(CSP_MODE);
   const policy = buildContentSecurityPolicy({
@@ -117,7 +160,7 @@ export function proxy(request: NextRequest): NextResponse {
     isDev: process.env.NODE_ENV === "development",
   });
 
-  const response = routeRequest(
+  const response = await routeRequest(
     request,
     withPolicy(request.headers, headerName, policy, nonce),
     nonce,

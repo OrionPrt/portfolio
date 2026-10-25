@@ -7,12 +7,16 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
+import { RouteFocus } from "@/components/layout/route-focus";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SkipLink } from "@/components/layout/skip-link";
 import { ThemeScript } from "@/components/theme/theme-script";
+import { siteUrl } from "@/features/seo/site-url";
 import { routing } from "@/i18n/routing";
 import { currentYear } from "@/lib/current-year";
+import { parseServerEnv } from "@/lib/env";
+import { IS_INDEXABLE, SITE_NAME } from "@/lib/site";
 
 import "@/styles/globals.css";
 
@@ -45,10 +49,12 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: "Metadata" });
 
   return {
-    title: { default: t("title"), template: "%s · Orion" },
+    // Absolute base of canonical and hreflang URLs: never from request headers.
+    metadataBase: siteUrl(),
+    title: { default: t("title"), template: `%s · ${SITE_NAME}` },
     description: t("description"),
     // Kept out of search engines until launch (P12).
-    robots: { index: false, follow: false },
+    ...(IS_INDEXABLE ? {} : { robots: { index: false, follow: false } }),
   };
 }
 
@@ -64,6 +70,7 @@ export default async function LocaleLayout({
   // Reading request headers makes the render per-request, which the nonce requires.
   const nonce = (await headers()).get("x-nonce") ?? undefined;
   const year = await currentYear();
+  const isOnVercel = parseServerEnv(process.env).VERCEL_ENV !== undefined;
 
   return (
     <html
@@ -82,14 +89,20 @@ export default async function LocaleLayout({
           <main
             id={`main-${locale}`}
             tabIndex={-1}
-            className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col px-4 py-6 outline-none sm:px-8 lg:px-12"
+            className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col px-4 py-5 outline-none sm:px-8 lg:px-12"
           >
             {children}
           </main>
           <SiteFooter year={year} />
+          <RouteFocus targetId={`main-${locale}`} />
         </NextIntlClientProvider>
-        <Analytics />
-        <SpeedInsights />
+        {/* Their scripts exist on Vercel only: elsewhere they would 404. */}
+        {isOnVercel && (
+          <>
+            <Analytics />
+            <SpeedInsights />
+          </>
+        )}
       </body>
     </html>
   );

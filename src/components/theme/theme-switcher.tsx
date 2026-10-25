@@ -26,7 +26,7 @@ export function ThemeSwitcher() {
       {THEMES.map((value) => (
         <label
           key={value}
-          className="text-fg-muted has-checked:bg-surface-muted has-checked:text-fg has-checked:ring-fg-muted has-focus-visible:outline-focus inline-flex h-7 cursor-pointer items-center rounded-[7px] px-2.5 text-[13px] select-none has-checked:font-medium has-checked:ring-1 has-focus-visible:outline-2 has-focus-visible:outline-offset-2"
+          className="text-fg-muted has-checked:bg-surface-muted has-checked:text-fg has-checked:ring-fg-muted has-focus-visible:outline-focus inline-flex h-7 cursor-pointer items-center rounded-[7px] px-2.5 text-[13px] select-none has-checked:font-medium has-checked:ring-1 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 forced-colors:has-checked:outline-2 forced-colors:has-checked:outline-solid"
         >
           <input
             type="radio"

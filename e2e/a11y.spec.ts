@@ -1,11 +1,14 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
+import { FEATURED_PROJECT, FRENCH_PAGES } from "./support/content";
+import { openHydrated } from "./support/navigation";
+
 const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
 const pages = [
-  ["home", "/fr"],
-  ["project", "/fr/projets/demo"],
+  ...FRENCH_PAGES,
+  ["about, in English", "/en/about"],
   ["not found", "/en/does-not-exist"],
 ] as const;
 
@@ -67,5 +70,38 @@ test.describe("accessibility", () => {
     await page.getByRole("link", { name: "Skip to content" }).focus();
     await page.keyboard.press("Enter");
     await expect(page.getByRole("main")).toBeFocused();
+  });
+});
+
+// Next.js leaves focus untouched on client navigations, and the link that had it
+// now sits in a hidden tree: focus moves to the new page's main region instead.
+test.describe("focus after navigation", () => {
+  test("lands on the new page's main region when a tile opens its view", async ({
+    page,
+  }) => {
+    await openHydrated(page, "/fr");
+
+    await page.getByRole("link", { name: FEATURED_PROJECT.title.fr }).focus();
+    await page.keyboard.press("Enter");
+
+    await expect(page).toHaveURL(
+      new RegExp(`/fr/projets/${FEATURED_PROJECT.slug}$`),
+    );
+    await expect(page.locator("#main-fr")).toBeFocused();
+  });
+
+  test("lands on the skill a badge points to", async ({ page }) => {
+    const skill = FEATURED_PROJECT.firstSkill;
+    test.skip(skill === undefined, "The featured project lists no skill.");
+    await openHydrated(page, `/fr/projets/${FEATURED_PROJECT.slug}`);
+
+    await page
+      .getByRole("region", { name: "Technologies" })
+      .getByRole("link")
+      .first()
+      .focus();
+    await page.keyboard.press("Enter");
+
+    await expect(page.locator(`#skill-${skill ?? ""}-fr`)).toBeFocused();
   });
 });

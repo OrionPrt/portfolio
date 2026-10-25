@@ -2,6 +2,7 @@ import { unstable_getResponseFromNextConfig } from "next/experimental/testing/se
 import { describe, expect, it } from "vitest";
 
 import nextConfig from "../../next.config";
+import { CSP_REPORT_GROUP, CSP_REPORT_PATH } from "./csp";
 import { SECURITY_HEADERS } from "./security-headers";
 
 const ONE_YEAR_IN_SECONDS = 31_536_000;
@@ -47,6 +48,12 @@ describe("SECURITY_HEADERS", () => {
     ]) {
       expect(policy).toContain(`${feature}=()`);
     }
+  });
+
+  it("names the endpoint that receives CSP violation reports", () => {
+    expect(headers.get("reporting-endpoints")).toBe(
+      `${CSP_REPORT_GROUP}="${CSP_REPORT_PATH}"`,
+    );
   });
 
   it("declares each header only once", () => {

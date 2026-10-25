@@ -29,7 +29,7 @@ export function LocaleSwitcher() {
                 aria-current={isCurrent ? "true" : undefined}
                 className={`inline-flex h-7 items-center rounded-[7px] px-2.5 ${
                   isCurrent
-                    ? "bg-surface-muted text-fg ring-fg-muted font-medium ring-1"
+                    ? "bg-surface-muted text-fg ring-fg-muted font-medium ring-1 forced-colors:outline-2 forced-colors:outline-solid"
                     : "text-fg-muted hover:text-fg"
                 }`}
               >

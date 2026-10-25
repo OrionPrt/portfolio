@@ -34,3 +34,8 @@ export function map<T, U, E>(
 ): Result<U, E> {
   return result.ok ? ok(transform(result.data)) : result;
 }
+
+/** The data, or a fallback when the read failed: for pages that degrade instead of failing. */
+export function unwrapOr<T, E>(result: Result<T, E>, fallback: T): T {
+  return result.ok ? result.data : fallback;
+}

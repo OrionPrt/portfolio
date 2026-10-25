@@ -33,6 +33,7 @@ export interface ExperienceView {
   readonly technicalMd: string;
   readonly skills: readonly SkillRef[];
   readonly isFallback: boolean;
+  readonly contentLocale: Locale;
 }
 
 type ExperienceRow = typeof experiences.$inferSelect & {
@@ -84,6 +85,7 @@ function toExperienceView(
     technicalMd: translation.value.technicalMd,
     skills: toSkillRefs(row.skills),
     isFallback: translation.isFallback,
+    contentLocale: translation.value.locale,
   };
 }
 

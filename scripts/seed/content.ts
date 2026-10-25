@@ -34,7 +34,7 @@ export const SEED_CONTENT: SeedContentInput = {
       fr: {
         headline: "Ingénieur logiciel — fullstack, DevOps et cybersécurité",
         availability: `Disponible — ${TO_COMPLETE} (type de poste)`,
-        pitch: `${TO_COMPLETE} Ton accroche en une phrase : ce que tu apportes, et pour qui.`,
+        pitch: `${TO_COMPLETE} Ton accroche en une phrase : ce que tu apportes, et pour qui.`,
       },
       en: {
         headline: "Software engineer — full-stack, DevOps and security",
@@ -45,9 +45,14 @@ export const SEED_CONTENT: SeedContentInput = {
   },
 
   socialLinks: [
-    { kind: "github", url: "https://github.com/OrionPrt", sortOrder: 0 },
-    // { kind: "linkedin", url: "https://www.linkedin.com/in/…", sortOrder: 1 },
-    // { kind: "email", url: "mailto:…", sortOrder: 2 },
+    { kind: "email", url: "mailto:prieto.orion@gmail.com", sortOrder: 0 },
+    {
+      kind: "linkedin",
+      url: "https://linkedin.com/in/orion-prieto-aa4841342/",
+      sortOrder: 1,
+    },
+    { kind: "github", url: "https://github.com/OrionPrt", sortOrder: 2 },
+    // The platforms tile appears once one of these profiles exists.
     // { kind: "hackthebox", url: "https://app.hackthebox.com/profile/…", sortOrder: 3 },
     // { kind: "rootme", url: "https://www.root-me.org/…", sortOrder: 4 },
     // { kind: "tryhackme", url: "https://tryhackme.com/p/…", sortOrder: 5 },
@@ -105,14 +110,14 @@ export const SEED_CONTENT: SeedContentInput = {
           summaryContext:
             "Un portfolio doit convaincre un recruteur en quelques secondes, et un ingénieur en quelques minutes.",
           summaryAction:
-            "Conception et développement d'un site Next.js bilingue : accueil en grille bento, deux niveaux de lecture, sécurité et tests automatisés dès le premier commit.",
+            "Conception et développement d'un site Next.js bilingue : accueil en grille bento, deux niveaux de lecture, sécurité et tests automatisés dès le premier commit.",
           summaryResult:
             "Un site public et open source, vérifié automatiquement à chaque modification.",
           technicalMd: [
-            "- **Stack** : Next.js 16 (App Router, Cache Components), React 19, TypeScript strict, Tailwind 4, next-intl.",
-            "- **Données** : PostgreSQL sur Neon via Drizzle, migrations versionnées, lectures en cache taguées.",
-            "- **Sécurité** : CSP à nonce par requête, en-têtes stricts, variables d'environnement validées, journaux sans secrets.",
-            "- **CI** : lint, types, tests Vitest et Playwright avec axe, puis gitleaks, CodeQL et OSV-Scanner ; actions épinglées par SHA.",
+            "- **Stack** : Next.js 16 (App Router, Cache Components), React 19, TypeScript strict, Tailwind 4, next-intl.",
+            "- **Données** : PostgreSQL sur Neon via Drizzle, migrations versionnées, lectures en cache taguées.",
+            "- **Sécurité** : CSP à nonce par requête, en-têtes stricts, variables d'environnement validées, journaux sans secrets.",
+            "- **CI** : lint, types, tests Vitest et Playwright avec axe, puis gitleaks, CodeQL et OSV-Scanner ; actions épinglées par SHA.",
           ].join("\n"),
         },
         en: {
@@ -159,17 +164,19 @@ export const SEED_CONTENT: SeedContentInput = {
   //   verifyUrl: "https://…", translations: { fr: { description: "…" } } },
   certifications: [],
 
-  // The home hub. Latest post and CV stay hidden until the blog (P7) and the
-  // generated CV (P9) exist.
+  // The home hub, in reading order. Sizes: sm 1×1, md 2×1, lg 1×2, xl 2×2 on a
+  // four-column grid. A tile without content hides itself (no experience, no
+  // certification, no platform profile yet). Latest post and CV stay hidden
+  // until the blog (P7) and the generated CV (P9) exist.
   tiles: [
     { kind: "identity", size: "xl", sortOrder: 0 },
-    { kind: "featured_project", size: "lg", sortOrder: 1 },
-    { kind: "current_experience", size: "md", sortOrder: 2 },
+    { kind: "featured_project", size: "xl", sortOrder: 1 },
+    { kind: "current_experience", size: "sm", sortOrder: 2 },
     { kind: "stack", size: "md", sortOrder: 3 },
     { kind: "cyber_stats", size: "sm", sortOrder: 4 },
-    { kind: "certifications", size: "sm", sortOrder: 5 },
-    { kind: "contact", size: "sm", sortOrder: 6 },
-    { kind: "latest_post", size: "md", sortOrder: 7, visible: false },
-    { kind: "cv", size: "sm", sortOrder: 8, visible: false },
+    { kind: "latest_post", size: "sm", sortOrder: 5, visible: false },
+    { kind: "certifications", size: "sm", sortOrder: 6 },
+    { kind: "cv", size: "sm", sortOrder: 7, visible: false },
+    { kind: "contact", size: "sm", sortOrder: 8 },
   ],
 };

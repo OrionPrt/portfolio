@@ -1,3 +1,5 @@
+import { CSP_REPORT_GROUP, CSP_REPORT_PATH } from "./csp";
+
 interface HttpHeader {
   readonly key: string;
   readonly value: string;
@@ -25,4 +27,9 @@ export const SECURITY_HEADERS: readonly HttpHeader[] = [
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   // same-origin rather than same-site: a compromised sibling subdomain cannot embed our resources.
   { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
+  // The endpoint group of the CSP `report-to` directive.
+  {
+    key: "Reporting-Endpoints",
+    value: `${CSP_REPORT_GROUP}="${CSP_REPORT_PATH}"`,
+  },
 ];

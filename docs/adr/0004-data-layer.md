@@ -18,13 +18,14 @@ Content (profile, projects, experiences, skills, education, certifications, bent
 
 The schema is written with Drizzle (`src/db/schema/`, one file per domain) and `drizzle-kit generate` turns it into SQL files committed under `drizzle/`. Drizzle stays close to SQL, needs no generated client or binary, and runs the same schema on the three drivers below. CI regenerates the migrations and fails if `drizzle/` changes, so a schema edit cannot ship without its migration.
 
-### One schema, three drivers
+### One schema, four drivers
 
-| Where                             | Driver                                           | Why                                                                                                                                                    |
-| --------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| App (Vercel)                      | `drizzle-orm/neon-http`                          | One HTTP round trip per query, no connection to keep alive across serverless invocations. Reads need no transaction.                                   |
-| Scripts (`db:migrate`, `db:seed`) | `drizzle-orm/neon-serverless` (WebSocket `Pool`) | Migrations and the seed need transactions, which the HTTP driver does not support. Node 22+ ships the WebSocket.                                       |
-| Tests                             | `drizzle-orm/pglite`                             | PostgreSQL compiled to WebAssembly, migrated with the real files in `drizzle/`: same SQL, constraints and enums, in memory, without network or Docker. |
+| Where                             | Driver                                           | Why                                                                                                                                                                                         |
+| --------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| App (Vercel)                      | `drizzle-orm/neon-http`                          | One HTTP round trip per query, no connection to keep alive across serverless invocations. Reads need no transaction.                                                                        |
+| Scripts (`db:migrate`, `db:seed`) | `drizzle-orm/neon-serverless` (WebSocket `Pool`) | Migrations and the seed need transactions, which the HTTP driver does not support. Node 22+ ships the WebSocket.                                                                            |
+| Tests                             | `drizzle-orm/pglite`                             | PostgreSQL compiled to WebAssembly, migrated with the real files in `drizzle/`: same SQL, constraints and enums, in memory, without network or Docker.                                      |
+| Local database (CI E2E, dev)      | `drizzle-orm/postgres-js`                        | Neon's drivers only speak to Neon. A `localhost` host switches app and scripts to plain Postgres (`src/db/local.ts`); the app imports it lazily, so production never loads it. Added in P3. |
 
 Repositories depend on the driver-agnostic `Database` type (`src/db/types.ts`), never on a driver.
 
@@ -66,4 +67,6 @@ On the production client (`src/db/client.ts`), every query gets its own 8-second
 - PGlite runs PostgreSQL 18.6, the same version as the Neon project (checked on 2026-10-23). Both must move together: a feature that only one of them supports would pass the tests and fail the migration.
 - The app and the scripts share one `DATABASE_URL`, the owner role. Once the admin writes (P6), the public pages should read through a role limited to `SELECT`, and the owner URL should only serve migrations and the seed.
 - Migrations are not applied to Neon by CI. PGlite applies them on every test run, and `pnpm db:migrate` applies them to Neon, by hand until a deploy step does it.
-- In P3, pages read the database at request time. A build without `DATABASE_URL`, as in CI, gets `DB_UNAVAILABLE`, which is short-lived and so never baked into the prerender. Pages must render a degraded state for it.
+- Pages read the database at request time, and degrade when a read fails: the home page keeps its identity tile and shows a notice, views show the notice in their frame. A build without `DATABASE_URL`, like the CI quality job, logs `db.not_configured` and gets `DB_UNAVAILABLE`, which is short-lived and so never baked into the prerender.
+- Cached reads filled during `next build` ship with the build and are served until their lifetime ends: a build sees the content of its database for up to an hour. Observed in P3, where a local build kept demo rows that had since been deleted.
+- E2E in CI read a throwaway `postgres:18.6` service, migrated and seeded with `scripts/seed/content.ts` on every run. The tests take their expectations from that content, so editing it breaks no test. Locally, `pnpm e2e` reads `DATABASE_URL`: point it at a local database (`DATABASE_URL=postgresql://postgres@localhost:5432/portfolio pnpm e2e`) rather than at Neon.

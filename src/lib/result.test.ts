@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { err, map, ok } from "./result";
+import { err, map, ok, unwrapOr } from "./result";
 
 describe("result", () => {
   it("wraps a success value", () => {
@@ -30,5 +30,14 @@ describe("result", () => {
 
     expect(result).toBe(failure);
     expect(transform).not.toHaveBeenCalled();
+  });
+});
+
+describe("unwrapOr", () => {
+  it("returns the data of a success, and the fallback of a failure", () => {
+    expect(unwrapOr(ok([1, 2]), [])).toEqual([1, 2]);
+    expect(
+      unwrapOr(err({ code: "DB_UNAVAILABLE", message: "down" }), []),
+    ).toEqual([]);
   });
 });

@@ -1,14 +1,19 @@
 import { expect, test, type APIResponse, type Page } from "@playwright/test";
 
-// Report-only until the end of P3 (ADR-0002); switch to "content-security-policy" when enforced.
-const CSP_HEADER = "content-security-policy-report-only";
+import { FEATURED_PROJECT, FRENCH_PAGES } from "./support/content";
+
+// Enforced since the end of P3 (ADR-0002).
+const CSP_HEADER = "content-security-policy";
 
 function nonceOf(response: APIResponse): string | undefined {
   return /'nonce-([^']+)'/.exec(response.headers()[CSP_HEADER] ?? "")?.[1];
 }
 
+/** Executable scripts only: JSON-LD is a data block, never run, so CSP leaves it alone. */
 function scriptTagsOf(html: string): string[] {
-  return html.match(/<script\b[^>]*>/g) ?? [];
+  return (html.match(/<script\b[^>]*>/g) ?? []).filter(
+    (tag) => !tag.includes('type="application/ld+json"'),
+  );
 }
 
 /** Records every CSP violation the page raises, from the first byte of the next navigation. */
@@ -70,6 +75,21 @@ test.describe("security", () => {
     expect(headers["x-powered-by"]).toBeUndefined();
   });
 
+  // A shared cache replaying a page would replay its nonce, and void the CSP.
+  test("keeps rendered pages out of shared caches", async ({ request }) => {
+    for (const path of [
+      "/fr",
+      `/fr/projets/${FEATURED_PROJECT.slug}`,
+      "/fr/inconnu",
+    ]) {
+      const cacheControl =
+        (await request.get(path)).headers()["cache-control"] ?? "";
+
+      expect(cacheControl, path).toContain("private");
+      expect(cacheControl, path).toContain("no-store");
+    }
+  });
+
   test("signs every script with a nonce that changes on each request", async ({
     request,
   }) => {
@@ -87,13 +107,41 @@ test.describe("security", () => {
     }
   });
 
-  test("raises no CSP violation on a normal visit", async ({ page }) => {
+  test("raises no CSP violation on a visit through every page", async ({
+    page,
+  }) => {
     const violations = await collectCspViolations(page);
 
-    await page.goto("/");
-    await page.waitForLoadState("networkidle");
+    for (const [, path] of [...FRENCH_PAGES, ["not found", "/fr/inconnu"]]) {
+      await page.goto(path);
+      await page.waitForLoadState("networkidle");
+    }
 
     expect(violations).toEqual([]);
+  });
+
+  test("names its reporting endpoint, which accepts violation reports", async ({
+    request,
+  }) => {
+    const page = await request.get("/fr");
+    const policy = page.headers()[CSP_HEADER] ?? "";
+
+    expect(policy).toContain("report-to csp-endpoint");
+    expect(page.headers()["reporting-endpoints"]).toBe(
+      'csp-endpoint="/api/csp-report"',
+    );
+
+    const report = await request.post("/api/csp-report", {
+      headers: { "content-type": "application/csp-report" },
+      data: JSON.stringify({
+        "csp-report": {
+          "document-uri": "http://localhost/fr",
+          "effective-directive": "script-src-elem",
+          "blocked-uri": "inline",
+        },
+      }),
+    });
+    expect(report.status()).toBe(204);
   });
 
   test("flags an injected inline event handler, the classic XSS vector", async ({

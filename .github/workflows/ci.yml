@@ -48,6 +48,27 @@ jobs:
     name: End-to-end (Playwright)
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # Pages read a real database: a throwaway Postgres, same major as Neon,
+    # migrated and seeded with the site's content on every run.
+    services:
+      postgres:
+        # Pinned by digest; Dependabot does not update service images, so bump
+        # it by hand along with Neon's PostgreSQL version.
+        image: postgres:18.6-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5
+        env:
+          # A container that lives for one job, reachable from the runner only.
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_DB: portfolio
+        ports:
+          - 127.0.0.1:5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      # A local host makes the app and the scripts use plain Postgres (src/db/local.ts).
+      DATABASE_URL: postgresql://postgres@localhost:5432/portfolio
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -58,6 +79,8 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm db:migrate
+      - run: pnpm db:seed
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm e2e
       - name: Upload Playwright report

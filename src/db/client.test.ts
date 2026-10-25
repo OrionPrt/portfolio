@@ -68,6 +68,44 @@ describe("withDatabase", () => {
     );
   });
 
+  it("speaks plain Postgres to a local database, without the Neon driver", async () => {
+    // postgres.js connects lazily: no socket opens in this test.
+    vi.stubEnv(
+      "DATABASE_URL",
+      "postgresql://postgres@localhost:5432/portfolio",
+    );
+    vi.doMock("@neondatabase/serverless", () => ({
+      neon: () => {
+        throw new Error("The Neon driver must not serve a local database.");
+      },
+      neonConfig: {},
+    }));
+    const { withDatabase } = await loadClient();
+
+    const result = await withDatabase((db) => Promise.resolve(ok(db)));
+
+    expect(result.ok && result.data).toBeDefined();
+    expect(consoleError).not.toHaveBeenCalled();
+  });
+
+  it("refuses a local database on Vercel, where it can only be a mistake", async () => {
+    vi.stubEnv(
+      "DATABASE_URL",
+      "postgresql://postgres@localhost:5432/portfolio",
+    );
+    vi.stubEnv("VERCEL_ENV", "production");
+    const { withDatabase } = await loadClient();
+    const read = vi.fn();
+
+    const result = await withDatabase(read);
+
+    expect(result.ok).toBe(false);
+    expect(read).not.toHaveBeenCalled();
+    expect(String(consoleError.mock.calls[0]?.[0])).toContain(
+      "db.connect_failed",
+    );
+  });
+
   it("hands the same database to every read once configured", async () => {
     // neon() connects lazily: no request leaves the test.
     vi.stubEnv("DATABASE_URL", "postgresql://app:secret@db.example.com/app");

@@ -81,7 +81,7 @@ describe("listEducation", () => {
 
     expect(result.ok && result.data).toMatchObject([
       { school: "Epitech", degree: "Master", isFallback: false },
-      { school: "Lycée", degree: "Bac", isFallback: true },
+      { school: "Lycée", degree: "Bac", isFallback: true, contentLocale: "fr" },
     ]);
   });
 });

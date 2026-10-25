@@ -13,8 +13,8 @@ vi.mock("next-intl/middleware", async () => {
 });
 
 describe("proxy — renderer post-condition", () => {
-  it("refuses to render a request that lost the nonce on the way", () => {
-    const response = proxy(new NextRequest("https://portfolio.test/fr"));
+  it("refuses to render a request that lost the nonce on the way", async () => {
+    const response = await proxy(new NextRequest("https://portfolio.test/fr"));
 
     expect(response.status).toBe(500);
     expect(response.headers.get(cspHeaderName(CSP_MODE))).not.toBeNull();

@@ -20,21 +20,121 @@
     "dark": "Dark",
     "system": "System"
   },
+  "Nav": {
+    "label": "Main navigation",
+    "about": "About",
+    "skills": "Skills",
+    "projects": "Projects",
+    "experiences": "Experience"
+  },
+  "Domains": {
+    "web": "web",
+    "low_level": "low-level",
+    "devops": "devops",
+    "cyber": "cyber"
+  },
+  "DomainTitles": {
+    "web": "Web development",
+    "low_level": "Low-level",
+    "devops": "DevOps",
+    "cyber": "Cybersecurity"
+  },
+  "EmploymentTypes": {
+    "full_time": "Full-time",
+    "part_time": "Part-time",
+    "internship": "Internship",
+    "apprenticeship": "Apprenticeship",
+    "freelance": "Freelance"
+  },
+  "SocialKinds": {
+    "github": "GitHub",
+    "linkedin": "LinkedIn",
+    "email": "Email",
+    "hackthebox": "Hack The Box",
+    "rootme": "Root-Me",
+    "tryhackme": "TryHackMe",
+    "website": "Website"
+  },
   "Home": {
-    "status": "available — [type of role]",
-    "role": "Software engineer — fullstack, DevOps and cybersecurity.",
-    "pitch": "[Your one-line pitch: what you bring, and for whom.]",
+    "fallbackHeadline": "Software engineer — fullstack, DevOps and cybersecurity.",
+    "about": "About",
+    "contactMe": "Get in touch",
     "featuredProject": "featured project",
     "experience": "experience",
-    "experienceRole": "[Role]",
-    "experienceCompany": "[Company] · since [year]"
+    "since": "since {date}",
+    "stack": "skills",
+    "moreSkills": "+{count}",
+    "platforms": "platforms",
+    "certifications": "certifications",
+    "contact": "contact",
+    "contactLead": "A question, a project, a role?",
+    "moreSkillsLabel": "and {count} more"
+  },
+  "TwoLevel": {
+    "essentials": "In short",
+    "context": "Context",
+    "action": "What I did",
+    "result": "Outcome",
+    "technical": "Technical details"
+  },
+  "View": {
+    "backHome": "Back to home"
+  },
+  "About": {
+    "label": "about",
+    "title": "About",
+    "lookingFor": "What I am looking for",
+    "availability": "Availability",
+    "location": "Location",
+    "links": "Find me",
+    "description": "Who I am, what I am looking for, and where to find me."
+  },
+  "Skills": {
+    "label": "skills",
+    "title": "Skills",
+    "intro": "Grouped by domain. Each one links to the projects and roles where it was used.",
+    "projects": "Projects",
+    "experiences": "Experience",
+    "unused": "Not linked to a published project yet:",
+    "description": "My skills by domain (web, low-level, DevOps, security), linked to the projects and roles where I used them."
+  },
+  "Projects": {
+    "label": "projects",
+    "title": "Projects",
+    "filters": "Filter projects",
+    "domain": "Domain",
+    "skill": "Technology",
+    "any": "All",
+    "apply": "Filter",
+    "reset": "Show all",
+    "count": "{count, plural, =0 {No projects} one {# project} other {# projects}}",
+    "empty": "No project matches these filters.",
+    "repo": "Source code",
+    "demo": "Demo",
+    "all": "All projects",
+    "description": "My web, low-level, DevOps and security projects, filterable by domain and technology."
   },
   "Project": {
     "label": "project",
-    "placeholderName": "[Featured project name]",
-    "placeholderVisual": "[project screenshot or visual]",
-    "backHome": "Back to home",
-    "summary": "[The context, what you did and the outcome, in two sentences anyone can read.]"
+    "stack": "Technologies"
+  },
+  "Experiences": {
+    "label": "experience",
+    "title": "Experience",
+    "empty": "No experience published yet.",
+    "current": "Current role",
+    "present": "present",
+    "all": "All experience",
+    "company": "Company",
+    "description": "My career, from my current role back."
+  },
+  "Experience": {
+    "label": "experience",
+    "stack": "Technologies"
+  },
+  "DataUnavailable": {
+    "title": "Content temporarily unavailable",
+    "description": "It cannot be loaded right now and will be back shortly."
   },
   "NotFound": {
     "title": "Page not found",

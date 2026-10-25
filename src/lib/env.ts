@@ -26,6 +26,15 @@ const serverSchema = z.object({
     z.enum(["development", "preview", "production"]).optional(),
   ),
   LOG_LEVEL: z.preprocess(emptyAsUndefined, z.enum(LOG_LEVELS).default("info")),
+  // Set by Vercel: the production domain, a bare host. Base of canonical URLs
+  // when NEXT_PUBLIC_SITE_URL is not set.
+  VERCEL_PROJECT_PRODUCTION_URL: z.preprocess(
+    emptyAsUndefined,
+    z
+      .string()
+      .regex(/^[a-z0-9.-]+(:\d+)?$/, "must be a bare host name")
+      .optional(),
+  ),
   // Optional until the public pages read the database (P3); without it,
   // withDatabase() logs the gap and reads fail as DB_UNAVAILABLE.
   DATABASE_URL: z.preprocess(

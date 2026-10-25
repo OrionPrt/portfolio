@@ -6,7 +6,8 @@ export type { Locale } from "./locales";
 
 /**
  * Internal routes are English folders under app/[locale]; `pathnames` maps
- * them to the URL shown in each language. P3 adds the remaining pages.
+ * them to the URL shown in each language. It is also the list of known routes:
+ * the proxy answers 404 for anything else (src/i18n/route-match.ts).
  */
 export const routing = defineRouting({
   locales: LOCALES,
@@ -18,9 +19,14 @@ export const routing = defineRouting({
   alternateLinks: false,
   pathnames: {
     "/": "/",
-    "/projects/[slug]": {
-      fr: "/projets/[slug]",
-      en: "/projects/[slug]",
+    "/about": { fr: "/a-propos", en: "/about" },
+    "/skills": { fr: "/competences", en: "/skills" },
+    "/projects": { fr: "/projets", en: "/projects" },
+    "/projects/[slug]": { fr: "/projets/[slug]", en: "/projects/[slug]" },
+    "/experiences": { fr: "/experiences", en: "/experiences" },
+    "/experiences/[slug]": {
+      fr: "/experiences/[slug]",
+      en: "/experiences/[slug]",
     },
   },
 });

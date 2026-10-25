@@ -9,7 +9,7 @@ export function SkipLink() {
   return (
     <a
       href={`#main-${locale}`}
-      className="bg-fg text-ground rounded-control sr-only z-50 px-4 py-2 text-sm font-medium focus:not-sr-only focus:fixed focus:top-4 focus:left-4"
+      className="bg-fg text-ground rounded-control sr-only z-50 border border-transparent px-4 py-2 text-sm font-medium focus:not-sr-only focus:fixed focus:top-4 focus:left-4"
     >
       {t("skipLink")}
     </a>

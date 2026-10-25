@@ -72,6 +72,7 @@ function toProjectView(
     seoDescription: value.seoDescription,
     skills: toSkillRefs(row.skills),
     isFallback: translation.isFallback,
+    contentLocale: value.locale,
   };
 }
 

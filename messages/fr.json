@@ -1,7 +1,7 @@
 {
   "Metadata": {
     "title": "Orion — Ingénieur logiciel",
-    "description": "Ingénieur logiciel : fullstack, DevOps et cybersécurité."
+    "description": "Ingénieur logiciel : fullstack, DevOps et cybersécurité."
   },
   "Layout": {
     "skipLink": "Aller au contenu",
@@ -20,21 +20,121 @@
     "dark": "Sombre",
     "system": "Système"
   },
+  "Nav": {
+    "label": "Navigation principale",
+    "about": "À propos",
+    "skills": "Compétences",
+    "projects": "Projets",
+    "experiences": "Expériences"
+  },
+  "Domains": {
+    "web": "web",
+    "low_level": "bas niveau",
+    "devops": "devops",
+    "cyber": "cyber"
+  },
+  "DomainTitles": {
+    "web": "Développement web",
+    "low_level": "Bas niveau",
+    "devops": "DevOps",
+    "cyber": "Cybersécurité"
+  },
+  "EmploymentTypes": {
+    "full_time": "Temps plein",
+    "part_time": "Temps partiel",
+    "internship": "Stage",
+    "apprenticeship": "Alternance",
+    "freelance": "Freelance"
+  },
+  "SocialKinds": {
+    "github": "GitHub",
+    "linkedin": "LinkedIn",
+    "email": "E-mail",
+    "hackthebox": "Hack The Box",
+    "rootme": "Root-Me",
+    "tryhackme": "TryHackMe",
+    "website": "Site web"
+  },
   "Home": {
-    "status": "disponible — [type de poste]",
-    "role": "Ingénieur logiciel — fullstack, DevOps et cybersécurité.",
-    "pitch": "[Ton accroche en une phrase : ce que tu apportes, pour qui.]",
+    "fallbackHeadline": "Ingénieur logiciel — fullstack, DevOps et cybersécurité.",
+    "about": "À propos",
+    "contactMe": "Me contacter",
     "featuredProject": "projet phare",
     "experience": "expérience",
-    "experienceRole": "[Poste]",
-    "experienceCompany": "[Entreprise] · depuis [année]"
+    "since": "depuis {date}",
+    "stack": "compétences",
+    "moreSkills": "+{count}",
+    "platforms": "plateformes",
+    "certifications": "certifications",
+    "contact": "contact",
+    "contactLead": "Une question, une mission, un poste ?",
+    "moreSkillsLabel": "et {count} autres"
+  },
+  "TwoLevel": {
+    "essentials": "L'essentiel",
+    "context": "Contexte",
+    "action": "Ce que j'ai fait",
+    "result": "Résultat",
+    "technical": "Détails techniques"
+  },
+  "View": {
+    "backHome": "Retour à l'accueil"
+  },
+  "About": {
+    "label": "à propos",
+    "title": "À propos",
+    "lookingFor": "Ce que je recherche",
+    "availability": "Disponibilité",
+    "location": "Localisation",
+    "links": "Me retrouver",
+    "description": "Qui je suis, ce que je recherche et où me retrouver."
+  },
+  "Skills": {
+    "label": "compétences",
+    "title": "Compétences",
+    "intro": "Regroupées par domaine. Chacune renvoie aux projets et aux expériences où elle a servi.",
+    "projects": "Projets",
+    "experiences": "Expériences",
+    "unused": "Pas encore reliées à un projet publié :",
+    "description": "Mes compétences par domaine (web, bas niveau, DevOps, cybersécurité), reliées aux projets et aux expériences où elles ont servi."
+  },
+  "Projects": {
+    "label": "projets",
+    "title": "Projets",
+    "filters": "Filtrer les projets",
+    "domain": "Domaine",
+    "skill": "Technologie",
+    "any": "Tous",
+    "apply": "Filtrer",
+    "reset": "Tout afficher",
+    "count": "{count, plural, =0 {Aucun projet} one {# projet} other {# projets}}",
+    "empty": "Aucun projet ne correspond à ces filtres.",
+    "repo": "Code source",
+    "demo": "Démo",
+    "all": "Tous les projets",
+    "description": "Mes projets en web, bas niveau, DevOps et cybersécurité, filtrables par domaine et par technologie."
   },
   "Project": {
     "label": "projet",
-    "placeholderName": "[Nom du projet phare]",
-    "placeholderVisual": "[capture ou visuel du projet]",
-    "backHome": "Retour à l'accueil",
-    "summary": "[Le contexte, ce que tu as fait et le résultat, en deux phrases lisibles par tous.]"
+    "stack": "Technologies"
+  },
+  "Experiences": {
+    "label": "expériences",
+    "title": "Expériences",
+    "empty": "Aucune expérience publiée pour le moment.",
+    "current": "Poste actuel",
+    "present": "aujourd'hui",
+    "all": "Toutes les expériences",
+    "company": "Entreprise",
+    "description": "Mon parcours professionnel, du poste actuel aux précédents."
+  },
+  "Experience": {
+    "label": "expérience",
+    "stack": "Technologies"
+  },
+  "DataUnavailable": {
+    "title": "Contenu momentanément indisponible",
+    "description": "Il ne peut pas être chargé pour le moment et reviendra dans quelques instants."
   },
   "NotFound": {
     "title": "Page introuvable",

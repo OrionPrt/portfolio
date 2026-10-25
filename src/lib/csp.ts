@@ -1,7 +1,13 @@
 export type CspMode = "report-only" | "enforce";
 
-/** Report-only until the end of P3: enforced before the first user-input form ships (ADR-0002). */
-export const CSP_MODE: CspMode = "report-only";
+/** Enforced since the end of P3, before the first user-input form ships (ADR-0002). */
+export const CSP_MODE: CspMode = "enforce";
+
+/** Where browsers send violation reports (src/app/api/csp-report/route.ts). */
+export const CSP_REPORT_PATH = "/api/csp-report";
+
+/** The Reporting-Endpoints group name the `report-to` directive refers to. */
+export const CSP_REPORT_GROUP = "csp-endpoint";
 
 interface CspOptions {
   readonly nonce: string;
@@ -55,6 +61,9 @@ export function buildContentSecurityPolicy({
     ["frame-ancestors", "'none'"],
     // Ignored (with a console warning) in report-only mode, and breaks plain-http localhost.
     ...(mode === "enforce" && !isDev ? [["upgrade-insecure-requests"]] : []),
+    // report-to (Reporting API) where supported; report-uri for the others (Firefox).
+    ["report-to", CSP_REPORT_GROUP],
+    ["report-uri", CSP_REPORT_PATH],
   ];
 
   return directives.map((sources) => sources.join(" ")).join("; ");

@@ -90,6 +90,7 @@ describe("listPublished", () => {
     expect(result.ok && result.data[0]).toMatchObject({
       title: "fr-only (fr)",
       isFallback: true,
+      contentLocale: "fr",
     });
   });
 

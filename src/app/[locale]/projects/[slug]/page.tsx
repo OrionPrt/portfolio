@@ -1,77 +1,75 @@
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import { hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
-import { ViewTransition } from "react";
 
-import { findPlaceholderProject } from "@/features/projects/placeholder-projects";
-import { projectTransitionName } from "@/features/projects/transition-names";
-import { Link } from "@/i18n/navigation";
+import { DataUnavailable } from "@/components/content/data-unavailable";
+import { ProjectDetail } from "@/components/projects/project-detail";
+import { JsonLd } from "@/components/seo/json-ld";
+import { getPublishedProject } from "@/features/projects/queries";
+import { localizedAlternates } from "@/features/seo/alternates";
+import { projectJsonLd } from "@/features/seo/json-ld";
+import { siteUrl } from "@/features/seo/site-url";
+import { getPathname } from "@/i18n/navigation";
+import { routing } from "@/i18n/routing";
+import { SITE_NAME } from "@/lib/site";
+
+export async function generateMetadata({
+  params,
+}: PageProps<"/[locale]/projects/[slug]">): Promise<Metadata> {
+  const { locale, slug } = await params;
+  if (!hasLocale(routing.locales, locale)) {
+    return {};
+  }
+  const project = await getPublishedProject(slug, locale);
+  // Unknown or unreadable: the page renders not-found or the outage notice.
+  if (!project.ok || project.data === undefined) {
+    return {};
+  }
+  return {
+    title: project.data.title,
+    description: project.data.seoDescription ?? project.data.tagline,
+    alternates: localizedAlternates(locale, {
+      pathname: "/projects/[slug]",
+      params: { slug },
+    }),
+  };
+}
 
 // Blocking render, like every page (ADR-0002): the root layout's opt-out only
 // covers navigations into [locale], not between its pages. A Suspense boundary
 // would also break the morph, which needs the whole view in one commit (ADR-0003).
 export const instant = false;
 
-export async function generateMetadata({
-  params,
-}: PageProps<"/[locale]/projects/[slug]">): Promise<Metadata> {
-  const { slug } = await params;
-  // An unknown slug renders the not-found page: never title it after a project.
-  if (findPlaceholderProject(slug) === undefined) {
-    return {};
-  }
-  const t = await getTranslations("Project");
-  return { title: t("placeholderName") };
-}
-
-// Full-screen view of a project. The tile on the home page carries the same
-// view-transition name, so navigating between them morphs one into the other.
 export default async function ProjectPage({
   params,
 }: PageProps<"/[locale]/projects/[slug]">) {
   const { locale, slug } = await params;
-  // Scoped by locale and slug: other visited project pages stay mounted (hidden).
-  const titleId = `project-${slug}-title-${locale}`;
-  const project = findPlaceholderProject(slug);
-  if (project === undefined) {
+  if (!hasLocale(routing.locales, locale)) {
     notFound();
   }
-  const t = await getTranslations("Project");
-
+  const project = await getPublishedProject(slug, locale);
+  if (!project.ok) {
+    return <DataUnavailable />;
+  }
+  // The proxy already answered 404 for unknown slugs: this is the soft fallback.
+  if (project.data === undefined) {
+    notFound();
+  }
+  const href = { pathname: "/projects/[slug]", params: { slug } } as const;
   return (
-    <ViewTransition
-      name={projectTransitionName(project.slug)}
-      share="morph"
-      default="none"
-    >
-      <article
-        aria-labelledby={titleId}
-        className="bg-surface border-line rounded-tile flex flex-1 flex-col gap-6 border p-8 lg:p-12"
-      >
-        <Link
-          href="/"
-          className="text-fg-muted hover:text-fg rounded-control self-start font-mono text-xs"
-        >
-          <span aria-hidden="true">← </span>
-          {t("backHome")}
-        </Link>
-        <p className="text-fg-muted font-mono text-xs">
-          <span aria-hidden="true">{"// "}</span>
-          {t("label")}
-        </p>
-        <h1
-          id={titleId}
-          className="text-[clamp(36px,5vw,64px)] leading-[1.05] font-semibold tracking-[-0.045em]"
-        >
-          {t("placeholderName")}
-        </h1>
-        <p className="text-fg-muted max-w-prose text-lg leading-relaxed">
-          {t("summary")}
-        </p>
-        <div className="bg-surface-muted border-line text-fg-muted flex min-h-64 flex-1 items-center justify-center rounded-[10px] border font-mono text-xs">
-          {t("placeholderVisual")}
-        </div>
-      </article>
-    </ViewTransition>
+    <>
+      <JsonLd
+        data={projectJsonLd({
+          name: project.data.title,
+          description: project.data.seoDescription ?? project.data.tagline,
+          url: new URL(getPathname({ locale, href }), siteUrl()).href,
+          language: project.data.contentLocale,
+          authorName: SITE_NAME,
+          keywords: project.data.skills.map((skill) => skill.name),
+          repoUrl: project.data.repoUrl,
+        })}
+      />
+      <ProjectDetail project={project.data} />
+    </>
   );
 }

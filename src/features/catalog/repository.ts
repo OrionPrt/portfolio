@@ -38,6 +38,7 @@ export interface EducationView {
   readonly degree: string;
   readonly description: string;
   readonly isFallback: boolean;
+  readonly contentLocale: Locale;
 }
 
 export interface CertificationView {
@@ -92,6 +93,7 @@ function toEducationView(
     degree: translation.value.degree,
     description: translation.value.description,
     isFallback: translation.isFallback,
+    contentLocale: translation.value.locale,
   };
 }
 

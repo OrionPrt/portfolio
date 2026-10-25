@@ -3,6 +3,7 @@ import type {
   SkillRef,
   StorySummary,
 } from "@/features/content/types";
+import type { Locale } from "@/i18n/locales";
 
 export interface ProjectView {
   readonly slug: string;
@@ -20,4 +21,6 @@ export interface ProjectView {
   readonly skills: readonly SkillRef[];
   /** True when the requested language was missing and another one is shown. */
   readonly isFallback: boolean;
+  /** The language the text is in: the page marks a fallback with `lang`. */
+  readonly contentLocale: Locale;
 }
