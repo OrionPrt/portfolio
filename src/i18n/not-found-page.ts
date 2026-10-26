@@ -26,13 +26,20 @@ a.home{display:inline-flex;height:2.5rem;align-items:center;padding:0 1rem;borde
 a:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 `;
 
+const HTML_ENTITIES: Readonly<Record<string, string>> = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#39;",
+};
+
+/** One pass over the text: no replacement can be escaped twice. */
 function escapeHtml(text: string): string {
-  return text
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+  return text.replace(
+    /[&<>"']/g,
+    (character) => HTML_ENTITIES[character] ?? "",
+  );
 }
 
 /**

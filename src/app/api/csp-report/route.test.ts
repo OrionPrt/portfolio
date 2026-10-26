@@ -39,10 +39,13 @@ describe("POST /api/csp-report", () => {
 
   beforeEach(() => {
     consoleWarn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    // Behind Vercel's edge, the only place X-Forwarded-For is trusted.
+    vi.stubEnv("VERCEL", "1");
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllEnvs();
   });
 
   it("logs each violation and answers 204", async () => {

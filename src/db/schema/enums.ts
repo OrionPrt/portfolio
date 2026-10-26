@@ -9,6 +9,7 @@ import {
   TILE_KINDS,
   TILE_SIZES,
 } from "@/features/content/vocabulary";
+import { SESSION_STAGES, THROTTLE_SCOPES } from "@/features/auth/vocabulary";
 import { LOCALES } from "@/i18n/locales";
 
 export const localeEnum = pgEnum("locale", LOCALES);
@@ -26,3 +27,7 @@ export const tileKindEnum = pgEnum("tile_kind", TILE_KINDS);
 export const tileSizeEnum = pgEnum("tile_size", TILE_SIZES);
 
 export const messageStatusEnum = pgEnum("message_status", MESSAGE_STATUSES);
+
+export const sessionStageEnum = pgEnum("session_stage", SESSION_STAGES);
+
+export const throttleScopeEnum = pgEnum("throttle_scope", THROTTLE_SCOPES);

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { ContactDependencies, ContactSubmission } from "./submit";
 
@@ -30,7 +30,13 @@ function formData(entries: Record<string, string>): FormData {
 }
 
 describe("submitContact", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("hands the form, the client's address and agent, and the locale to the handler", async () => {
+    // Behind Vercel's edge, the only place X-Forwarded-For is trusted.
+    vi.stubEnv("VERCEL", "1");
     mocks.headers.mockResolvedValue(
       new Headers({
         "x-forwarded-for": "203.0.113.7, 10.0.0.1",

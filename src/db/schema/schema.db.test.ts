@@ -40,6 +40,9 @@ describe("migrations", () => {
     );
 
     expect(tables.map((row) => row.table_name)).toEqual([
+      "admin_sessions",
+      "admin_users",
+      "audit_logs",
       "bento_tiles",
       "certification_translations",
       "certifications",
@@ -49,11 +52,13 @@ describe("migrations", () => {
       "experience_skills",
       "experience_translations",
       "experiences",
+      "login_throttles",
       "profile",
       "profile_translations",
       "project_skills",
       "project_translations",
       "projects",
+      "recovery_codes",
       "skills",
       "social_links",
     ]);

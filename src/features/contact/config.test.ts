@@ -100,6 +100,18 @@ describe("contactConfig", () => {
     },
   );
 
+  it("fails closed in a production build off Vercel too, unless told otherwise (E2E)", () => {
+    expect(contactConfig({ NODE_ENV: "production" })).toMatchObject({
+      enabled: false,
+    });
+    expect(
+      contactConfig({
+        NODE_ENV: "production",
+        ALLOW_DEVELOPMENT_SECRETS: "true",
+      }),
+    ).toMatchObject({ enabled: true, turnstile: TURNSTILE_TEST_KEYS });
+  });
+
   it("still takes messages in production without email, which is only a notification", () => {
     const config = contactConfig(without(PRODUCTION, "RESEND_API_KEY"));
 

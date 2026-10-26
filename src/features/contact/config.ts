@@ -1,6 +1,11 @@
 import "server-only";
 
+import {
+  allowsDevelopmentSecrets,
+  DEVELOPMENT_IP_HASH_SALT,
+} from "@/lib/deployment";
 import { parseServerEnv } from "@/lib/env";
+import { mailConfigOf, type MailConfig } from "@/lib/mail";
 
 type EnvSource = Readonly<Record<string, string | undefined>>;
 
@@ -10,21 +15,9 @@ export const TURNSTILE_TEST_KEYS = {
   secretKey: "1x0000000000000000000000000000000AA",
 } as const;
 
-// Hashes made with it only ever reach a development database.
-const DEVELOPMENT_SALT = "development-only-salt-not-used-in-production";
-
-/** Without a verified domain, Resend only sends from this address (P12 adds one). */
-const DEFAULT_FROM = "Portfolio <onboarding@resend.dev>";
-
 export interface UpstashConfig {
   readonly url: string;
   readonly token: string;
-}
-
-export interface MailConfig {
-  readonly apiKey: string;
-  readonly to: string;
-  readonly from: string;
 }
 
 export type ContactConfig =
@@ -53,16 +46,6 @@ function upstashOf(env: ServerEnv): UpstashConfig | undefined {
   const url = env.UPSTASH_REDIS_REST_URL ?? env.KV_REST_API_URL;
   const token = env.UPSTASH_REDIS_REST_TOKEN ?? env.KV_REST_API_TOKEN;
   return url !== undefined && token !== undefined ? { url, token } : undefined;
-}
-
-function mailOf(env: ServerEnv): MailConfig | undefined {
-  return env.RESEND_API_KEY !== undefined && env.CONTACT_TO_EMAIL !== undefined
-    ? {
-        apiKey: env.RESEND_API_KEY,
-        to: env.CONTACT_TO_EMAIL,
-        from: env.CONTACT_FROM_EMAIL ?? DEFAULT_FROM,
-      }
-    : undefined;
 }
 
 /** Cloudflare's test secret passes any token: on Vercel it counts as unset. */
@@ -98,16 +81,16 @@ function missingSettings(env: ServerEnv): readonly string[] {
 export function contactConfig(source: EnvSource = process.env): ContactConfig {
   const env = parseServerEnv(source);
   const upstash = upstashOf(env);
-  const mail = mailOf(env);
+  const mail = mailConfigOf(env);
 
-  if (env.VERCEL_ENV !== "production" && env.VERCEL_ENV !== "preview") {
+  if (allowsDevelopmentSecrets(env)) {
     return {
       enabled: true,
       turnstile: {
         siteKey: env.TURNSTILE_SITE_KEY ?? TURNSTILE_TEST_KEYS.siteKey,
         secretKey: env.TURNSTILE_SECRET_KEY ?? TURNSTILE_TEST_KEYS.secretKey,
       },
-      ipHashSalt: env.IP_HASH_SALT ?? DEVELOPMENT_SALT,
+      ipHashSalt: env.IP_HASH_SALT ?? DEVELOPMENT_IP_HASH_SALT,
       upstash,
       mail,
     };

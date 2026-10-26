@@ -283,3 +283,52 @@ describe("proxy matcher", () => {
     expect(prefetch).toBe(true);
   });
 });
+
+describe("proxy — admin", () => {
+  const SESSION = { cookie: `__Host-session=${"a".repeat(52)}` };
+
+  it.each(["/admin/login", "/admin/login/2fa"])(
+    "serves %s without a session, outside the locale routing",
+    async (path) => {
+      const response = await handle(path);
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get("location")).toBeNull();
+      expect(response.headers.get("x-middleware-rewrite")).toBeNull();
+      expect(forwardedHeader(response, "x-nonce")).toBe(
+        nonceOf(response.headers.get(CSP_HEADER)),
+      );
+    },
+  );
+
+  it.each(["/admin", "/admin/security"])(
+    "sends %s to the login without a session cookie, uncached",
+    async (path) => {
+      const response = await handle(path);
+
+      expect(response.status).toBe(307);
+      expect(response.headers.get("location")).toBe(`${ORIGIN}/admin/login`);
+      expect(response.headers.get("cache-control")).toBe("private, no-store");
+    },
+  );
+
+  it("lets a request with a session cookie through: the page checks it", async () => {
+    const response = await handle("/admin/security", SESSION);
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
+  });
+
+  // The web enrollment page is gone: the CLI enrolls the second factor.
+  it.each([
+    "/admin/unknown",
+    "/admin/login/setup",
+    "/admin/login/other",
+    "/admin/security/x",
+  ])("answers 404 for %s, which no admin page claims", async (path) => {
+    const response = await handle(path, SESSION);
+
+    expect(response.status).toBe(404);
+    expect(await response.text()).toContain('<html lang="fr">');
+  });
+});

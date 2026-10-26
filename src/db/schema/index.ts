@@ -1,3 +1,4 @@
+export * from "./auth";
 export * from "./bento";
 export * from "./contact";
 export * from "./credentials";

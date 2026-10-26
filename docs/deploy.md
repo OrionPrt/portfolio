@@ -49,11 +49,27 @@ Without the variables below, production shows the contact page with a message po
 
 7. **Previews.** Without these variables for Preview, a preview's contact page shows the "not available" message, which is expected. To try the form on a preview, set them for Preview too, with a widget whose hostnames include the preview's. Cloudflare's test keys are refused on Vercel: they pass any token.
 
+## Admin
+
+The admin lives at `/admin` ([ADR-0006](adr/0006-auth.md)). Without the variables below, its login page says it is not configured.
+
+1. **Database.** Apply the `0002_auth` migration to Neon: `pnpm db:migrate`, from a machine whose `.env.local` holds its `DATABASE_URL`.
+2. **Sealing key.** Generate one with `openssl rand -base64 32`, and add it as `TOTP_ENCRYPTION_KEY` (Production, _Sensitive_). Add the same value to that machine's `.env.local`: the CLI seals the second factor with it, and refuses to write to Neon without it. Keep a copy in a password manager: without it the TOTP secret cannot be read, and the second factor must be reset (step 5). `IP_HASH_SALT`, already set for the contact form, keys the throttling and the audit log's network hashes.
+3. **Redeploy**, so the variable applies.
+4. **Account**, with the phone at hand, from the same machine: `pnpm admin:create`. It asks for the email and a passphrase (15 characters or more), and refuses a password found in known breaches. It then shows a QR code in the terminal: scan it with an authenticator app (Aegis, 2FAS, Google Authenticator…) and type the first code the app shows. Only then is the account created, with its second factor on, and 10 recovery codes are printed: store them in a password manager, they are shown once. The web never sets up a second factor: `/admin/login` asks for the password, then a code.
+5. **If something goes wrong**, from the same machine:
+   - `pnpm admin:unlock` lifts every sign-in lock: 5 failures lock an account from one network for a minute, doubling to an hour; 10 wrong TOTP codes, from any network, lock the code step for an hour (recovery codes still work). With `RESEND_API_KEY` and `CONTACT_TO_EMAIL` set, a lock that starts is emailed, at most once an hour;
+   - `pnpm admin:set-password`, when the password is forgotten or may have leaked: it sets a new one, ends every session and lifts every lock (whoever holds a leaked password can keep the code step locked, and the web asks for a code to change it);
+   - `pnpm admin:reset-totp`, when both the phone and the recovery codes are lost: it ends every session, shows a new QR code, and once the new app's first code matches, replaces the second factor and prints new recovery codes.
+
+Previews have no `TOTP_ENCRYPTION_KEY` unless one is added for Preview: their admin then says it is not configured, which is expected. The development key is refused on Vercel.
+
 ## After a deployment
 
 - `https://<project>.vercel.app/fr` shows the hub, and an unknown path such as `/fr/inconnu` answers `404`.
 - The response headers carry `Content-Security-Policy` (enforced) and `Reporting-Endpoints`.
 - The runtime logs show no `csp.violation` warnings, and no `db.not_configured` or `DB_UNAVAILABLE` errors.
+- `/admin` redirects to `/admin/login`, whose response carries `X-Robots-Tag: noindex, nofollow`; the logs show no `auth.not_configured`.
 - `/fr/contact` shows the form and the Turnstile widget. A test message appears in `contact_messages` and arrives by email, and the logs show no `contact.not_configured`, `contact.turnstile_*` or `contact.mail_*` entries.
 
 ## Content updates

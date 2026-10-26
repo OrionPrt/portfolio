@@ -49,6 +49,25 @@ jobs:
         with:
           category: /language:javascript-typescript
 
+  semgrep:
+    name: SAST (Semgrep)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      # Pinned by digest; bump it by hand. The rulesets come from the Semgrep
+      # Registry at run time, so new rules can fail the job: that is the point.
+      image: semgrep/semgrep:1.180.0@sha256:529ee8a277ec8adc5b534d7c74eea0a47e9de21d62852b6ba7ac6ba9566845c3
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Tracked files only. A finding judged safe carries a justified
+      # `nosemgrep: <rule>` comment next to it.
+      - run: >-
+          semgrep scan --error --metrics=off
+          --config p/default --config p/typescript --config p/react
+          --config p/nextjs --config p/secrets --config p/owasp-top-ten
+
   dependencies-pr:
     name: Dependency vulnerabilities (OSV, PR diff)
     if: github.event_name == 'pull_request'

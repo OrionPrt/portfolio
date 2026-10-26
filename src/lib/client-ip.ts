@@ -9,12 +9,19 @@ function address(value: string | null | undefined): string | undefined {
 }
 
 /**
- * The client's address as seen by the platform. On Vercel, X-Forwarded-For is
- * set by the edge (its first entry is the client); elsewhere it is only a
- * hint, which is enough for best-effort rate limiting. Anything that is not
- * an IP address counts as "unknown", so a forged header cannot grow a key.
+ * The client's address as seen by the platform. On Vercel, the edge
+ * overwrites X-Forwarded-For (its first entry is the client). Elsewhere any
+ * client could write it and rotate its lockout keys at will: every request
+ * then counts as one "unknown" client. Anything that is not an IP address
+ * counts as "unknown" too, so a forged header cannot grow a key.
  */
-export function clientIp(headers: Headers): string {
+export function clientIp(
+  headers: Headers,
+  isBehindVercel: boolean = process.env.VERCEL === "1",
+): string {
+  if (!isBehindVercel) {
+    return "unknown";
+  }
   return (
     address(headers.get("x-forwarded-for")?.split(",")[0]) ??
     address(headers.get("x-real-ip")) ??

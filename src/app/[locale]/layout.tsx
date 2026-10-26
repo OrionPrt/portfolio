@@ -3,7 +3,6 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations } from "next-intl/server";
-import { Geist, Geist_Mono } from "next/font/google";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
@@ -18,17 +17,9 @@ import { currentYear } from "@/lib/current-year";
 import { parseServerEnv } from "@/lib/env";
 import { IS_INDEXABLE, SITE_NAME } from "@/lib/site";
 
+import { FONT_VARIABLES } from "@/styles/fonts";
+
 import "@/styles/globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 // Every page is rendered per request so Next.js can sign its scripts with the
 // CSP nonce generated in src/proxy.ts. Data stays cached with "use cache" (ADR-0002).
@@ -75,7 +66,7 @@ export default async function LocaleLayout({
   return (
     <html
       lang={locale}
-      className={`${geistSans.variable} ${geistMono.variable} h-full`}
+      className={`${FONT_VARIABLES} h-full`}
       // The theme script sets the class and color-scheme before React hydrates.
       suppressHydrationWarning
     >

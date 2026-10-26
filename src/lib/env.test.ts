@@ -176,3 +176,25 @@ describe("parseServerEnv — contact form", () => {
     expect(error.message).not.toContain(value);
   });
 });
+
+describe("parseServerEnv — admin authentication", () => {
+  const KEY = Buffer.alloc(32, 7).toString("base64");
+
+  it("accepts a 256-bit TOTP encryption key in base64", () => {
+    expect(parseServerEnv({ TOTP_ENCRYPTION_KEY: KEY })).toMatchObject({
+      TOTP_ENCRYPTION_KEY: KEY,
+    });
+  });
+
+  it.each([Buffer.alloc(16, 7).toString("base64"), "not base64, and a secret"])(
+    "rejects the key %j without echoing it",
+    (value) => {
+      const error = captureEnvError(() =>
+        parseServerEnv({ TOTP_ENCRYPTION_KEY: value }),
+      );
+
+      expect(error.message).toContain("TOTP_ENCRYPTION_KEY");
+      expect(error.message).not.toContain(value);
+    },
+  );
+});

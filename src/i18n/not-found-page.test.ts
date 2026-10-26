@@ -12,7 +12,10 @@ const TOKENS = readFileSync(
 /** The value of a custom property in the light (:root) or dark (.dark) block. */
 function tokenValue(block: ":root" | ".dark", name: string): string {
   const body = TOKENS.split(block)[1]?.split("}")[0] ?? "";
-  return new RegExp(`--${name}:\\s*([^;]+);`).exec(body)?.[1]?.trim() ?? "";
+  const declaration = body
+    .split(/[{;]/)
+    .find((part) => part.trim().startsWith(`--${name}:`));
+  return declaration?.split(":")[1]?.trim() ?? "";
 }
 
 describe("renderNotFoundPage", () => {

@@ -105,6 +105,8 @@ describe("redact — secrets inside values", () => {
       "Authorization: Bearer [REDACTED]",
     ],
     [
+      // A made-up token: the redaction under test must catch its shape.
+      // nosemgrep: generic.secrets.security.detected-jwt-token.detected-jwt-token
       "jwt eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.c2lnbmF0dXJl end",
       "jwt [REDACTED] end",
     ],

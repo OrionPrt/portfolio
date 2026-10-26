@@ -10,7 +10,7 @@ import {
   type ContactFieldErrors,
 } from "@/features/contact/fields";
 
-import { FormField } from "./form-field";
+import { FormField } from "@/components/ui/form-field";
 
 interface ContactFieldsProps {
   /** Scopes the fields' ids: other visited pages stay mounted, hidden. */

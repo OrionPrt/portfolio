@@ -15,7 +15,8 @@ export interface ControlProps {
 
 interface FormFieldProps {
   readonly id: string;
-  readonly label: string;
+  /** Text, or text with a visually hidden part that tells same-named fields apart. */
+  readonly label: ReactNode;
   readonly hint?: string;
   readonly error?: string;
   readonly children: (control: ControlProps) => ReactNode;

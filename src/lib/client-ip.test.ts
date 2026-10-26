@@ -12,8 +12,14 @@ describe("clientIp", () => {
     // Off Vercel the header is client-controlled: only an address is a key.
     [{ "x-forwarded-for": "a".repeat(64) }, "unknown"],
     [{ "x-real-ip": "not-an-ip" }, "unknown"],
-  ])("reads %j as %s", (headers, ip) => {
-    expect(clientIp(new Headers(headers))).toBe(ip);
+  ])("reads %j as %s on Vercel", (headers, ip) => {
+    expect(clientIp(new Headers(headers), true)).toBe(ip);
+  });
+
+  it("trusts no forwarding header off Vercel, where clients can write them", () => {
+    expect(
+      clientIp(new Headers({ "x-forwarded-for": "203.0.113.7" }), false),
+    ).toBe("unknown");
   });
 });
 

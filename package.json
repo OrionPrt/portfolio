@@ -18,10 +18,16 @@
     "prepare": "husky",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx --env-file-if-exists=.env.local scripts/db/migrate.ts",
-    "db:seed": "tsx --env-file-if-exists=.env.local scripts/seed/index.ts"
+    "db:seed": "tsx --env-file-if-exists=.env.local scripts/seed/index.ts",
+    "admin:create": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/admin/create.ts",
+    "admin:unlock": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/admin/unlock.ts",
+    "admin:reset-totp": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/admin/reset-totp.ts",
+    "admin:set-password": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/admin/set-password.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",
+    "@node-rs/argon2": "2.2.2",
+    "@oslojs/encoding": "1.1.0",
     "@upstash/ratelimit": "2.2.0",
     "@upstash/redis": "1.39.0",
     "@vercel/analytics": "^2.0.1",
@@ -35,6 +41,7 @@
     "react-markdown": "10.1.0",
     "remark-gfm": "4.0.1",
     "server-only": "^0.0.1",
+    "uqr": "0.1.3",
     "zod": "^4.6.7"
   },
   "devDependencies": {

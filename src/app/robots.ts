@@ -8,7 +8,8 @@ export default function robots(): MetadataRoute.Robots {
     return { rules: { userAgent: "*", disallow: "/" } };
   }
   return {
-    rules: { userAgent: "*", allow: "/" },
+    // The admin also says noindex (X-Robots-Tag): this only spares the crawl.
+    rules: { userAgent: "*", allow: "/", disallow: "/admin" },
     sitemap: new URL("/sitemap.xml", siteUrl()).href,
   };
 }

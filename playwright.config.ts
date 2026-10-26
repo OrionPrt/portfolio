@@ -1,10 +1,24 @@
 import { defineConfig, devices } from "@playwright/test";
 
+import { isLocalDatabase } from "./src/db/local";
+
 // Not 3000: the suite must never attach to a running `next dev` instead of the production build.
 const PORT = 3100;
 const isCI = Boolean(process.env.CI);
 const deployedBaseURL = process.env.E2E_BASE_URL;
 const baseURL = deployedBaseURL ?? `http://localhost:${PORT}`;
+
+// The server below runs on development secrets, and the tests write to its
+// database (contact messages, the admin account): never the real one, which
+// `next start` would otherwise read from .env.local.
+if (
+  deployedBaseURL === undefined &&
+  !isLocalDatabase(process.env.DATABASE_URL ?? "")
+) {
+  throw new Error(
+    "pnpm e2e needs DATABASE_URL set to a local database, migrated and seeded (see README).",
+  );
+}
 
 export default defineConfig({
   testDir: "./e2e",
@@ -23,9 +37,17 @@ export default defineConfig({
   webServer: deployedBaseURL
     ? undefined
     : {
-        command: `pnpm build && pnpm start --port ${PORT}`,
-        // No notification email, whatever .env.local holds.
-        env: { RESEND_API_KEY: "" },
+        // Loopback only: the E2E account's password and TOTP secret are public.
+        command: `pnpm build && pnpm start --hostname localhost --port ${PORT}`,
+        // A production build on development secrets (test keys, public salt and
+        // sealing key: e2e/support/admin.ts seals with it), and no notification
+        // email, whatever .env.local holds. Empty reads as unset.
+        env: {
+          ALLOW_DEVELOPMENT_SECRETS: "true",
+          TOTP_ENCRYPTION_KEY: "",
+          IP_HASH_SALT: "",
+          RESEND_API_KEY: "",
+        },
         url: baseURL,
         reuseExistingServer: false,
         timeout: 180_000,

@@ -14,6 +14,7 @@ export function JsonLd({ data }: JsonLdProps) {
     <script
       type="application/ld+json"
       // Safe: the only input is JSON from serializeJsonLd, escaped for <script>.
+      // nosemgrep: typescript.react.security.audit.react-dangerouslysetinnerhtml.react-dangerouslysetinnerhtml
       dangerouslySetInnerHTML={{ __html: serializeJsonLd(data) }}
     />
   );

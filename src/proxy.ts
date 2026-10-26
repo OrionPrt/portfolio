@@ -1,6 +1,13 @@
 import createMiddleware from "next-intl/middleware";
 import { NextRequest, NextResponse, type ProxyConfig } from "next/server";
 
+import {
+  ADMIN_PATHS,
+  isAdminPath,
+  KNOWN_ADMIN_PATHS,
+  PUBLIC_ADMIN_PATHS,
+} from "@/features/auth/admin-paths";
+import { SESSION_COOKIE } from "@/features/auth/vocabulary";
 import { createPathGate } from "@/features/content/path-gate";
 import { loadPublishedSlugs } from "@/features/content/published-slugs";
 import { createSlugRegistry } from "@/features/content/slug-registry";
@@ -99,6 +106,32 @@ function notFoundResponse(pathname: string): NextResponse {
   });
 }
 
+/**
+ * The admin: French only, outside the locale routing, and only its known
+ * pages. Without a session cookie, only the login is reachable: an optimistic
+ * check that spares a render. Pages and actions verify the session itself.
+ */
+function routeAdmin(
+  request: NextRequest,
+  forwardedHeaders: Headers,
+): NextResponse {
+  const { pathname } = request.nextUrl;
+  if (!KNOWN_ADMIN_PATHS.has(pathname)) {
+    return notFoundResponse(pathname);
+  }
+  if (
+    !PUBLIC_ADMIN_PATHS.has(pathname) &&
+    !request.cookies.has(SESSION_COOKIE)
+  ) {
+    const response = NextResponse.redirect(
+      new URL(ADMIN_PATHS.login, request.url),
+    );
+    response.headers.set("Cache-Control", "private, no-store");
+    return response;
+  }
+  return NextResponse.next({ request: { headers: forwardedHeaders } });
+}
+
 async function routeRequest(
   request: NextRequest,
   forwardedHeaders: Headers,
@@ -114,6 +147,9 @@ async function routeRequest(
   // next-intl hands undecodable paths to Next.js without our headers: refuse them first.
   if (!isDecodable(pathname)) {
     return new NextResponse(null, { status: 400 });
+  }
+  if (isAdminPath(pathname)) {
+    return routeAdmin(request, forwardedHeaders);
   }
   if (isNonLocalized(pathname)) {
     return isUnroutedPath(pathname)

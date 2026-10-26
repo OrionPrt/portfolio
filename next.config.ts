@@ -19,7 +19,14 @@ const nextConfig: NextConfig = {
     serverActions: { bodySizeLimit: "64kb" },
   },
   headers: () =>
-    Promise.resolve([{ source: "/:path*", headers: [...SECURITY_HEADERS] }]),
+    Promise.resolve([
+      { source: "/:path*", headers: [...SECURITY_HEADERS] },
+      // Never indexed, whatever the site's launch state.
+      {
+        source: "/admin/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+    ]),
   turbopack: {
     rules: {
       "*.css": {

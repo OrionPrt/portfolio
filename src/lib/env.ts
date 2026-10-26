@@ -16,6 +16,14 @@ function isNeonParsable(value: string): boolean {
   return URL.canParse(`http:${value.slice(value.indexOf(":") + 1)}`);
 }
 
+/** 32 bytes in standard base64, as `openssl rand -base64 32` prints them. */
+function isBase64Key(value: string): boolean {
+  return (
+    /^[A-Za-z0-9+/]{43}=$/.test(value) &&
+    Buffer.from(value, "base64").length === 32
+  );
+}
+
 function optionalText() {
   return z.preprocess(emptyAsUndefined, z.string().max(1000).optional());
 }
@@ -37,6 +45,11 @@ const serverSchema = z.object({
     z.enum(["development", "preview", "production"]).optional(),
   ),
   LOG_LEVEL: z.preprocess(emptyAsUndefined, z.enum(LOG_LEVELS).default("info")),
+  /** "true" lets a production build run on development secrets: the E2E server only. */
+  ALLOW_DEVELOPMENT_SECRETS: z.preprocess(
+    emptyAsUndefined,
+    z.enum(["true", "false"]).optional(),
+  ),
   // Contact form (P4). All optional: without them, development runs on
   // Cloudflare's test keys and in-memory limits, and production disables the
   // form (src/features/contact/config.ts).
@@ -56,6 +69,11 @@ const serverSchema = z.object({
   CONTACT_TO_EMAIL: z.preprocess(emptyAsUndefined, z.email().optional()),
   /** "Name <address>"; without a verified domain, Resend only sends from onboarding@resend.dev. */
   CONTACT_FROM_EMAIL: optionalText(),
+  // Admin (P5): seals the TOTP secret (AES-256-GCM), 32 bytes in base64.
+  TOTP_ENCRYPTION_KEY: z.preprocess(
+    emptyAsUndefined,
+    z.string().refine(isBase64Key, "must be 32 bytes in base64").optional(),
+  ),
   // Set by Vercel: the production domain, a bare host. Base of canonical URLs
   // when NEXT_PUBLIC_SITE_URL is not set.
   VERCEL_PROJECT_PRODUCTION_URL: z.preprocess(
