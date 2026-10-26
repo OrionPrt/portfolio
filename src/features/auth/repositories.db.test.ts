@@ -115,14 +115,16 @@ describe("users repository", () => {
   it("changes the password, and replaces the second factor (CLI)", async () => {
     const users = createUsersRepository(testDb.db);
     const admin = await newAdmin();
+    // Shaped like a sealed secret, but nothing is sealed: the repository stores text.
+    const replacement = "v1.fake-nonce.fake-ciphertext.fake-tag";
 
     unwrap(await users.updatePassword(ADMIN_ID, `${HASH}x`));
-    unwrap(await users.replaceTotp(ADMIN_ID, "v1.bmV3.c2VjcmV0.dGFn", 5));
+    unwrap(await users.replaceTotp(ADMIN_ID, replacement, 5));
 
     const updated = unwrap(await users.findById(ADMIN_ID));
     expect(updated).toMatchObject({
       passwordHash: `${HASH}x`,
-      totpSecret: "v1.bmV3.c2VjcmV0.dGFn",
+      totpSecret: replacement,
       totpLastStep: 5,
     });
     expect(updated?.passwordChangedAt.getTime()).toBeGreaterThanOrEqual(

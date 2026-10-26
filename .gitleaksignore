@@ -1,0 +1,3 @@
+# Findings judged false positives, by fingerprint (commit:file:rule:line).
+# A fake sealed TOTP value in a test, since replaced with an obvious placeholder.
+0b6622444a8827cb9668a237b59698af9c58e7df:src/features/auth/repositories.db.test.ts:generic-api-key:125
