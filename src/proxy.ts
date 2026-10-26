@@ -4,7 +4,7 @@ import { NextRequest, NextResponse, type ProxyConfig } from "next/server";
 import {
   ADMIN_PATHS,
   isAdminPath,
-  KNOWN_ADMIN_PATHS,
+  isKnownAdminPath,
   PUBLIC_ADMIN_PATHS,
 } from "@/features/auth/admin-paths";
 import { SESSION_COOKIE } from "@/features/auth/vocabulary";
@@ -116,7 +116,7 @@ function routeAdmin(
   forwardedHeaders: Headers,
 ): NextResponse {
   const { pathname } = request.nextUrl;
-  if (!KNOWN_ADMIN_PATHS.has(pathname)) {
+  if (!isKnownAdminPath(pathname)) {
     return notFoundResponse(pathname);
   }
   if (

@@ -16,7 +16,10 @@ export const ADMIN_COPY = {
   nav: {
     label: "Administration",
     dashboard: "Tableau de bord",
+    messages: "Messages",
+    unreadWord: (count: number) => (count > 1 ? "non lus" : "non lu"),
     security: "Sécurité",
+    groups: { overview: "Vue d'ensemble", account: "Compte" },
     signOut: "Se déconnecter",
     site: "Voir le site",
     brand: "Orion, administration",
@@ -62,7 +65,64 @@ export const ADMIN_COPY = {
     lead: "La gestion du contenu arrive avec la prochaine version du site.",
     security:
       "Sessions, codes de récupération, mot de passe et journal d'audit",
+    messages: (unread: number | undefined) =>
+      unread === undefined
+        ? "Le nombre de messages non lus n'a pas pu être chargé."
+        : unread === 0
+          ? "Aucun message non lu."
+          : `${String(unread)} message${unread > 1 ? "s" : ""} non lu${unread > 1 ? "s" : ""}.`,
   },
+  inbox: {
+    title: "Messages",
+    /** The tab's title: it changes with the folder and the page, for the route announcer. */
+    documentTitle: (view: "received" | "archived", page: number) =>
+      `Messages ${view === "received" ? "reçus" : "archivés"}${page > 1 ? `, page ${String(page)}` : ""}`,
+    messageTitle: "Message",
+    views: { received: "Reçus", archived: "Archivés" },
+    viewsLabel: "Dossiers",
+    empty: {
+      received: "Aucun message reçu.",
+      archived: "Aucun message archivé.",
+    },
+    from: "De",
+    received: "Reçu le",
+    language: "Langue",
+    languages: { fr: "français", en: "anglais" },
+    device: "Appareil",
+    pagination: "Pagination",
+    previous: "Plus récents",
+    next: "Plus anciens",
+    pageOf: (page: number, pages: number) =>
+      `Page ${String(page)} sur ${String(pages)}`,
+    back: "Retour aux messages",
+    notFound: "Ce message n'existe pas, ou a été supprimé.",
+    reply: "Répondre par e-mail",
+    replySubject: (subject: string) => `Re${NB}: ${subject}`,
+    saving: "Enregistrement…",
+    markRead: "Marquer comme lu",
+    markUnread: "Marquer comme non lu",
+    archive: "Archiver",
+    unarchive: "Remettre dans les reçus",
+    changed: {
+      read: "Message marqué comme lu.",
+      unread: "Message marqué comme non lu.",
+      archived: "Message archivé.",
+    },
+    statuses: { unread: "Non lu", read: "Lu", archived: "Archivé" },
+    delete: {
+      trigger: "Supprimer",
+      title: `Supprimer ce message${NB}?`,
+      description:
+        "Il sera effacé définitivement. Le journal d'audit ne gardera que la trace de la suppression, sans son contenu.",
+      confirm: "Supprimer définitivement",
+      pending: "Suppression…",
+    },
+    failures: {
+      not_found: "Ce message n'existe plus.",
+      unavailable: FAILURES.unavailable,
+    },
+  },
+  cancel: "Annuler",
   security: {
     title: "Sécurité",
     sessions: {
@@ -132,6 +192,7 @@ export const ADMIN_COPY = {
         "auth.session_revoked": "Session révoquée",
         "auth.signed_out": "Déconnexion",
         "auth.totp_reset": "Double authentification réinitialisée (CLI)",
+        "contact.message_deleted": "Message supprimé",
       },
       /** The diff's keys and values, in words; anything else is shown as stored. */
       details: {

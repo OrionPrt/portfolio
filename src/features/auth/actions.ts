@@ -4,7 +4,6 @@ import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { withDatabase } from "@/db/client";
-import { logger } from "@/lib/logger";
 import { err, type Result } from "@/lib/result";
 
 import {
@@ -15,7 +14,7 @@ import {
 } from "./account-security";
 import type { AttemptContext } from "./attempts";
 import type { AuthDependencies } from "./auth-dependencies";
-import { authConfig } from "./config";
+import { checkedRequest } from "./checked-request";
 import { ADMIN_PATHS } from "./admin-paths";
 import {
   getAdminSession,
@@ -31,7 +30,6 @@ import type {
   RecoveryCodesState,
   SessionsState,
 } from "./form-state";
-import { requestContext } from "./request-context";
 import { verifySecondFactor } from "./second-factor";
 import {
   clearSessionCookie,
@@ -55,16 +53,11 @@ function field(formData: FormData, name: string): string {
 async function runAuth<T>(
   run: (deps: AuthDependencies, context: AttemptContext) => Promise<Result<T>>,
 ): Promise<Result<T, "unavailable">> {
-  const config = authConfig();
-  if (!config.enabled) {
-    logger.error("auth.not_configured", { missing: config.missing });
-    return err("unavailable");
+  const checked = await checkedRequest();
+  if (!checked.ok) {
+    return checked;
   }
-  const context = await requestContext(config.ipHashSalt);
-  if (!context.isSameOrigin) {
-    logger.warn("auth.cross_origin_refused");
-    return err("unavailable");
-  }
+  const { config, context } = checked.data;
   const result = await withDatabase((db) =>
     run(authDependencies(db, config), context),
   );

@@ -16,7 +16,8 @@ interface SubmitButtonProps {
 
 /**
  * Stays focusable while its form is pending (aria-disabled, not disabled), so
- * focus is not lost, and ignores a second click meanwhile.
+ * focus is not lost, and ignores a second click meanwhile. With a name and a
+ * value, only the button that sent the form shows the pending label.
  */
 export function SubmitButton({
   children,
@@ -25,7 +26,9 @@ export function SubmitButton({
   name,
   value,
 }: SubmitButtonProps) {
-  const { pending } = useFormStatus();
+  const { pending, data } = useFormStatus();
+  const isSender =
+    name === undefined || value === undefined || data?.get(name) === value;
 
   return (
     <button
@@ -40,7 +43,7 @@ export function SubmitButton({
       }}
       className={`${BUTTON_CLASSES[look]} self-start aria-disabled:cursor-wait aria-disabled:opacity-60`}
     >
-      {pending ? pendingLabel : children}
+      {pending && isSender ? pendingLabel : children}
     </button>
   );
 }

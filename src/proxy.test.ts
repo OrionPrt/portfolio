@@ -301,7 +301,11 @@ describe("proxy — admin", () => {
     },
   );
 
-  it.each(["/admin", "/admin/security"])(
+  it.each([
+    "/admin",
+    "/admin/security",
+    "/admin/messages/0f8fad5b-d9cb-469f-a165-70867728950e",
+  ])(
     "sends %s to the login without a session cookie, uncached",
     async (path) => {
       const response = await handle(path);
@@ -325,6 +329,7 @@ describe("proxy — admin", () => {
     "/admin/login/setup",
     "/admin/login/other",
     "/admin/security/x",
+    "/admin/messages/not-an-id",
   ])("answers 404 for %s, which no admin page claims", async (path) => {
     const response = await handle(path, SESSION);
 

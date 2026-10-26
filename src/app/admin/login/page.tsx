@@ -21,7 +21,11 @@ export default async function LoginPage() {
   const isEnabled = authConfig().enabled;
 
   return (
-    <AuthCard title={ADMIN_COPY.login.title} lead={ADMIN_COPY.login.lead}>
+    <AuthCard
+      titleId="admin-login-title"
+      title={ADMIN_COPY.login.title}
+      lead={ADMIN_COPY.login.lead}
+    >
       {isEnabled ? <LoginForm /> : <p>{ADMIN_COPY.login.disabled}</p>}
     </AuthCard>
   );

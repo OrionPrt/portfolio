@@ -3,9 +3,14 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { AuditEntry } from "@/features/auth/audit-repository";
 
-vi.mock("@/features/auth/actions", () => ({ signOutAction: vi.fn() }));
+const navigation = vi.hoisted(() => ({ pathname: "/admin" }));
 
-import { AdminShell } from "./admin-shell";
+vi.mock("@/features/auth/actions", () => ({ signOutAction: vi.fn() }));
+vi.mock("next/navigation", () => ({
+  usePathname: () => navigation.pathname,
+}));
+
+import { AdminSidebar } from "./admin-sidebar";
 import { AuditList } from "./audit-list";
 import { AuthCard } from "./auth-card";
 
@@ -28,17 +33,11 @@ function entry(id: number, overrides: Partial<AuditEntry> = {}): AuditEntry {
   };
 }
 
-describe("AdminShell", () => {
-  it("names the page, marks it in the navigation, and offers to sign out", () => {
-    render(
-      <AdminShell title="Sécurité" current="security">
-        <p>Contenu</p>
-      </AdminShell>,
-    );
+describe("AdminSidebar", () => {
+  it("marks the current section, and offers to sign out", () => {
+    navigation.pathname = "/admin/security";
+    render(<AdminSidebar unread={0} />);
 
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
-      "Sécurité",
-    );
     const nav = screen.getByRole("navigation", { name: "Administration" });
     expect(within(nav).getByRole("link", { name: "Sécurité" })).toHaveAttribute(
       "aria-current",
@@ -47,22 +46,53 @@ describe("AdminShell", () => {
     expect(
       within(nav).getByRole("link", { name: "Tableau de bord" }),
     ).not.toHaveAttribute("aria-current");
+    expect(within(nav).getByRole("link", { name: "Messages" })).toHaveAttribute(
+      "href",
+      "/admin/messages",
+    );
     expect(
-      within(nav).getByRole("button", { name: "Se déconnecter" }),
+      within(nav).getByRole("list", { name: "Vue d'ensemble" }),
     ).toBeInTheDocument();
+    // Signing out is not navigation: it sits below the links, in the banner.
     expect(
-      screen.getByRole("link", { name: "Aller au contenu" }),
-    ).toHaveAttribute("href", "#admin-main");
+      within(screen.getByRole("banner")).getByRole("button", {
+        name: "Se déconnecter",
+      }),
+    ).toBeInTheDocument();
     // The brand reads as words, not as "orion ~/admin".
     expect(screen.getByText("Orion, administration")).toHaveClass("sr-only");
     expect(screen.getByText("~/admin").closest("[aria-hidden]")).not.toBeNull();
   });
+
+  it.each([
+    [3, "/admin/messages", "Messages 3 non lus", "page"],
+    [
+      1,
+      `/admin/messages/${"0".repeat(8)}-0000-4000-8000-${"0".repeat(12)}`,
+      "Messages 1 non lu",
+      "true",
+    ],
+    [undefined, "/admin", "Messages", null],
+  ] as const)(
+    "names the messages link with %s unread on %s",
+    (unread, pathname, name, current) => {
+      navigation.pathname = pathname;
+      render(<AdminSidebar unread={unread} />);
+
+      const link = screen.getByRole("link", { name });
+      if (current === null) {
+        expect(link).not.toHaveAttribute("aria-current");
+      } else {
+        expect(link).toHaveAttribute("aria-current", current);
+      }
+    },
+  );
 });
 
 describe("AuthCard", () => {
   it("holds the login step's only h1", () => {
     render(
-      <AuthCard title="Connexion" lead="Espace réservé.">
+      <AuthCard titleId="t" title="Connexion" lead="Espace réservé.">
         <p>Formulaire</p>
       </AuthCard>,
     );

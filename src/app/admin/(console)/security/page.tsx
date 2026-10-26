@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
-import { AdminShell } from "@/components/admin/admin-shell";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AuditList } from "@/components/admin/audit-list";
 import { ADMIN_COPY } from "@/components/admin/copy";
 import { PasswordForm } from "@/components/admin/password-form";
@@ -85,7 +85,8 @@ export default async function SecurityPage() {
   const data = await withDatabase((db) => loadSecurity(db, admin.user.id));
 
   return (
-    <AdminShell title={COPY.title} current="security">
+    <>
+      <AdminPageHeader title={COPY.title} />
       {data.ok ? (
         <>
           <Section id="security-sessions" title={COPY.sessions.title}>
@@ -113,10 +114,8 @@ export default async function SecurityPage() {
           </Section>
         </>
       ) : (
-        <p role="status" className="text-fg-muted">
-          {ADMIN_COPY.unavailable}
-        </p>
+        <p className="text-fg-muted">{ADMIN_COPY.unavailable}</p>
       )}
-    </AdminShell>
+    </>
   );
 }

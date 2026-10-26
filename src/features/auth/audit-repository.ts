@@ -19,6 +19,13 @@ export interface AuditEvent {
   readonly userAgent?: string | null;
 }
 
+/** Who acts, as the audit log records it: the account, its network's keyed hash, its browser. */
+export interface AuditActor {
+  readonly actorId: string;
+  readonly ipHash: string | null;
+  readonly userAgent: string | null;
+}
+
 export type AuditEntry = typeof auditLogs.$inferSelect;
 
 export function createAuditRepository(db: Database) {

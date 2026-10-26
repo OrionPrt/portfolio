@@ -2,9 +2,15 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 import {
+  ADMIN_PATTERNS,
+  KNOWN_ADMIN_PATHS,
+  PUBLIC_ADMIN_PATHS,
+} from "../src/features/auth/admin-paths";
+import {
   ADMIN_EMAIL,
   ADMIN_PASSWORD,
   authenticator,
+  insertContactMessage,
   resetAdmin,
 } from "./support/admin";
 import { collectCspViolations } from "./support/csp";
@@ -22,6 +28,14 @@ const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 const nextCode = authenticator();
 let recoveryCodes: readonly string[] = [];
 const REFUSED = "Code incorrect ou déjà utilisé.";
+
+/** Every page that needs a full session, from the proxy's own table. */
+const PROTECTED_PAGES = [
+  ...[...KNOWN_ADMIN_PATHS].filter((path) => !PUBLIC_ADMIN_PATHS.has(path)),
+  ...ADMIN_PATTERNS.map((pattern) =>
+    pattern.replace("[id]", "0f8fad5b-d9cb-469f-a165-70867728950e"),
+  ),
+];
 
 async function signInWithPassword(
   page: Page,
@@ -105,24 +119,81 @@ test("signs in with a recovery code, once", async ({ page }) => {
 });
 
 test("keeps every admin page behind a full session", async ({ page }) => {
-  for (const path of ["/admin", "/admin/security"]) {
+  expect(PROTECTED_PAGES).toContain("/admin/messages");
+  for (const path of PROTECTED_PAGES) {
     await page.goto(path);
-    await expect(page).toHaveURL(/\/admin\/login$/);
+    await expect(page, path).toHaveURL(/\/admin\/login$/);
   }
   // A password alone opens the second step, nothing more.
   await signInWithPassword(page);
   await expect(page).toHaveURL(/\/admin\/login\/2fa$/);
-  for (const path of ["/admin", "/admin/security"]) {
+  for (const path of PROTECTED_PAGES) {
     await page.goto(path);
-    await expect(page).toHaveURL(/\/admin\/login$/);
+    await expect(page, path).toHaveURL(/\/admin\/login$/);
   }
+});
+
+test("reads, archives and deletes a message from the inbox", async ({
+  page,
+}) => {
+  test.setTimeout(60_000);
+  const subject = `E2E inbox ${String(Date.now())}`;
+  await insertContactMessage(subject);
+  await signIn(page);
+
+  const nav = page.getByRole("navigation", { name: "Administration" });
+  await expect(
+    nav.getByRole("link", { name: /^Messages \d+ non lus?$/ }),
+  ).toBeVisible();
+  await nav.getByRole("link", { name: /^Messages/ }).click();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Messages");
+  // Earlier pages stay mounted, hidden: the frame, and its ids, stay single.
+  // Focus moves to the new page, not back to the top of the document.
+  await expect(page.locator("#admin-main")).toHaveCount(1);
+  await expect(page.locator("#admin-main")).toBeFocused();
+  await expectNoAxeViolation(page);
+  const row = page.getByRole("link", {
+    name: new RegExp(`^Non lu, ${subject}`),
+  });
+  await row.click();
+
+  const message = page.getByRole("article", { name: subject });
+  // Opening it marks it read; the body stays text, never HTML.
+  await expect(message.getByText("Lu", { exact: true })).toBeVisible();
+  await expect(message.getByText("<b>pas du HTML</b>")).toBeVisible();
+  await expect(
+    message.getByRole("link", { name: "Répondre par e-mail" }),
+  ).toHaveAttribute("href", /^mailto:ada@example\.com\?subject=Re/);
+  await expectNoAxeViolation(page);
+  await message.getByRole("button", { name: "Archiver" }).click();
+  await expect(message.getByRole("status")).toHaveText("Message archivé.");
+
+  await page.goto("/admin/messages?view=archived");
+  await page.getByRole("link", { name: new RegExp(`^${subject}`) }).click();
+  const trigger = page.getByRole("button", { name: "Supprimer", exact: true });
+  await trigger.click();
+  const dialog = page.getByRole("dialog", { name: /Supprimer ce message/ });
+  await expect(dialog.getByRole("button", { name: "Annuler" })).toBeFocused();
+  // Escape closes it, and focus returns to what opened it.
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  await expect(trigger).toBeFocused();
+  await trigger.click();
+  await dialog
+    .getByRole("button", { name: "Supprimer définitivement" })
+    .click();
+
+  await expect(page).toHaveURL(/\/admin\/messages$/);
+  await page.goto("/admin/messages?view=archived");
+  await expect(page.getByText(subject)).toHaveCount(0);
 });
 
 test("revokes the other sessions, renews the recovery codes, and signs out", async ({
   page,
 }) => {
-  // Three codes, each from a later time step: up to a minute of waiting.
-  test.setTimeout(120_000);
+  // Three codes, each from a later time step than the last one used (the
+  // inbox test's included): up to a minute and a half of waiting.
+  test.setTimeout(180_000);
   await signIn(page);
   await page
     .getByRole("navigation", { name: "Administration" })
@@ -183,4 +254,6 @@ test("is never indexed", async ({ request }) => {
   const response = await request.get("/admin/login");
 
   expect(response.headers()["x-robots-tag"]).toBe("noindex, nofollow");
+  // Rendered per request: never stored by a cache, nor kept for the back button.
+  expect(response.headers()["cache-control"]).toContain("no-store");
 });

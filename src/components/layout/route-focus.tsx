@@ -13,6 +13,21 @@ function fragmentTarget(): HTMLElement | null {
   }
 }
 
+/**
+ * Moves focus to a page just navigated to: to the element the URL fragment
+ * names, else to the main region (`targetId`, focusable with tabIndex -1).
+ */
+export function focusNewPage(targetId: string): void {
+  const main = document.getElementById(targetId);
+  const target = fragmentTarget() ?? main;
+  // The router already scrolled to the right place.
+  target?.focus({ preventScroll: true });
+  // A fragment target that cannot take focus leaves it on the main region.
+  if (document.activeElement !== target) {
+    main?.focus({ preventScroll: true });
+  }
+}
+
 interface RouteFocusProps {
   /** The focusable (tabIndex -1) element that holds each page's content. */
   readonly targetId: string;
@@ -33,14 +48,7 @@ export function RouteFocus({ targetId }: RouteFocusProps) {
       return;
     }
     previous.current = pathname;
-    const main = document.getElementById(targetId);
-    const target = fragmentTarget() ?? main;
-    // The router already scrolled to the right place.
-    target?.focus({ preventScroll: true });
-    // A fragment target that cannot take focus leaves it on the main region.
-    if (document.activeElement !== target) {
-      main?.focus({ preventScroll: true });
-    }
+    focusNewPage(targetId);
   }, [pathname, targetId]);
 
   return null;

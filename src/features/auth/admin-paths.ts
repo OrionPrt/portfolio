@@ -4,7 +4,20 @@ export const ADMIN_PATHS = {
   login: "/admin/login",
   secondFactor: "/admin/login/2fa",
   security: "/admin/security",
+  messages: "/admin/messages",
 } as const;
+
+/** Pages with a dynamic segment, spelled as their folders: `[id]` is a UUID. */
+export const ADMIN_PATTERNS: readonly string[] = ["/admin/messages/[id]"];
+
+/** Lowercase, as PostgreSQL prints it: an uppercase copy is another URL. */
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+const SEGMENT_FORMATS: Readonly<Record<string, RegExp>> = { "[id]": UUID };
+
+export function messagePath(id: string): string {
+  return `${ADMIN_PATHS.messages}/${id}`;
+}
 
 /** Pages reachable without a full session: the login and its steps. */
 export const PUBLIC_ADMIN_PATHS: ReadonlySet<string> = new Set([
@@ -15,6 +28,27 @@ export const PUBLIC_ADMIN_PATHS: ReadonlySet<string> = new Set([
 export const KNOWN_ADMIN_PATHS: ReadonlySet<string> = new Set(
   Object.values(ADMIN_PATHS),
 );
+
+function matchesPattern(pathname: string, pattern: string): boolean {
+  const segments = pathname.split("/");
+  const expected = pattern.split("/");
+  return (
+    segments.length === expected.length &&
+    expected.every((part, index) => {
+      const segment = segments[index] ?? "";
+      const format = SEGMENT_FORMATS[part];
+      return format === undefined ? segment === part : format.test(segment);
+    })
+  );
+}
+
+/** Whether an admin page answers this path; anything else is a 404. */
+export function isKnownAdminPath(pathname: string): boolean {
+  return (
+    KNOWN_ADMIN_PATHS.has(pathname) ||
+    ADMIN_PATTERNS.some((pattern) => matchesPattern(pathname, pattern))
+  );
+}
 
 export function isAdminPath(pathname: string): boolean {
   return (

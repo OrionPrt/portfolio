@@ -14,7 +14,7 @@ export default async function SecondFactorPage() {
   await requireLoginStep("totp_challenge");
 
   return (
-    <AuthCard title={ADMIN_COPY.secondFactor.title}>
+    <AuthCard titleId="admin-2fa-title" title={ADMIN_COPY.secondFactor.title}>
       <SecondFactorForm />
     </AuthCard>
   );

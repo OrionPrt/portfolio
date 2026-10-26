@@ -82,3 +82,20 @@ export function authenticator(): () => Promise<string> {
     return generateHotp(TOTP_SECRET, lastStep);
   };
 }
+
+/**
+ * A contact message straight in the database, unread, for the inbox tests.
+ * Its subject is unique: other suites store messages at the same time.
+ */
+export async function insertContactMessage(subject: string): Promise<void> {
+  const sql = postgres(localDatabaseUrl(), {
+    max: 1,
+    onnotice: () => undefined,
+  });
+  try {
+    await sql`insert into contact_messages (name, email, subject, body, locale, ip_hash)
+      values ('Ada Lovelace', 'ada@example.com', ${subject}, ${"Bonjour,\n\n<b>pas du HTML</b>\nÀ bientôt."}, 'fr', ${"e".repeat(64)})`;
+  } finally {
+    await sql.end();
+  }
+}

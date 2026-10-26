@@ -2,13 +2,13 @@
 
 Personal portfolio of a software engineer working across fullstack web, DevOps and security. Bilingual (FR/EN), and built as a showcase in itself: code quality, security hardening and delivery practices are part of what it demonstrates.
 
-> **Status: P5 — admin authentication.** A bento hub whose tiles open into full-screen views, read from PostgreSQL, a contact form protected by Turnstile and a shared rate limit, and an admin behind a password and a mandatory second factor. Content management and the blog come in the next phases.
+> **Status: P6 — admin back office, in progress.** A bento hub whose tiles open into full-screen views, read from PostgreSQL, a contact form protected by Turnstile and a shared rate limit, and an admin behind a password and a mandatory second factor, with an inbox for the contact messages. Content editing, media and the blog come next.
 
 ## Stack
 
 Next.js 16 (App Router, Cache Components) · React 19 · TypeScript (strict) · Tailwind CSS 4 · next-intl · PostgreSQL on Neon with Drizzle · Zod · Cloudflare Turnstile · Upstash Redis · Resend · Vitest · Playwright · GitHub Actions · Vercel.
 
-Decisions and their rationale live in [`docs/adr/`](docs/adr): [stack](docs/adr/0001-stack.md), [CSP](docs/adr/0002-csp.md), [hub, transitions and 404s](docs/adr/0003-transitions.md), [data layer](docs/adr/0004-data-layer.md), [contact form](docs/adr/0005-contact-form.md), [admin authentication](docs/adr/0006-auth.md).
+Decisions and their rationale live in [`docs/adr/`](docs/adr): [stack](docs/adr/0001-stack.md), [CSP](docs/adr/0002-csp.md), [hub, transitions and 404s](docs/adr/0003-transitions.md), [data layer](docs/adr/0004-data-layer.md), [contact form](docs/adr/0005-contact-form.md), [admin authentication](docs/adr/0006-auth.md), [admin back office](docs/adr/0007-admin.md).
 
 ## Getting started
 

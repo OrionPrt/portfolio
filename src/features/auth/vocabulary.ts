@@ -38,6 +38,7 @@ export const AUDIT_ACTIONS = [
   "auth.session_revoked",
   "auth.signed_out",
   "auth.totp_reset",
+  "contact.message_deleted",
 ] as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
