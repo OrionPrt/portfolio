@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { hasLocale } from "next-intl";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 
 import { DataUnavailable } from "@/components/content/data-unavailable";
 import { ProjectDetail } from "@/components/projects/project-detail";
 import { JsonLd } from "@/components/seo/json-ld";
+import { movedSlug } from "@/features/content/moved-slugs";
 import { getPublishedProject } from "@/features/projects/queries";
 import { localizedAlternates } from "@/features/seo/alternates";
 import { projectJsonLd } from "@/features/seo/json-ld";
@@ -53,6 +54,16 @@ export default async function ProjectPage({
   }
   // The proxy already answered 404 for unknown slugs: this is the soft fallback.
   if (project.data === undefined) {
+    // Renamed a moment ago: the proxy's lists have yet to learn it.
+    const moved = await movedSlug("projects", slug);
+    if (moved !== undefined) {
+      permanentRedirect(
+        getPathname({
+          locale,
+          href: { pathname: "/projects/[slug]", params: { slug: moved } },
+        }),
+      );
+    }
     notFound();
   }
   const href = { pathname: "/projects/[slug]", params: { slug } } as const;

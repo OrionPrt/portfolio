@@ -13,6 +13,13 @@ export function textFields(
   );
 }
 
+/** Every text sent under one name, in order: an ordered list (linked skills). */
+export function textList(formData: FormData, name: string): readonly string[] {
+  return formData
+    .getAll(name)
+    .filter((value): value is string => typeof value === "string");
+}
+
 /** An optional single field: blank reads as null, as the schemas expect. */
 export function blankToNull(value: string | undefined): string | null {
   return value === undefined || value.trim() === "" ? null : value;

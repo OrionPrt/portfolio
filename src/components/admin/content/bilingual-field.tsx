@@ -125,10 +125,13 @@ export function BilingualField({
   hint,
 }: BilingualFieldProps) {
   const hintId = useId();
+  // What the controls start from: after a refusal, what was sent.
+  const french = useField(`fr.${name}`, initial.fr ?? "").value;
+  const english = useField(`en.${name}`, initial.en ?? "").value;
   // Whether each language is blank: a boolean, so typing re-renders only on a change.
   const [isBlank, setBlank] = useState<Record<Locale, boolean>>(() => ({
-    fr: (initial.fr ?? "").trim() === "",
-    en: (initial.en ?? "").trim() === "",
+    fr: french.trim() === "",
+    en: english.trim() === "",
   }));
   return (
     <fieldset

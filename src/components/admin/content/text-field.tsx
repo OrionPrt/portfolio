@@ -19,7 +19,7 @@ interface TextFieldProps {
   readonly invalidMessage?: string;
   /** What another entry already holds: "Ce slug est déjà pris." */
   readonly takenMessage?: string;
-  readonly type?: "text" | "url";
+  readonly type?: "text" | "url" | "date";
   readonly autoComplete?: string;
 }
 

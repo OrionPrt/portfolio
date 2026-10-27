@@ -13,6 +13,7 @@ import {
 import type { FieldProblem } from "@/features/admin/form-input";
 import {
   CONTENT_IDLE,
+  type ContentAction,
   type ContentFormState,
 } from "@/features/admin/content-form-state";
 
@@ -24,7 +25,8 @@ import { useUnsavedGuard } from "./use-unsaved-guard";
 
 const COPY = ADMIN_COPY.content;
 
-type SentValues = Readonly<Record<string, string>>;
+/** Every value sent, by name: some names repeat (an ordered list of skills). */
+type SentValues = Readonly<Record<string, readonly string[]>>;
 
 /** The action's outcome, numbered, with what the form sent when it was refused. */
 type FormOutcome = ContentFormState & {
@@ -37,11 +39,14 @@ const START: FormOutcome = { ...CONTENT_IDLE, revision: 0, sent: undefined };
 interface FieldContext {
   readonly sent: SentValues | undefined;
   readonly problems: Readonly<Record<string, FieldProblem>>;
+  /** For a change no control's input event reports: a list reordered by buttons. */
+  readonly markEdited: () => void;
 }
 
 const ContentFormContext = createContext<FieldContext>({
   sent: undefined,
   problems: {},
+  markEdited: () => undefined,
 });
 
 /**
@@ -52,7 +57,21 @@ const ContentFormContext = createContext<FieldContext>({
 export function useField(name: string, initial: string) {
   const { sent, problems } = useContext(ContentFormContext);
   return {
-    value: sent === undefined ? initial : (sent[name] ?? ""),
+    value: sent === undefined ? initial : (sent[name]?.[0] ?? ""),
+    problem: problems[name],
+  };
+}
+
+/** Counts a change as unsaved, as typing does. */
+export function useMarkEdited(): () => void {
+  return useContext(ContentFormContext).markEdited;
+}
+
+/** The same, for a name sent once per value, in order. */
+export function useFieldList(name: string, initial: readonly string[]) {
+  const { sent, problems } = useContext(ContentFormContext);
+  return {
+    values: sent === undefined ? initial : (sent[name] ?? []),
     problem: problems[name],
   };
 }
@@ -74,17 +93,17 @@ function alertOf(state: ContentFormState): string | undefined {
 
 function textValues(formData: FormData): SentValues {
   return Object.fromEntries(
-    [...formData.entries()].filter(
-      (entry): entry is [string, string] => typeof entry[1] === "string",
-    ),
+    [...new Set(formData.keys())].map((name) => [
+      name,
+      formData
+        .getAll(name)
+        .filter((value): value is string => typeof value === "string"),
+    ]),
   );
 }
 
 interface ContentFormProps {
-  readonly action: (
-    state: ContentFormState,
-    formData: FormData,
-  ) => Promise<ContentFormState>;
+  readonly action: ContentAction;
   readonly children: ReactNode;
   /** Sent with the form, never shown: the entry's id. */
   readonly hidden?: Readonly<Record<string, string>>;
@@ -140,6 +159,9 @@ export function ContentForm({
   const fields: FieldContext = {
     sent: state.sent,
     problems: state.status === "invalid" ? state.problems : {},
+    markEdited: () => {
+      setEditedAt(state);
+    },
   };
   return (
     <ContentFormContext value={fields}>

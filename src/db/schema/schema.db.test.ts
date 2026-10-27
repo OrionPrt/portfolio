@@ -9,6 +9,7 @@ import {
   projectSkills,
   projectTranslations,
   skills,
+  slugRedirects,
   socialLinks,
 } from "./index";
 
@@ -60,6 +61,7 @@ describe("migrations", () => {
       "projects",
       "recovery_codes",
       "skills",
+      "slug_redirects",
       "social_links",
     ]);
   });
@@ -136,6 +138,9 @@ describe("constraints", () => {
     ["email", "https://example.com"],
     ["email", "mailto:"],
     ["email", "mailto:a b@example.com"],
+    // A query would fill in a visitor's message: an address only.
+    ["email", "mailto:hello@example.com?subject=x"],
+    ["email", "mailto:hello@example.com#x"],
   ] as const)("rejects the %s link %j", async (kind, url) => {
     await expectRefusedBy(
       testDb.db.insert(socialLinks).values({ kind, url }),
@@ -150,6 +155,36 @@ describe("constraints", () => {
     ]);
 
     expect(await testDb.db.select().from(socialLinks)).toHaveLength(2);
+  });
+
+  it.each([
+    [{ fromSlug: "Old", toSlug: "new" }, "slug_redirects_from_slug_format"],
+    [{ fromSlug: "old", toSlug: "new/x" }, "slug_redirects_to_slug_format"],
+    [{ fromSlug: "same", toSlug: "same" }, "slug_redirects_not_to_itself"],
+  ] as const)("refuses the redirect %j", async (redirect, constraint) => {
+    await expectRefusedBy(
+      testDb.db
+        .insert(slugRedirects)
+        .values({ collection: "projects", ...redirect }),
+      constraint,
+    );
+  });
+
+  it("keeps one redirect per old slug and collection", async () => {
+    const redirect = {
+      collection: "projects",
+      fromSlug: "old",
+      toSlug: "new",
+    } as const;
+    await testDb.db.insert(slugRedirects).values(redirect);
+    await testDb.db
+      .insert(slugRedirects)
+      .values({ ...redirect, collection: "experiences" });
+
+    await expectRefusedBy(
+      testDb.db.insert(slugRedirects).values({ ...redirect, toSlug: "other" }),
+      "slug_redirects_from_idx",
+    );
   });
 
   it("keeps one translation per project and locale", async () => {

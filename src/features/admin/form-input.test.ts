@@ -5,6 +5,7 @@ import {
   blankToNull,
   fieldProblemsOf,
   textFields,
+  textList,
   translationsFrom,
 } from "./form-input";
 
@@ -22,6 +23,18 @@ describe("textFields", () => {
     data.append("upload", new Blob(["x"]), "x.txt");
 
     expect(textFields(data)).toEqual({ name: "Ada" });
+  });
+});
+
+describe("textList", () => {
+  it("keeps every text sent under a name, in order, never a file", () => {
+    const data = form({ name: "Ada" });
+    data.append("skills", "rust");
+    data.append("skills", new Blob(["x"]), "x.txt");
+    data.append("skills", "react");
+
+    expect(textList(data, "skills")).toEqual(["rust", "react"]);
+    expect(textList(data, "absent")).toEqual([]);
   });
 });
 

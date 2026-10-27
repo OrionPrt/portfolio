@@ -9,12 +9,18 @@ export const ADMIN_PATHS = {
   links: "/admin/links",
   skills: "/admin/skills",
   newSkill: "/admin/skills/new",
+  projects: "/admin/projects",
+  newProject: "/admin/projects/new",
+  experiences: "/admin/experiences",
+  newExperience: "/admin/experiences/new",
 } as const;
 
 /** Pages with a dynamic segment, spelled as their folders: `[id]` is a UUID. */
 export const ADMIN_PATTERNS: readonly string[] = [
   "/admin/messages/[id]",
   "/admin/skills/[id]",
+  "/admin/projects/[id]",
+  "/admin/experiences/[id]",
 ];
 
 /** Lowercase, as PostgreSQL prints it: an uppercase copy is another URL. */
@@ -28,6 +34,14 @@ export function messagePath(id: string): string {
 
 export function skillPath(id: string): string {
   return `${ADMIN_PATHS.skills}/${id}`;
+}
+
+export function projectPath(id: string): string {
+  return `${ADMIN_PATHS.projects}/${id}`;
+}
+
+export function experiencePath(id: string): string {
+  return `${ADMIN_PATHS.experiences}/${id}`;
 }
 
 /** Pages reachable without a full session: the login and its steps. */

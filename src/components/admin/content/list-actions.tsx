@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useActionState, type ReactNode } from "react";
+import { useActionState, useLayoutEffect, useRef, type ReactNode } from "react";
 
 import {
   LIST_IDLE,
@@ -17,7 +17,7 @@ import { SubmitButton } from "../submit-button";
 
 const COPY = ADMIN_COPY.content;
 
-type ListAction = (
+export type ListAction = (
   state: ListActionState,
   formData: FormData,
 ) => Promise<ListActionState>;
@@ -55,6 +55,16 @@ export function MoveButtons({
   isLast,
 }: MoveButtonsProps) {
   const [state, formAction, isPending] = useActionState(action, LIST_IDLE);
+  const pressed = useRef<HTMLButtonElement | null>(null);
+  // The new order comes with the outcome: when React inserts this row again,
+  // the button pressed loses the focus, which goes back to it.
+  useLayoutEffect(() => {
+    const button = pressed.current;
+    pressed.current = null;
+    if (button?.isConnected === true && document.activeElement !== button) {
+      button.focus();
+    }
+  }, [state]);
   const button = (direction: "up" | "down", isEnd: boolean, text: string) => {
     const isInert = isEnd || isPending;
     return (
@@ -66,6 +76,8 @@ export function MoveButtons({
         onClick={(event) => {
           if (isInert) {
             event.preventDefault();
+          } else {
+            pressed.current = event.currentTarget;
           }
         }}
         className="border-line text-fg-muted hover:text-fg hover:border-fg-muted rounded-control inline-flex size-10 items-center justify-center border aria-disabled:cursor-not-allowed aria-disabled:opacity-40"

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  certificationInputSchema,
+  educationInputSchema,
   experienceInputSchema,
   httpsUrlSchema,
   isoDateSchema,
@@ -211,4 +213,62 @@ describe("experienceInputSchema", () => {
         .success,
     ).toBe(false);
   });
+});
+
+describe("date order", () => {
+  it.each([
+    [
+      "a project",
+      projectInputSchema,
+      project({ startedOn: "2024-05-01", endedOn: "2024-04-30" }),
+      "endedOn",
+    ],
+    [
+      "an experience",
+      experienceInputSchema,
+      {
+        slug: "acme",
+        company: "Acme",
+        employmentType: "full_time",
+        startedOn: "2024-01-01",
+        endedOn: "2023-12-31",
+        translations: { fr: { role: "Développeur", ...SUMMARY } },
+      },
+      "endedOn",
+    ],
+    [
+      "an education",
+      educationInputSchema,
+      {
+        slug: "insa",
+        school: "INSA",
+        startedOn: "2020-09-01",
+        endedOn: "2020-06-30",
+        translations: { fr: { degree: "Ingénieur" } },
+      },
+      "endedOn",
+    ],
+    [
+      "a certification",
+      certificationInputSchema,
+      {
+        slug: "oscp",
+        name: "OSCP",
+        issuer: "OffSec",
+        issuedOn: "2024-03-01",
+        expiresOn: "2024-02-01",
+        translations: { fr: {} },
+      },
+      "expiresOn",
+    ],
+  ] as const)(
+    "puts %s's dates out of order on its end date, where the form shows it",
+    (_, schema, input, field) => {
+      const result = schema.safeParse(input);
+
+      expect(result.error?.issues.map((issue) => issue.path)).toEqual([
+        [field],
+      ]);
+    },
+  );
 });

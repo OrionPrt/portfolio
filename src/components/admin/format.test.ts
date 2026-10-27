@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { describeUserAgent, formatParisDateTime } from "./format";
+import {
+  describeUserAgent,
+  formatMonthYear,
+  formatParisDateTime,
+} from "./format";
 
 describe("describeUserAgent", () => {
   it.each([
@@ -36,5 +40,12 @@ describe("formatParisDateTime", () => {
     expect(formatParisDateTime(new Date("2026-10-25T12:00:00Z"))).toBe(
       "25 oct. 2026, 13:00",
     );
+  });
+});
+
+describe("formatMonthYear", () => {
+  it("names a stored day's month, never the day before", () => {
+    expect(formatMonthYear("2024-01-01")).toBe("janvier 2024");
+    expect(formatMonthYear("2024-12-31")).toBe("décembre 2024");
   });
 });

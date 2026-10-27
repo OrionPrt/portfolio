@@ -323,6 +323,42 @@ describe("list actions", () => {
     await regionWith(screen, "status", "Ordre enregistré.");
   });
 
+  it("keep the focus on the button pressed when the refreshed list moves its row", async () => {
+    const user = userEvent.setup();
+    listAction.mockResolvedValue({ status: "done" });
+    const rows = (order: readonly string[]) => (
+      <ol>
+        {order.map((label, index) => (
+          <li key={label}>
+            <MoveButtons
+              action={listAction}
+              id={label}
+              label={label}
+              isFirst={index === 0}
+              isLast={index === order.length - 1}
+            />
+          </li>
+        ))}
+      </ol>
+    );
+    const { rerender } = render(rows(["Rust", "Go", "C"]));
+    // The refresh's new order comes with the action's outcome, in one commit.
+    listAction.mockImplementation(() => {
+      queueMicrotask(() => {
+        rerender(rows(["Go", "Rust", "C"]));
+      });
+      return Promise.resolve({ status: "done" });
+    });
+
+    const down = screen.getByRole("button", { name: "Descendre Rust" });
+    await user.click(down);
+    // Said in the moved row's own region: each row has one.
+    await screen.findByText("Ordre enregistré.");
+
+    expect(screen.getAllByRole("listitem")[1]).toContainElement(down);
+    expect(down).toHaveFocus();
+  });
+
   it("delete only after a confirmation that names the entry and what goes with it", async () => {
     const user = userEvent.setup();
     listAction.mockResolvedValue({ status: "not_found" });

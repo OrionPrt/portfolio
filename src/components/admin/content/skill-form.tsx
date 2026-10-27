@@ -1,4 +1,4 @@
-import type { ContentFormState } from "@/features/admin/content-form-state";
+import type { ContentAction } from "@/features/admin/content-form-state";
 import type { SkillForEdit } from "@/features/catalog/skills-admin-repository";
 import { TEXT_LIMITS } from "@/features/content/limits";
 import { SKILL_DOMAINS } from "@/features/content/vocabulary";
@@ -16,10 +16,7 @@ const DOMAIN_OPTIONS = SKILL_DOMAINS.map(
 );
 
 interface SkillFormProps {
-  readonly action: (
-    state: ContentFormState,
-    formData: FormData,
-  ) => Promise<ContentFormState>;
+  readonly action: ContentAction;
   /** The skill to edit; undefined for a new one. */
   readonly skill?: SkillForEdit;
 }

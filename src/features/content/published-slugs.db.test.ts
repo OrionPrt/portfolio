@@ -49,14 +49,26 @@ beforeEach(async () => {
 });
 
 describe("loadPublishedSlugs", () => {
-  it("lists the published project and experience slugs", async () => {
+  it("lists the published project and experience slugs, and the redirects", async () => {
     await insertProject(testDb.db, { slug: "portfolio" });
     await insertProject(testDb.db, { slug: "draft", status: "draft" });
     await insertExperience(testDb.db, { slug: "acme" });
+    await testDb.exec(
+      "insert into slug_redirects (collection, from_slug, to_slug) values ('projects', 'old-portfolio', 'portfolio')",
+    );
 
     expect(await loadPublishedSlugs()).toEqual({
       ok: true,
-      data: { projects: ["portfolio"], experiences: ["acme"] },
+      data: {
+        published: { projects: ["portfolio"], experiences: ["acme"] },
+        redirects: [
+          {
+            collection: "projects",
+            fromSlug: "old-portfolio",
+            toSlug: "portfolio",
+          },
+        ],
+      },
     });
   });
 

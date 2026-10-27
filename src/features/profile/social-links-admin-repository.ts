@@ -5,6 +5,7 @@ import { socialLinks } from "@/db/schema";
 import type { Database } from "@/db/types";
 import type { SaveOutcome } from "@/features/admin/save-content";
 import type { SocialLinkInput } from "@/features/content/schemas";
+import { reorderRows } from "@/features/admin/reorder";
 import type { Result } from "@/lib/result";
 
 export type SocialLinkForEdit = typeof socialLinks.$inferSelect;
@@ -65,13 +66,16 @@ export function createSocialLinksAdminRepository(db: Database) {
       ),
 
     reorder: (ids: readonly string[]): Promise<Result<void>> =>
-      runQuery("links.admin_save_failed", async () => {
-        for (const [sortOrder, id] of ids.entries()) {
-          await db
-            .update(socialLinks)
-            .set({ sortOrder })
-            .where(eq(socialLinks.id, id));
-        }
-      }),
+      runQuery("links.admin_save_failed", () =>
+        reorderRows(
+          db,
+          {
+            table: socialLinks,
+            idColumn: socialLinks.id,
+            placeColumn: socialLinks.sortOrder,
+          },
+          ids,
+        ),
+      ),
   };
 }

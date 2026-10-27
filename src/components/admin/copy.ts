@@ -20,6 +20,8 @@ export const ADMIN_COPY = {
     profile: "Profil",
     links: "Liens",
     skills: "Compétences",
+    projects: "Projets",
+    experiences: "Expériences",
     unreadWord: (count: number) => (count > 1 ? "non lus" : "non lu"),
     security: "Sécurité",
     groups: {
@@ -130,6 +132,7 @@ export const ADMIN_COPY = {
     },
   },
   content: {
+    edit: "Modifier",
     save: "Enregistrer",
     saving: "Enregistrement…",
     saved: "Modifications enregistrées.",
@@ -165,6 +168,24 @@ export const ADMIN_COPY = {
       snapshot:
         "La suppression est définitive. Le journal d'audit garde un instantané de l'entrée, pour la recréer à la main si besoin.",
     },
+  },
+  skillPicker: {
+    legend: "Compétences liées",
+    hint: `Dans l'ordre des badges${NB}: la première est la plus visible.`,
+    empty: "Aucune compétence liée.",
+    choose: "Compétence à ajouter",
+    add: "Ajouter",
+    remove: (name: string) => `Retirer ${name}`,
+    full: (max: number) =>
+      `${String(max)} compétences au plus${NB}: retirez-en une pour en ajouter une autre.`,
+    noneLeft: "Toutes les compétences sont déjà liées.",
+    invalid: (max: number) =>
+      `Liste refusée${NB}: ${String(max)} compétences au plus, chacune une fois, prises dans le catalogue.`,
+    added: (name: string, position: number, total: number) =>
+      `${name} ajoutée, en position ${String(position)} sur ${String(total)}.`,
+    moved: (name: string, position: number, total: number) =>
+      `${name} déplacée en position ${String(position)} sur ${String(total)}.`,
+    removed: (name: string) => `${name} retirée.`,
   },
   profile: {
     title: "Profil",
@@ -241,7 +262,6 @@ export const ADMIN_COPY = {
         ? "Liée à rien"
         : `Liée à ${parts.join(" et ")}`;
     },
-    edit: "Modifier",
     deleteTitle: (name: string) =>
       `Supprimer la compétence «${NB}${name}${NB}»${NB}?`,
     deleteConsequence: (projects: number, experiences: number) =>
@@ -249,6 +269,95 @@ export const ADMIN_COPY = {
         ? undefined
         : "Ses liens avec les projets et expériences qui l'utilisent disparaissent aussi.",
     notFound: "Cette compétence n'existe pas, ou a été supprimée.",
+  },
+  /** What projects and experiences share: entries with a page of their own. */
+  entries: {
+    publication: "Publication",
+    status: "Statut",
+    statuses: { draft: "Brouillon", published: "Publié" },
+    statusHint: "Un brouillon n'apparaît pas sur le site.",
+    slug: "Slug",
+    slugHint: `Fin de l'adresse de sa page${NB}: lettres minuscules, chiffres et tirets. Changé une fois publié, l'ancienne adresse mène à la nouvelle.`,
+    slugInvalid:
+      "Lettres minuscules et chiffres, séparés par des tirets simples.",
+    domain: "Domaine",
+    startedOn: "Début",
+    endedOn: "Fin",
+    optional: "Facultatif.",
+    urlHint: "Facultatif. Un lien https:// complet.",
+    urlInvalid: "Un lien https:// complet.",
+    english: { missing: "Anglais à traduire", partial: "Anglais incomplet" },
+    summary: "Résumé",
+    summaryContext: "Contexte",
+    summaryAction: "Ce que j'ai fait",
+    summaryResult: "Résultat",
+    technicalMd: "Partie technique",
+    technicalHint: `Pour les ingénieurs, sous le résumé. Markdown${NB}: titres, listes, liens, code, tableaux.`,
+    deleteConsequence:
+      "Ses traductions et ses liens aux compétences disparaissent aussi, et son adresse ne mènera plus nulle part.",
+  },
+  projects: {
+    title: "Projets",
+    lead: `Les projets du site, ceux mis en avant d'abord, chaque groupe dans son ordre. Le français est obligatoire${NB}; laissé vide, l'anglais reprend le texte français.`,
+    add: "Nouveau projet",
+    newTitle: "Nouveau projet",
+    editTitle: "Modifier un projet",
+    back: "Retour aux projets",
+    groups: { featured: "Mis en avant", others: "Autres projets" },
+    empty: {
+      featured: "Aucun projet mis en avant.",
+      others: "Aucun autre projet.",
+    },
+    slugTaken: "Ce slug est déjà pris par un autre projet.",
+    featured: "Mise en avant",
+    featuredHint:
+      "Montré en tête de liste. Le premier projet publié mis en avant figure sur l'accueil.",
+    presentation: "Présentation",
+    name: "Titre",
+    tagline: "Accroche",
+    taglineHint: "Une ligne, sous le titre.",
+    seoDescription: "Description pour les moteurs de recherche",
+    seoHint: "Facultatif. À défaut, l'accroche.",
+    linksAndDates: "Liens et dates",
+    repoUrl: "Dépôt de code",
+    demoUrl: "Démo en ligne",
+    endedOnInvalid: "La fin ne peut ni précéder le début, ni venir sans lui.",
+    deleteTitle: (title: string) =>
+      `Supprimer le projet «${NB}${title}${NB}»${NB}?`,
+    notFound: "Ce projet n'existe pas, ou a été supprimé.",
+  },
+  experiences: {
+    title: "Expériences",
+    lead: `Les postes occupés, rangés par dates comme sur le site${NB}: le poste actuel d'abord. Le français est obligatoire${NB}; laissé vide, l'anglais reprend le texte français.`,
+    add: "Nouvelle expérience",
+    newTitle: "Nouvelle expérience",
+    editTitle: "Modifier une expérience",
+    back: "Retour aux expériences",
+    empty: "Aucune expérience pour l'instant.",
+    slugTaken: "Ce slug est déjà pris par une autre expérience.",
+    company: "Entreprise",
+    companyUrl: "Site de l'entreprise",
+    location: "Lieu",
+    employmentType: "Type de contrat",
+    employmentTypes: {
+      full_time: "Temps plein",
+      part_time: "Temps partiel",
+      internship: "Stage",
+      apprenticeship: "Alternance",
+      freelance: "Freelance",
+    },
+    position: "Le poste",
+    role: "Intitulé du poste",
+    endedOnHint: "Vide tant que le poste est le vôtre.",
+    endedOnInvalid: "La fin ne peut précéder le début.",
+    /** "Développeur, Acme": two positions at one company stay apart. */
+    label: (role: string | undefined, company: string) =>
+      role === undefined || role === "" ? company : `${role}, ${company}`,
+    period: (start: string, end: string | undefined) =>
+      `${start} – ${end ?? "aujourd'hui"}`,
+    deleteTitle: (label: string) =>
+      `Supprimer l'expérience «${NB}${label}${NB}»${NB}?`,
+    notFound: "Cette expérience n'existe pas, ou a été supprimée.",
   },
   cancel: "Annuler",
   security: {

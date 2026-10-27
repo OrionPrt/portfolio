@@ -27,7 +27,8 @@ export function slugFormat(column: AnyPgColumn): SQL {
 
 // A host and no whitespace after the scheme: no bare "https://", no line break.
 const HTTPS_URL_PATTERN = "^https://[^[:space:]]+$";
-const MAILTO_URL_PATTERN = "^mailto:[^[:space:]@]+@[^[:space:]@]+$";
+// An address only: no query (subject, cc, body) a visitor's mail app would fill in.
+const MAILTO_URL_PATTERN = "^mailto:[^[:space:]@?#]+@[^[:space:]@?#]+$";
 
 /** Links rendered in `href` must be https: blocks javascript: and data: URLs at the source. */
 export function httpsUrl(column: AnyPgColumn): SQL {

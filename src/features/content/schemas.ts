@@ -99,9 +99,10 @@ function endsAfterStart(start: string | null, end: string | null): boolean {
   return end === null || (start !== null && end >= start);
 }
 
-const DATES_OUT_OF_ORDER = {
-  message: "the end date precedes the start date",
-};
+/** Reported on the end date: the form shows it next to that field. */
+function datesOutOfOrder(endField: string) {
+  return { message: "the end date precedes the start date", path: [endField] };
+}
 
 const summaryFields = {
   summaryContext: text(TEXT_LIMITS.summary),
@@ -165,7 +166,10 @@ export const projectInputSchema = z
       }),
     ),
   })
-  .refine((p) => endsAfterStart(p.startedOn, p.endedOn), DATES_OUT_OF_ORDER);
+  .refine(
+    (p) => endsAfterStart(p.startedOn, p.endedOn),
+    datesOutOfOrder("endedOn"),
+  );
 
 export const experienceInputSchema = z
   .object({
@@ -188,7 +192,10 @@ export const experienceInputSchema = z
       }),
     ),
   })
-  .refine((e) => endsAfterStart(e.startedOn, e.endedOn), DATES_OUT_OF_ORDER);
+  .refine(
+    (e) => endsAfterStart(e.startedOn, e.endedOn),
+    datesOutOfOrder("endedOn"),
+  );
 
 export const educationInputSchema = z
   .object({
@@ -205,7 +212,10 @@ export const educationInputSchema = z
       }),
     ),
   })
-  .refine((e) => endsAfterStart(e.startedOn, e.endedOn), DATES_OUT_OF_ORDER);
+  .refine(
+    (e) => endsAfterStart(e.startedOn, e.endedOn),
+    datesOutOfOrder("endedOn"),
+  );
 
 export const certificationInputSchema = z
   .object({
@@ -223,7 +233,10 @@ export const certificationInputSchema = z
       }),
     ),
   })
-  .refine((c) => endsAfterStart(c.issuedOn, c.expiresOn), DATES_OUT_OF_ORDER);
+  .refine(
+    (c) => endsAfterStart(c.issuedOn, c.expiresOn),
+    datesOutOfOrder("expiresOn"),
+  );
 
 export const tileInputSchema = z.object({
   kind: z.enum(TILE_KINDS),

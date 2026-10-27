@@ -2,6 +2,7 @@ import { pgEnum } from "drizzle-orm/pg-core";
 
 import {
   CONTENT_STATUSES,
+  ENTRY_COLLECTIONS,
   EMPLOYMENT_TYPES,
   MESSAGE_STATUSES,
   SKILL_DOMAINS,
@@ -17,6 +18,11 @@ export const localeEnum = pgEnum("locale", LOCALES);
 export const skillDomainEnum = pgEnum("skill_domain", SKILL_DOMAINS);
 
 export const contentStatusEnum = pgEnum("content_status", CONTENT_STATUSES);
+
+export const entryCollectionEnum = pgEnum(
+  "entry_collection",
+  ENTRY_COLLECTIONS,
+);
 
 export const employmentTypeEnum = pgEnum("employment_type", EMPLOYMENT_TYPES);
 

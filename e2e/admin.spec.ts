@@ -239,6 +239,11 @@ test("edits the profile, the links and the skills, and the site shows each chang
   await expect(
     card.getByRole("button", { name: "Monter Site web" }),
   ).toBeFocused();
+  // Its own row moves this time: the button keeps the focus all the same.
+  await card.getByRole("button", { name: "Descendre Site web" }).click();
+  await expect(
+    card.getByRole("button", { name: "Descendre Site web" }),
+  ).toBeFocused();
   await page.goto("/fr/a-propos");
   await expect(
     page.locator(`a[href="https://example.com/${stamp}"]`).first(),
@@ -287,6 +292,148 @@ test("edits the profile, the links and the skills, and the site shows each chang
   await expect(
     devops.getByRole("link", { name: `Modifier ${name} bis` }),
   ).toHaveCount(0);
+});
+
+/** Long enough for the proxy's lists to reload once (a miss, a second after the last load). */
+const POLL = { timeout: 20_000, intervals: [1000] };
+
+test("publishes, renames and deletes a project: its old address leads to the new one, then nowhere", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  const stamp = String(Date.now());
+  const slug = `projet-e2e-${stamp}`;
+  const title = `Projet E2E ${stamp}`;
+  const french = (field: string) =>
+    page.getByRole("group", { name: field }).getByLabel("Français");
+  await signIn(page);
+
+  await page.goto("/admin/projects/new");
+  await expect(page).toHaveTitle(/^Nouveau projet/);
+  await expectNoAxeViolation(page);
+  await page.getByLabel("Statut").selectOption("published");
+  await page.getByRole("textbox", { name: "Slug" }).fill(slug);
+  await french("Titre").fill(title);
+  await french("Accroche").fill("Une accroche");
+  await french("Contexte").fill("Le contexte");
+  await french("Ce que j'ai fait").fill("Ce qui a été fait");
+  await french("Résultat").fill("Le résultat");
+  // The catalog's first skill, linked.
+  await page.getByRole("button", { name: "Ajouter", exact: true }).click();
+  await page.getByRole("button", { name: "Enregistrer" }).click();
+  await expect(page).toHaveURL(/\/admin\/projects\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveTitle(/^Modifier un projet/);
+  await expectNoAxeViolation(page);
+  const edit = page.url();
+  /**
+   * A page's own answer, without following it. A miss first: the proxy reloads
+   * its lists for a slug it does not know, at most once a second.
+   */
+  const statusOf = async (path: string) => {
+    await page.request.get(`/fr/projets/inconnu-${stamp}`);
+    const response = await page.request.get(path, { maxRedirects: 0 });
+    const location = response.headers().location;
+    return {
+      status: response.status(),
+      location:
+        location === undefined
+          ? undefined
+          : new URL(location, page.url()).pathname,
+    };
+  };
+
+  // Published a moment ago: the proxy reloads its lists for a slug it does not know.
+  await expect(async () => {
+    await page.goto(`/fr/projets/${slug}`);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(title);
+  }).toPass({ timeout: 15_000 });
+
+  await page.goto(edit);
+  await page.getByRole("textbox", { name: "Slug" }).fill(`${slug}-bis`);
+  await page.getByRole("button", { name: "Enregistrer" }).click();
+  // The form's region: the frame's announcer is another one.
+  await expect(page.getByRole("main").getByRole("status")).toHaveText(
+    "Modifications enregistrées.",
+  );
+  // The page sends the browser on while the proxy's lists lag behind. Loaded
+  // under a second before the rename, they still miss the new slug a moment.
+  await expect(async () => {
+    await page.goto(`/fr/projets/${slug}`);
+    await expect(page).toHaveURL(new RegExp(`/fr/projets/${slug}-bis$`));
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(title);
+  }).toPass({ timeout: 15_000 });
+  // Then the proxy answers 301 itself, once a miss has reloaded its lists.
+  await expect
+    .poll(() => statusOf(`/fr/projets/${slug}`), POLL)
+    .toEqual({ status: 301, location: `/fr/projets/${slug}-bis` });
+
+  await page.goto("/admin/projects");
+  await expect(page).toHaveTitle(/^Projets/);
+  await expectNoAxeViolation(page);
+  await page
+    .getByRole("region", { name: "Autres projets" })
+    .getByRole("button", { name: `Supprimer ${title}` })
+    .click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Supprimer définitivement" })
+    .click();
+  await expect(
+    page.getByRole("link", { name: `Modifier ${title}` }),
+  ).toHaveCount(0);
+  for (const gone of [slug, `${slug}-bis`]) {
+    await expect
+      .poll(() => statusOf(`/fr/projets/${gone}`), POLL)
+      .toEqual({ status: 404, location: undefined });
+  }
+});
+
+test("adds an experience as the current position, which the site dates up to today", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  const stamp = String(Date.now());
+  const company = `Entreprise E2E ${stamp}`;
+  const french = (field: string) =>
+    page.getByRole("group", { name: field }).getByLabel("Français");
+  await signIn(page);
+
+  await page.goto("/admin/experiences/new");
+  await expect(page).toHaveTitle(/^Nouvelle expérience/);
+  await expectNoAxeViolation(page);
+  await page.getByRole("textbox", { name: "Slug" }).fill(`exp-e2e-${stamp}`);
+  await page
+    .getByRole("textbox", { name: "Entreprise", exact: true })
+    .fill(company);
+  await page.getByLabel("Type de contrat").selectOption("apprenticeship");
+  // Missing start: refused on its field, which takes the focus.
+  await french("Intitulé du poste").fill("Ingénieur");
+  await french("Contexte").fill("Le contexte");
+  await french("Ce que j'ai fait").fill("Ce qui a été fait");
+  await french("Résultat").fill("Le résultat");
+  await page.getByLabel("Début", { exact: true }).evaluate((input) => {
+    input.removeAttribute("required");
+  });
+  await page.getByRole("button", { name: "Enregistrer" }).click();
+  await expect(page.getByLabel("Début", { exact: true })).toBeFocused();
+  await page.getByLabel("Début", { exact: true }).fill("2025-09-01");
+  await page.getByRole("button", { name: "Enregistrer" }).click();
+  await expect(page).toHaveTitle(/^Modifier une expérience/);
+
+  await page.goto("/admin/experiences");
+  await expect(page).toHaveTitle(/^Expériences/);
+  await expectNoAxeViolation(page);
+  const row = page
+    .getByRole("listitem")
+    .filter({ hasText: `Ingénieur, ${company}` });
+  await expect(row).toContainText("septembre 2025 – aujourd'hui");
+  await expect(row).toContainText("Brouillon");
+  await row.getByRole("button", { name: "Supprimer" }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Supprimer définitivement" })
+    .click();
+  await expect(row).toHaveCount(0);
 });
 
 test("revokes the other sessions, renews the recovery codes, and signs out", async ({

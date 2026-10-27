@@ -6,5 +6,6 @@ export * from "./enums";
 export * from "./experiences";
 export * from "./profile";
 export * from "./projects";
+export * from "./redirects";
 export * from "./relations";
 export * from "./skills";

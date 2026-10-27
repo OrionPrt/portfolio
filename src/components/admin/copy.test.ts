@@ -52,6 +52,24 @@ describe("ADMIN_COPY's computed wording", () => {
     ],
     [ADMIN_COPY.skills.deleteConsequence(0, 0), undefined],
     [ADMIN_COPY.links.deleteTitle("GitHub"), `Supprimer le lien GitHub${NB}?`],
+    [
+      ADMIN_COPY.projects.deleteTitle("Démo"),
+      `Supprimer le projet «${NB}Démo${NB}»${NB}?`,
+    ],
+    [
+      ADMIN_COPY.experiences.deleteTitle("Acme"),
+      `Supprimer l'expérience «${NB}Acme${NB}»${NB}?`,
+    ],
+    [ADMIN_COPY.experiences.label("Développeur", "Acme"), "Développeur, Acme"],
+    [ADMIN_COPY.experiences.label(undefined, "Acme"), "Acme"],
+    [
+      ADMIN_COPY.experiences.period("janvier 2024", undefined),
+      "janvier 2024 – aujourd'hui",
+    ],
+    [
+      ADMIN_COPY.experiences.period("janvier 2024", "mars 2025"),
+      "janvier 2024 – mars 2025",
+    ],
   ])("reads %j", (text, expected) => {
     expect(text).toBe(expected);
     expect(text ?? "").not.toMatch(/ [?!;:]/);

@@ -33,6 +33,8 @@ const GROUPS: readonly {
     items: [
       { href: ADMIN_PATHS.profile, label: NAV.profile },
       { href: ADMIN_PATHS.links, label: NAV.links },
+      { href: ADMIN_PATHS.projects, label: NAV.projects },
+      { href: ADMIN_PATHS.experiences, label: NAV.experiences },
       { href: ADMIN_PATHS.skills, label: NAV.skills },
     ],
   },

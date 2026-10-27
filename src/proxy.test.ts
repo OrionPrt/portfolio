@@ -7,10 +7,18 @@ import { ok } from "@/lib/result";
 
 import { config, proxy } from "./proxy";
 
-// The 404 check reads published slugs from the database: here, a fixed list.
+// The 404 and 301 checks read published slugs and redirects from the database: here, fixed lists.
 vi.mock("@/features/content/published-slugs", () => ({
   loadPublishedSlugs: () =>
-    Promise.resolve(ok({ projects: ["demo"], experiences: ["acme"] })),
+    Promise.resolve(
+      ok({
+        published: { projects: ["demo"], experiences: ["acme"] },
+        redirects: [
+          { collection: "projects", fromSlug: "old-demo", toSlug: "demo" },
+          { collection: "experiences", fromSlug: "acme-corp", toSlug: "acme" },
+        ],
+      }),
+    ),
 }));
 
 const ORIGIN = "https://portfolio.test";
@@ -183,6 +191,24 @@ describe("proxy — real 404s", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("x-middleware-rewrite")).toBe(rewrite);
   });
+});
+
+describe("proxy — renamed entries", () => {
+  it.each([
+    ["/fr/projets/old-demo?ref=x", `${ORIGIN}/fr/projets/demo?ref=x`],
+    ["/en/experiences/acme-corp", `${ORIGIN}/en/experiences/acme`],
+  ])(
+    "sends %s to the new slug for good, in the same language",
+    async (path, location) => {
+      const response = await handle(path);
+
+      expect(response.status).toBe(301);
+      expect(response.headers.get("location")).toBe(location);
+      expect(response.headers.get("cache-control")).toBe(
+        "private, max-age=3600",
+      );
+    },
+  );
 });
 
 describe("proxy — fail closed", () => {

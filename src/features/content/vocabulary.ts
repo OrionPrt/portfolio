@@ -40,8 +40,12 @@ export const TILE_SIZES = ["sm", "md", "lg", "xl"] as const;
 
 export const MESSAGE_STATUSES = ["unread", "read", "archived"] as const;
 
+/** Collections whose entries live under /<collection>/[slug]: they have slugs to redirect. */
+export const ENTRY_COLLECTIONS = ["projects", "experiences"] as const;
+
 export type SkillDomain = (typeof SKILL_DOMAINS)[number];
 export type ContentStatus = (typeof CONTENT_STATUSES)[number];
+export type EntryCollection = (typeof ENTRY_COLLECTIONS)[number];
 export type EmploymentType = (typeof EMPLOYMENT_TYPES)[number];
 export type SocialKind = (typeof SOCIAL_KINDS)[number];
 export type TileKind = (typeof TILE_KINDS)[number];

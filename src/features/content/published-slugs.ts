@@ -3,14 +3,16 @@ import { createExperienceRepository } from "@/features/experiences/repository";
 import { createProjectRepository } from "@/features/projects/repository";
 import { ok, type Result } from "@/lib/result";
 
+import { createRedirectsRepository } from "./redirects-repository";
 import type { SlugLists } from "./slug-registry";
 
-/** Every published slug, by collection, in one database round trip per list. */
+/** Every published slug, by collection, and the redirects: one round trip per list. */
 export function loadPublishedSlugs(): Promise<Result<SlugLists>> {
   return withDatabase(async (db) => {
-    const [projects, experiences] = await Promise.all([
+    const [projects, experiences, redirects] = await Promise.all([
       createProjectRepository(db).listPublishedSlugs(),
       createExperienceRepository(db).listPublishedSlugs(),
+      createRedirectsRepository(db).list(),
     ]);
     if (!projects.ok) {
       return projects;
@@ -18,6 +20,12 @@ export function loadPublishedSlugs(): Promise<Result<SlugLists>> {
     if (!experiences.ok) {
       return experiences;
     }
-    return ok({ projects: projects.data, experiences: experiences.data });
+    if (!redirects.ok) {
+      return redirects;
+    }
+    return ok({
+      published: { projects: projects.data, experiences: experiences.data },
+      redirects: redirects.data,
+    });
   });
 }

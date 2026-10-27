@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { hasLocale } from "next-intl";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 
 import { DataUnavailable } from "@/components/content/data-unavailable";
 import { ExperienceDetail } from "@/components/experiences/experience-detail";
+import { movedSlug } from "@/features/content/moved-slugs";
 import { getPublishedExperience } from "@/features/experiences/queries";
 import { localizedAlternates } from "@/features/seo/alternates";
+import { getPathname } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 
 export async function generateMetadata({
@@ -45,6 +47,16 @@ export default async function ExperiencePage({
   }
   // The proxy already answered 404 for unknown slugs: this is the soft fallback.
   if (experience.data === undefined) {
+    // Renamed a moment ago: the proxy's lists have yet to learn it.
+    const moved = await movedSlug("experiences", slug);
+    if (moved !== undefined) {
+      permanentRedirect(
+        getPathname({
+          locale,
+          href: { pathname: "/experiences/[slug]", params: { slug: moved } },
+        }),
+      );
+    }
     notFound();
   }
   return <ExperienceDetail experience={experience.data} />;

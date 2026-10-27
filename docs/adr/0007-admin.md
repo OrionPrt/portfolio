@@ -1,6 +1,6 @@
 # ADR-0007 — Admin back office
 
-- **Status:** Accepted; implemented slice by slice (P6a and P6b1 done, P6b2–P6d to come)
+- **Status:** Accepted; implemented slice by slice (P6a, P6b1 and P6b2a done, P6b2b–P6d to come)
 - **Date:** 2026-10-26
 - **Phase:** P6
 
@@ -40,20 +40,28 @@ The proxy routes only the admin's known pages. Pages with a dynamic segment are 
 
 ### Content is edited in both languages, saved as the seed saves it
 
-Implemented for the profile, the social links and the skills (P6b1); projects, experiences, education and certifications follow the same pattern (P6b2).
+Implemented for the profile, the social links and the skills (P6b1), then the projects and the experiences (P6b2a); education and certifications follow the same pattern (P6b2b).
 
 - **One save path.** `saveContent` (`src/features/admin/save-content.ts`) runs every content form: the session first, then the input against the same Zod schemas as the seed, the write, an audit event (`content.created` or `content.updated`), and `updateTag` on the caches the change makes stale (`src/features/admin/content-tags.ts`: the entity's list, and each page it has, both slugs on a rename). `updateTag` makes the next request wait for fresh data, so a change shows on the site at once.
 - **Both languages, French required.** French is required, as in the seed; English left entirely blank is not stored, and the site falls back to French with the right `lang` attribute (decided on 2026-10-26). Each bilingual field shows both languages side by side, each control in its language, and flags a translation still to write as the text is typed.
-- **Writes, statement by statement.** Neon over HTTP has no interactive transaction: a save writes the row, then each translation, then the links, each idempotent, so a save cut short is completed by saving again (the form keeps its values on any failure). Deletions are a single statement (below).
+- **Writes, in one statement where it counts.** Neon over HTTP has no interactive transaction. A project or an experience is saved in a single statement: its row, its translations, its links to skills and the redirects it leaves run as data-modifying CTEs of one statement (`alongside`, `src/db/one-statement.ts`), so a save happens whole or not at all; a new entry's id is drawn by the app, so its translations and links are written alongside it. The writes of one statement share a snapshot: each touches rows the others leave alone, and the translations a save drops come back from its final `delete … returning` for the audit log. The profile and the links, written statement by statement in P6b1, stay idempotent: saving again completes a save cut short (the form keeps its values on any failure). Deletions and reorderings are single statements too.
 - **Deletion.** Permanent after an explicit confirmation. One statement deletes the row and writes its snapshot to the audit log (`content.deleted`): the row, and the rows its cascade deletes (translations, links to skills), read before the cascade runs (`deleteWithSnapshot`).
-- **Ordering.** Move up and move down buttons; at an end the button stays, disabled but focusable, so focus is never dropped. The order is renumbered and audited (`content.reordered`).
+- **Ordering.** Move up and move down buttons; at an end the button stays, disabled but focusable, so focus is never dropped, and the button pressed keeps it when React moves its row. The order is renumbered in one statement and audited (`content.reordered`). Skills are ordered within their domain, projects within their group (featured first, as the site shows them); experiences have no order to set, the site sorts them by date.
+- **Linked skills.** A project or an experience links up to 30 skills, in the order its badges show (decided on 2026-10-27): picked from the catalog by domain, then moved or removed. Each change is said aloud and counts as unsaved; the focus stays on the control used, or goes to the closest one left. Hidden fields carry the order; a slug no skill holds any more is passed over.
 - **Forms.** The server gets the fields only: the form keeps what it sent, and after a refusal every field starts again from it (an unticked box stays unticked). Once saved, the page refreshes and the fields start from the stored values. Fields are mounted afresh with each outcome, since React applies a select's `defaultValue` at mount only. Zod's issues come back by field (`fr.headline`, `slug`…), a taken slug or link kind on its own field, and the form names them in French, focusing the first (once: a hidden page shown again does not take focus back). Leaving with unsaved changes asks first, once however many forms the page holds (the browser's prompt on reload or close, a confirmation before following a link; back and forward are not caught). Field ids come from `useId`: pages visited earlier stay mounted, hidden. Markdown fields have a preview drawn by the public site's own renderer, loaded on first use. Zod stays out of the browser (its probe of `new Function` would trip the CSP): limits live in a Zod-free module.
 - **Outcomes said aloud.** A save is announced in the form's live region; a move in the list's; a deletion, whose row or page goes away, through a polite region the frame keeps (`announce`), focus moving to the page, or back to the list from the entry's own page.
-- **Request size.** Server actions accept up to 512 KB (two Markdown texts of 50,000 characters at most); Zod bounds every field. Skills stop at 200, the most the public read shows.
+- **Request size.** Server actions accept up to 512 KB (two Markdown texts of 50,000 characters at most); Zod bounds every field. Skills stop at 200, the most the public read shows; projects and experiences at 1,000 each, where the slug listings stop.
+
+### Renamed slugs lead to the new ones
+
+Implemented in P6b2a (decided on 2026-10-26 and 2026-10-27).
+
+- **When.** Renaming a _published_ project or experience records a permanent redirect from its old slug (`slug_redirects`, per collection). A draft's slug is not public: renaming it records nothing, and a redirect from the slug it takes keeps working until it is published. Once published, an entry's slug is no longer an old one (its redirect goes).
+- **Flat chains.** A to B then B to C leaves A to C and B to C; renamed back, an entry takes its old slug again. A redirect counts only while its target is published, so it never reveals a draft. Deleting an entry drops the redirects to it, in the deletion's statement.
+- **Who answers.** The proxy answers 301 from its in-memory lists (published slugs and redirects, trusted a minute; a slug it does not know reloads them, or waits on the load their age just started, at most once a second, and never on a load that hangs; a slug published within a second of the last load answers 404 for that second). The 301 is kept an hour by the browser only (`Cache-Control: private`): a shared cache would go on answering it once the slug is taken again. Until the proxy's lists learn of a rename, the old address reaches the entry's page, which sends the browser on from the same lists, cached for the pages and expired by the save (`movedSlug`). The page is streamed, so Next.js can no longer set its status: the redirect is an instant meta refresh in a 200, which browsers follow at once and search engines read as permanent. A deleted entry's page likewise shows "not found" at once, the 404 status following once the lists reload.
 
 ### Decided for the next slices
 
-- **Renamed slugs**: renaming a published project or experience adds a permanent (301) redirect from the old slug, read by the proxy (P6b).
 - **Images**: uploaded through the server, at most 4 MB, checked by magic bytes before anything is stored, then re-encoded with sharp (WebP, metadata stripped), which also defeats polyglot files. Stored in Vercel Blob in production, on the local disk in development and E2E. A route handler takes the upload, so the 64 KB body limit of server actions stays for every other form. Images serve project covers, company and school logos, and Markdown content; each carries a French and an English alternative text (P6c).
 - **Ordering** (bento, lists): move up / move down buttons, accessible as they are, rather than drag and drop (P6d).
 - **Database roles**: the site runs with a role limited to data changes (no DDL); the owner's URL only serves migrations and the seed (P6d).
@@ -64,10 +72,13 @@ Implemented for the profile, the social links and the skills (P6b1); projects, e
 - **Drag and drop (dnd-kit)**: nicer with a mouse, but a client dependency and more to test, for about ten tiles.
 - **Marking a message read when its page renders**: simpler, but a prefetch would mark it read unseen.
 - **Soft deletion of messages**: nothing lost by mistake, but a deleted message would keep its personal data.
+- **Neon's WebSocket driver, for interactive transactions**: transactions as usual, but a second connection mode in serverless functions, for writes one statement covers.
+- **Proxy lists refreshed every few seconds** instead of the page redirecting on its own: simpler, but a query per few seconds under traffic, and still a moment of 404 after each rename.
 
 ## Consequences
 
 - Every new admin page goes in the proxy's route table, or it answers 404; the unit test and the E2E sweep catch a missing entry.
+- Migration `0003` (the redirects table) must be applied before the code that reads it is deployed. It also tightens the social links' `mailto:` check (no `?` or `#`), which validates the stored rows.
 - Each content type adds an admin repository (read for editing, save, order), thin actions on `saveContent`, `moveContent` and `deleteContent`, and its cache tags in `content-tags.ts`.
 - The navigation reads the unread count when the frame renders (one `count(*)` on an indexed column, once per request); it follows the actions, which refresh the page, not plain navigations between pages.
 - The frame checks the session too (`requireAdmin`, cached per request), so nothing it shows reaches anyone else, whatever page renders inside it.

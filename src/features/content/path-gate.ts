@@ -3,23 +3,41 @@ import { isSlug } from "@/lib/slug";
 
 import type { SlugRegistry } from "./slug-registry";
 
+/** Where an internal pathname (after next-intl's rewrite) leads. */
+export type PathOutcome =
+  | { readonly kind: "known" }
+  /** A renamed entry's old slug: the same path with this slug instead. */
+  | { readonly kind: "redirect"; readonly slug: string }
+  | { readonly kind: "unknown" };
+
 export interface PathGate {
-  /** Whether an internal pathname (after next-intl's rewrite) leads to content. */
-  readonly isKnown: (pathname: string) => Promise<boolean>;
+  readonly check: (pathname: string) => Promise<PathOutcome>;
 }
+
+const KNOWN: PathOutcome = { kind: "known" };
+const UNKNOWN: PathOutcome = { kind: "unknown" };
 
 export function createPathGate(slugs: SlugRegistry): PathGate {
   return {
-    isKnown: async (pathname) => {
+    check: async (pathname) => {
       const match = matchRoute(pathname);
       if (match.kind !== "entry") {
-        return match.kind === "page";
+        return match.kind === "page" ? KNOWN : UNKNOWN;
       }
       if (!isSlug(match.slug)) {
-        return false;
+        return UNKNOWN;
       }
-      // Unknown slugs (database down): the page still checks, and 404s softly.
-      return (await slugs.has(match.collection, match.slug)) ?? true;
+      const resolution = await slugs.resolve(match.collection, match.slug);
+      switch (resolution?.kind) {
+        // Unknown slugs (database down): the page still checks, and 404s softly.
+        case undefined:
+        case "published":
+          return KNOWN;
+        case "redirect":
+          return { kind: "redirect", slug: resolution.to };
+        case "missing":
+          return UNKNOWN;
+      }
     },
   };
 }

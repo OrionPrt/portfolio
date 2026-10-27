@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-import type { SlugLists } from "@/features/content/slug-registry";
+import type { PublishedSlugs } from "@/features/content/slug-registry";
 import { DEFAULT_LOCALE, LOCALES } from "@/i18n/locales";
 import { getPathname } from "@/i18n/navigation";
 
@@ -34,7 +34,7 @@ function entry(base: URL, href: LocalizedHref): MetadataRoute.Sitemap[number] {
  */
 export function sitemapEntries(
   base: URL,
-  slugs: SlugLists,
+  slugs: PublishedSlugs,
 ): MetadataRoute.Sitemap {
   return [
     ...STATIC_PAGES.map((href) => entry(base, href)),

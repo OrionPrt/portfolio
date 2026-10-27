@@ -131,6 +131,37 @@ describe("deleteWithSnapshot", () => {
     ]);
   });
 
+  it("forgets the redirects that led to a deleted entry, and those only", async () => {
+    const id = await insertedId(
+      "insert into projects (slug, domain, status) values ('demo', 'web', 'published') returning id",
+    );
+    await testDb.exec(
+      `insert into slug_redirects (collection, from_slug, to_slug) values
+       ('projects', 'old', 'demo'), ('projects', 'gone', 'other'), ('experiences', 'past', 'demo')`,
+    );
+
+    await deleteWithSnapshot(
+      testDb.db,
+      {
+        table: projects,
+        idColumn: projects.id,
+        id,
+        entity: "project",
+        collection: "projects",
+      },
+      await actor(),
+    );
+
+    expect(
+      await testDb.query(
+        "select collection, from_slug from slug_redirects order by from_slug",
+      ),
+    ).toEqual([
+      { collection: "projects", from_slug: "gone" },
+      { collection: "experiences", from_slug: "past" },
+    ]);
+  });
+
   it("deletes and audits nothing for an unknown id", async () => {
     expect(
       await deleteWithSnapshot(

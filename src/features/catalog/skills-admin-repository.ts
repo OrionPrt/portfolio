@@ -7,6 +7,7 @@ import type { Database } from "@/db/types";
 import type { SaveOutcome } from "@/features/admin/save-content";
 import type { SkillInput } from "@/features/content/schemas";
 import type { SkillDomain } from "@/features/content/vocabulary";
+import { reorderRows } from "@/features/admin/reorder";
 import type { Result } from "@/lib/result";
 
 export type SkillForEdit = typeof skills.$inferSelect;
@@ -140,10 +141,16 @@ export function createSkillsAdminRepository(db: Database) {
       }),
 
     reorder: (ids: readonly string[]): Promise<Result<void>> =>
-      runQuery("skills.admin_save_failed", async () => {
-        for (const [sortOrder, id] of ids.entries()) {
-          await db.update(skills).set({ sortOrder }).where(eq(skills.id, id));
-        }
-      }),
+      runQuery("skills.admin_save_failed", () =>
+        reorderRows(
+          db,
+          {
+            table: skills,
+            idColumn: skills.id,
+            placeColumn: skills.sortOrder,
+          },
+          ids,
+        ),
+      ),
   };
 }

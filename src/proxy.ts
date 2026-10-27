@@ -37,6 +37,9 @@ const pathGate = createPathGate(
     load: loadPublishedSlugs,
     maxAgeMs: 60_000,
     retryAfterMs: 10_000,
+    // An entry published or renamed in the admin answers at once, not a minute
+    // later, even right after a load; a burst of unknown slugs costs one load a second.
+    missRefreshAfterMs: 1000,
   }),
 );
 
@@ -83,6 +86,30 @@ function internalPathname(
   return rewrite === null
     ? request.nextUrl.pathname
     : new URL(rewrite).pathname;
+}
+
+/** How long a browser may keep a slug redirect: the old slug may be taken again. */
+const SLUG_REDIRECT_MAX_AGE_S = 3600;
+
+/**
+ * A renamed entry's old address (ADR-0007): the same localized path, its last
+ * segment the new slug, the query kept. Permanent (301), kept an hour by the
+ * browser only: a shared cache would go on answering it once the slug is taken.
+ */
+function slugRedirectResponse(
+  request: NextRequest,
+  slug: string,
+): NextResponse {
+  const target = request.nextUrl.clone();
+  target.pathname = [...target.pathname.split("/").slice(0, -1), slug].join(
+    "/",
+  );
+  const response = NextResponse.redirect(target, 301);
+  response.headers.set(
+    "Cache-Control",
+    `private, max-age=${String(SLUG_REDIRECT_MAX_AGE_S)}`,
+  );
+  return response;
 }
 
 /**
@@ -176,9 +203,11 @@ async function routeRequest(
     return new NextResponse(null, { status: 500 });
   }
   const rendered = internalPathname(request, response);
-  return (await pathGate.isKnown(rendered))
-    ? response
-    : notFoundResponse(rendered);
+  const outcome = await pathGate.check(rendered);
+  if (outcome.kind === "redirect") {
+    return slugRedirectResponse(request, outcome.slug);
+  }
+  return outcome.kind === "known" ? response : notFoundResponse(rendered);
 }
 
 /**

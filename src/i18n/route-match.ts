@@ -1,10 +1,12 @@
+import {
+  ENTRY_COLLECTIONS,
+  type EntryCollection,
+} from "@/features/content/vocabulary";
+
 import { LOCALES, type Locale } from "./locales";
 import { routing } from "./routing";
 
-/** Collections whose entries live under /<collection>/[slug]. */
-export const ENTRY_COLLECTIONS = ["projects", "experiences"] as const;
-
-export type EntryCollection = (typeof ENTRY_COLLECTIONS)[number];
+export { ENTRY_COLLECTIONS, type EntryCollection };
 
 export type RouteMatch =
   | { readonly kind: "page"; readonly locale: Locale }

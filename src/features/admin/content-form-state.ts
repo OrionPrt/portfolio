@@ -15,6 +15,12 @@ export type ContentFormState =
 
 export const CONTENT_IDLE: ContentFormState = { status: "idle" };
 
+/** A content form's server action. */
+export type ContentAction = (
+  state: ContentFormState,
+  formData: FormData,
+) => Promise<ContentFormState>;
+
 /** A list action (move, delete): only its outcome. */
 export type ListActionState =
   | { readonly status: "idle" | "done" }
