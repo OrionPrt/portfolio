@@ -13,10 +13,11 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
   poweredByHeader: false,
   experimental: {
-    // The contact form is the only action. A 5,000-character message, its
-    // Turnstile token and the previous state useActionState sends back (the
-    // values echoed after a refusal) stay near 35 KB at worst (default 1 MB).
-    serverActions: { bodySizeLimit: "64kb" },
+    // The largest form is the admin's profile: two Markdown texts of 50,000
+    // characters at most (French, English), a few hundred KB of UTF-8 at
+    // worst. Zod bounds every field; anything bigger is refused unread
+    // (default 1 MB). The public contact form stays near 35 KB.
+    serverActions: { bodySizeLimit: "512kb" },
   },
   headers: () =>
     Promise.resolve([

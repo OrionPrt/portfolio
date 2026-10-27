@@ -17,7 +17,7 @@ The contact page is the site's first public input surface. It must:
 
 ### A server action, checked from the cheapest step to the costliest
 
-The form posts to a server action (`src/features/contact/actions.ts`) through React's `useActionState`. Next.js rejects calls from another origin, and the body is capped at 64 KB (`serverActions.bodySizeLimit`). `handleContactSubmission` (`submit.ts`) runs the checks in this order, each with its own outcome:
+The form posts to a server action (`src/features/contact/actions.ts`) through React's `useActionState`. Next.js rejects calls from another origin, and the body is capped at 64 KB (`serverActions.bodySizeLimit`; raised to 512 KB in P6 for the admin's Markdown, see [ADR-0007](0007-admin.md)). `handleContactSubmission` (`submit.ts`) runs the checks in this order, each with its own outcome:
 
 | Step                         | On failure                                        |
 | ---------------------------- | ------------------------------------------------- |

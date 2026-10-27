@@ -64,6 +64,29 @@ describe("runAdmin", () => {
     });
   });
 
+  it("names the change an audit row is missing for, when it cannot be written", async () => {
+    const error = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    mocks.record.mockResolvedValue(
+      err({ code: "DB_UNAVAILABLE", message: "down" }),
+    );
+
+    await runAdmin(async ({ audit }) => {
+      await audit({
+        action: "content.updated",
+        entity: "skill",
+        entityId: "s-1",
+      });
+      return ok(undefined);
+    });
+
+    const logged = error.mock.calls.flat().map(String).join("\n");
+    expect(logged).toContain("admin.audit_missing");
+    expect(logged).toContain("s-1");
+    error.mockRestore();
+  });
+
   it("checks the session before anything else (a redirect to the login)", async () => {
     mocks.requireAdmin.mockRejectedValue(new Error("redirect:/admin/login"));
     const work = vi.fn();

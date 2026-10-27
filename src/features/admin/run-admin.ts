@@ -9,6 +9,7 @@ import {
 } from "@/features/auth/audit-repository";
 import { checkedRequest } from "@/features/auth/checked-request";
 import { requireAdmin, type AdminSession } from "@/features/auth/dal";
+import { logger } from "@/lib/logger";
 import { err, type Result } from "@/lib/result";
 
 /** An audit event as an action writes it: who and from where are filled in. */
@@ -52,7 +53,18 @@ export async function runAdmin<T>(
       db,
       session,
       actor,
-      audit: (event) => audit.record({ ...event, ...actor }),
+      audit: async (event) => {
+        const recorded = await audit.record({ ...event, ...actor });
+        if (!recorded.ok) {
+          // The change itself is done: name what the log is missing.
+          logger.error("admin.audit_missing", {
+            action: event.action,
+            entity: event.entity,
+            entityId: event.entityId,
+          });
+        }
+        return recorded;
+      },
     });
   });
   return result.ok ? result : err("unavailable");

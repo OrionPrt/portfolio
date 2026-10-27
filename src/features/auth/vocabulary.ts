@@ -39,6 +39,10 @@ export const AUDIT_ACTIONS = [
   "auth.signed_out",
   "auth.totp_reset",
   "contact.message_deleted",
+  "content.created",
+  "content.updated",
+  "content.deleted",
+  "content.reordered",
 ] as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];

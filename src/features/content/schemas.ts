@@ -4,6 +4,7 @@ import { MAX_LINKED_SKILLS } from "@/db/limits";
 import { DEFAULT_LOCALE, LOCALES } from "@/i18n/locales";
 import { MAX_SLUG_LENGTH, SLUG_PATTERN } from "@/lib/slug";
 
+import { TEXT_LIMITS } from "./limits";
 import {
   CONTENT_STATUSES,
   EMPLOYMENT_TYPES,
@@ -19,15 +20,7 @@ import {
  * where it can (slug format, https links, date order); lengths live here.
  */
 
-export const TEXT_LIMITS = {
-  name: 120,
-  title: 120,
-  tagline: 200,
-  summary: 800,
-  seo: 160,
-  markdown: 50_000,
-  url: 2048,
-} as const;
+export { TEXT_LIMITS };
 
 const MAX_SORT_ORDER = 10_000;
 
@@ -36,9 +29,13 @@ export const slugSchema = z
   .max(MAX_SLUG_LENGTH)
   .regex(new RegExp(SLUG_PATTERN), "lower-case kebab-case only");
 
-/** Same patterns as the database CHECKs, so a value Zod accepts is never refused there. */
+/**
+ * The database CHECKs' patterns, or stricter: a value Zod accepts is never
+ * refused there. A mailto link carries an address only, no query (subject,
+ * cc, body) a visitor's mail app would fill in.
+ */
 const HTTPS_URL = /^https:\/\/\S+$/;
-const MAILTO_URL = /^mailto:[^\s@]+@[^\s@]+$/;
+const MAILTO_URL = /^mailto:[^\s@?#]+@[^\s@?#]+$/;
 
 /**
  * Links rendered in `href`: https only, which rules out javascript: and data:.

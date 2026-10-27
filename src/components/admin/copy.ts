@@ -17,9 +17,16 @@ export const ADMIN_COPY = {
     label: "Administration",
     dashboard: "Tableau de bord",
     messages: "Messages",
+    profile: "Profil",
+    links: "Liens",
+    skills: "Compétences",
     unreadWord: (count: number) => (count > 1 ? "non lus" : "non lu"),
     security: "Sécurité",
-    groups: { overview: "Vue d'ensemble", account: "Compte" },
+    groups: {
+      overview: "Vue d'ensemble",
+      content: "Contenu",
+      account: "Compte",
+    },
     signOut: "Se déconnecter",
     site: "Voir le site",
     brand: "Orion, administration",
@@ -122,6 +129,127 @@ export const ADMIN_COPY = {
       unavailable: FAILURES.unavailable,
     },
   },
+  content: {
+    save: "Enregistrer",
+    saving: "Enregistrement…",
+    saved: "Modifications enregistrées.",
+    invalid: "Vérifiez les champs signalés.",
+    notFound: "Cette entrée n'existe plus.",
+    full: `Le nombre maximal d'entrées est atteint${NB}: supprimez-en une avant d'en ajouter.`,
+    unavailable: FAILURES.unavailable,
+    leave: `Des modifications ne sont pas enregistrées. Quitter la page${NB}?`,
+    problems: {
+      required: "Obligatoire.",
+      tooLong: (max: number) => `${String(max)} caractères au plus.`,
+      invalid: "Valeur invalide.",
+      taken: "Déjà pris par une autre entrée.",
+    },
+    locales: { fr: "Français", en: "Anglais" },
+    toTranslate: "À traduire",
+    markdown: {
+      write: "Rédiger",
+      preview: "Aperçu",
+      empty: "Rien à afficher pour l'instant.",
+      hint: `Markdown${NB}: titres, listes, liens, code, tableaux.`,
+    },
+    move: {
+      up: (label: string) => `Monter ${label}`,
+      down: (label: string) => `Descendre ${label}`,
+      done: "Ordre enregistré.",
+    },
+    delete: {
+      trigger: "Supprimer",
+      confirm: "Supprimer définitivement",
+      pending: "Suppression…",
+      done: (label: string) => `${label}${NB}: supprimé.`,
+      snapshot:
+        "La suppression est définitive. Le journal d'audit garde un instantané de l'entrée, pour la recréer à la main si besoin.",
+    },
+  },
+  profile: {
+    title: "Profil",
+    lead: `Ce que présentent la tuile d'identité et la page À propos. Le français est obligatoire${NB}; laissé vide, l'anglais reprend le texte français.`,
+    displayName: "Nom affiché",
+    location: "Ville",
+    optional: "Facultatif.",
+    headline: "Titre",
+    headlineHint: `Une ligne, sous le nom${NB}: votre métier.`,
+    availability: "Disponibilité",
+    pitch: "Présentation courte",
+    lookingFor: "Ce que je recherche",
+    aboutMd: "À propos",
+  },
+  links: {
+    title: "Liens",
+    lead: "Les liens du site, dans l'ordre où il les montre. L'e-mail public est le lien de type E-mail.",
+    kinds: {
+      github: "GitHub",
+      linkedin: "LinkedIn",
+      email: "E-mail",
+      hackthebox: "Hack The Box",
+      rootme: "Root-Me",
+      tryhackme: "TryHackMe",
+      website: "Site web",
+    },
+    url: "Adresse",
+    urlHint: `Un lien https://${NB}; pour l'e-mail, mailto:nom@domaine.`,
+    urlInvalid:
+      "Un lien https:// complet, ou mailto:nom@domaine pour le lien E-mail.",
+    visible: "Visible sur le site",
+    hiddenBadge: "Masqué",
+    empty: "Aucun lien pour l'instant.",
+    add: "Ajouter un lien",
+    kind: "Type",
+    kindTaken: "Ce type de lien existe déjà.",
+    allUsed: "Chaque type de lien existe déjà.",
+    deleteTitle: (kind: string) => `Supprimer le lien ${kind}${NB}?`,
+  },
+  skills: {
+    title: "Compétences",
+    lead: "Les technologies et pratiques, rangées par domaine, dans l'ordre où le site les montre. Leurs noms ne se traduisent pas.",
+    add: "Nouvelle compétence",
+    newTitle: "Nouvelle compétence",
+    editTitle: "Modifier une compétence",
+    back: "Retour aux compétences",
+    empty: "Aucune compétence dans ce domaine.",
+    domains: {
+      web: "Web",
+      low_level: "Bas niveau",
+      devops: "DevOps",
+      cyber: "Cybersécurité",
+    },
+    name: "Nom",
+    slug: "Slug",
+    slugHint: `Identifiant dans les adresses${NB}: lettres minuscules, chiffres et tirets.`,
+    slugInvalid:
+      "Lettres minuscules et chiffres, séparés par des tirets simples.",
+    slugTaken: "Ce slug est déjà pris par une autre compétence.",
+    domain: "Domaine",
+    featured: "Mise en avant",
+    featuredHint: "Montrée en premier sur la tuile des compétences.",
+    featuredBadge: "En avant",
+    usage: (projects: number, experiences: number) => {
+      const parts = [
+        projects === 0
+          ? undefined
+          : `${String(projects)} projet${projects > 1 ? "s" : ""}`,
+        experiences === 0
+          ? undefined
+          : `${String(experiences)} expérience${experiences > 1 ? "s" : ""}`,
+      ].filter((part) => part !== undefined);
+      return parts.length === 0
+        ? "Liée à rien"
+        : `Liée à ${parts.join(" et ")}`;
+    },
+    edit: "Modifier",
+    deleteTitle: (name: string) =>
+      `Supprimer la compétence «${NB}${name}${NB}»${NB}?`,
+    deleteConsequence: (projects: number, experiences: number) =>
+      projects + experiences === 0
+        ? undefined
+        : "Ses liens avec les projets et expériences qui l'utilisent disparaissent aussi.",
+    notFound: "Cette compétence n'existe pas, ou a été supprimée.",
+  },
   cancel: "Annuler",
   security: {
     title: "Sécurité",
@@ -193,6 +321,10 @@ export const ADMIN_COPY = {
         "auth.signed_out": "Déconnexion",
         "auth.totp_reset": "Double authentification réinitialisée (CLI)",
         "contact.message_deleted": "Message supprimé",
+        "content.created": "Contenu créé",
+        "content.updated": "Contenu modifié",
+        "content.deleted": "Contenu supprimé",
+        "content.reordered": "Ordre modifié",
       },
       /** The diff's keys and values, in words; anything else is shown as stored. */
       details: {

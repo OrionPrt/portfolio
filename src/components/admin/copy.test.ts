@@ -19,3 +19,45 @@ describe("ADMIN_COPY", () => {
     }
   });
 });
+
+describe("ADMIN_COPY's computed wording", () => {
+  const NB = " ";
+
+  it.each([
+    [
+      ADMIN_COPY.dashboard.messages(undefined),
+      "Le nombre de messages non lus n'a pas pu être chargé.",
+    ],
+    [ADMIN_COPY.dashboard.messages(0), "Aucun message non lu."],
+    [ADMIN_COPY.dashboard.messages(1), "1 message non lu."],
+    [ADMIN_COPY.dashboard.messages(3), "3 messages non lus."],
+    [ADMIN_COPY.nav.unreadWord(1), "non lu"],
+    [ADMIN_COPY.nav.unreadWord(2), "non lus"],
+    [ADMIN_COPY.inbox.documentTitle("received", 1), "Messages reçus"],
+    [
+      ADMIN_COPY.inbox.documentTitle("archived", 2),
+      "Messages archivés, page 2",
+    ],
+    [ADMIN_COPY.inbox.replySubject("Mission"), `Re${NB}: Mission`],
+    [ADMIN_COPY.content.problems.tooLong(120), "120 caractères au plus."],
+    [ADMIN_COPY.content.move.up("Rust"), "Monter Rust"],
+    [ADMIN_COPY.content.move.down("Rust"), "Descendre Rust"],
+    [ADMIN_COPY.skills.usage(0, 0), "Liée à rien"],
+    [ADMIN_COPY.skills.usage(1, 0), "Liée à 1 projet"],
+    [ADMIN_COPY.skills.usage(0, 2), "Liée à 2 expériences"],
+    [ADMIN_COPY.skills.usage(2, 1), "Liée à 2 projets et 1 expérience"],
+    [
+      ADMIN_COPY.skills.deleteTitle("Rust"),
+      `Supprimer la compétence «${NB}Rust${NB}»${NB}?`,
+    ],
+    [ADMIN_COPY.skills.deleteConsequence(0, 0), undefined],
+    [ADMIN_COPY.links.deleteTitle("GitHub"), `Supprimer le lien GitHub${NB}?`],
+  ])("reads %j", (text, expected) => {
+    expect(text).toBe(expected);
+    expect(text ?? "").not.toMatch(/ [?!;:]/);
+  });
+
+  it("says when a deleted skill's links go with it", () => {
+    expect(ADMIN_COPY.skills.deleteConsequence(1, 0)).toMatch(/disparaissent/);
+  });
+});

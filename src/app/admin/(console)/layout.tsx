@@ -1,6 +1,7 @@
 import { Suspense, type ReactNode } from "react";
 
 import { AdminRouteFocus } from "@/components/admin/admin-route-focus";
+import { ANNOUNCER_ID } from "@/components/admin/announce";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { ADMIN_COPY } from "@/components/admin/copy";
 import { requireAdmin } from "@/features/auth/dal";
@@ -40,6 +41,8 @@ export default async function ConsoleLayout({ children }: ConsoleLayoutProps) {
           {children}
         </main>
       </div>
+      {/* Outlives the page's forms: a deleted row's own regions are gone. */}
+      <p id={ANNOUNCER_ID} role="status" className="sr-only" />
       <Suspense fallback={null}>
         <AdminRouteFocus targetId="admin-main" />
       </Suspense>

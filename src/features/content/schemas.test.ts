@@ -61,6 +61,14 @@ describe("URL schemas", () => {
     );
   });
 
+  it.each([
+    "mailto:me@example.com?subject=x&body=y",
+    "mailto:me@example.com?bcc=x%40y.com",
+    "mailto:me@example.com#x",
+  ])("reject a mailto link that would fill in a message: %j", (value) => {
+    expect(socialUrlSchema.safeParse(value).success).toBe(false);
+  });
+
   it("normalizes a link before checking it, as the database stores it", () => {
     expect(httpsUrlSchema.parse("HTTPS://Example.com")).toBe(
       "https://example.com/",

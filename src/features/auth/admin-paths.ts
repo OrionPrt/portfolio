@@ -5,10 +5,17 @@ export const ADMIN_PATHS = {
   secondFactor: "/admin/login/2fa",
   security: "/admin/security",
   messages: "/admin/messages",
+  profile: "/admin/profile",
+  links: "/admin/links",
+  skills: "/admin/skills",
+  newSkill: "/admin/skills/new",
 } as const;
 
 /** Pages with a dynamic segment, spelled as their folders: `[id]` is a UUID. */
-export const ADMIN_PATTERNS: readonly string[] = ["/admin/messages/[id]"];
+export const ADMIN_PATTERNS: readonly string[] = [
+  "/admin/messages/[id]",
+  "/admin/skills/[id]",
+];
 
 /** Lowercase, as PostgreSQL prints it: an uppercase copy is another URL. */
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -17,6 +24,10 @@ const SEGMENT_FORMATS: Readonly<Record<string, RegExp>> = { "[id]": UUID };
 
 export function messagePath(id: string): string {
   return `${ADMIN_PATHS.messages}/${id}`;
+}
+
+export function skillPath(id: string): string {
+  return `${ADMIN_PATHS.skills}/${id}`;
 }
 
 /** Pages reachable without a full session: the login and its steps. */

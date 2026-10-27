@@ -8,6 +8,8 @@ import { ADMIN_COPY } from "./copy";
 
 interface ConfirmDialogProps {
   readonly triggerLabel: string;
+  /** Tells same-named triggers apart for screen readers: "Supprimer Rust". */
+  readonly triggerContext?: string;
   readonly title: string;
   readonly description: string;
   /** The confirming form; it gets the cancel button to place next to its submit. */
@@ -22,6 +24,7 @@ interface ConfirmDialogProps {
  */
 export function ConfirmDialog({
   triggerLabel,
+  triggerContext,
   title,
   description,
   children,
@@ -62,6 +65,13 @@ export function ConfirmDialog({
         className={BUTTON_CLASSES.dangerQuiet}
       >
         {triggerLabel}
+        {/* The space outside the span: name computation trims inside it. */}
+        {triggerContext !== undefined && (
+          <>
+            {" "}
+            <span className="sr-only">{triggerContext}</span>
+          </>
+        )}
       </button>
       <dialog
         ref={dialogRef}

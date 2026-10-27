@@ -28,6 +28,15 @@ const GROUPS: readonly {
     ],
   },
   {
+    id: "admin-nav-content",
+    title: NAV.groups.content,
+    items: [
+      { href: ADMIN_PATHS.profile, label: NAV.profile },
+      { href: ADMIN_PATHS.links, label: NAV.links },
+      { href: ADMIN_PATHS.skills, label: NAV.skills },
+    ],
+  },
+  {
     id: "admin-nav-account",
     title: NAV.groups.account,
     items: [{ href: ADMIN_PATHS.security, label: NAV.security }],
@@ -53,7 +62,7 @@ function currentOf(
 /** The count, visible, then in words for screen readers: "Messages 3 non lus". */
 function UnreadBadge({ count }: { readonly count: number }) {
   return (
-    <span className="bg-accent/15 text-accent ml-auto rounded-full px-2 font-mono text-xs">
+    <span className="bg-accent/10 text-accent ml-auto rounded-full px-2 font-mono text-xs">
       {count} <span className="sr-only">{NAV.unreadWord(count)}</span>
     </span>
   );

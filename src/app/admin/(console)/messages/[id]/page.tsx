@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { BackLink } from "@/components/admin/content/back-link";
 import { ADMIN_COPY } from "@/components/admin/copy";
 import {
   describeUserAgent,
@@ -105,12 +105,7 @@ export default async function MessagePage({
   return (
     <>
       <AdminPageHeader title={COPY.title} />
-      <Link
-        href={ADMIN_PATHS.messages}
-        className="text-fg-muted hover:text-fg self-start text-sm underline-offset-4 hover:underline"
-      >
-        <span aria-hidden="true">←</span> {COPY.back}
-      </Link>
+      <BackLink href={ADMIN_PATHS.messages} label={COPY.back} />
       {found.ok && found.data !== undefined ? (
         <MessageView message={found.data} />
       ) : (

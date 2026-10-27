@@ -188,6 +188,107 @@ test("reads, archives and deletes a message from the inbox", async ({
   await expect(page.getByText(subject)).toHaveCount(0);
 });
 
+test("edits the profile, the links and the skills, and the site shows each change", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  const stamp = String(Date.now());
+  await signIn(page);
+  const nav = page.getByRole("navigation", { name: "Administration" });
+
+  // Profile: only the availability, which no other suite reads, then back.
+  await nav.getByRole("link", { name: "Profil" }).click();
+  // A client navigation: its title and content arrive before axe looks.
+  await expect(page).toHaveTitle(/^Profil/);
+  await expectNoAxeViolation(page);
+  const availability = page
+    .getByRole("group", { name: "Disponibilité" })
+    .getByLabel("Français");
+  const original = await availability.inputValue();
+  await availability.fill(`Disponible dès janvier (${stamp})`);
+  // Leaving with unsaved changes asks first; dismissed, the page stays.
+  page.once("dialog", (dialog) => void dialog.dismiss());
+  await nav.getByRole("link", { name: "Liens" }).click();
+  await expect(page).toHaveURL(/\/admin\/profile$/);
+  await page.getByRole("button", { name: "Enregistrer" }).click();
+  // The form's region: the frame's announcer is another one.
+  await expect(page.getByRole("main").getByRole("status")).toHaveText(
+    "Modifications enregistrées.",
+  );
+  await page.goto("/fr/a-propos");
+  await expect(page.getByText(`(${stamp})`)).toBeVisible();
+  await page.goto("/admin/profile");
+  await availability.fill(original);
+  await page.getByRole("button", { name: "Enregistrer" }).click();
+  // The form's region: the frame's announcer is another one.
+  await expect(page.getByRole("main").getByRole("status")).toHaveText(
+    "Modifications enregistrées.",
+  );
+
+  // Links: a kind the seed leaves free, moved up, shown, then deleted.
+  await page.goto("/admin/links");
+  await expectNoAxeViolation(page);
+  const add = page.getByRole("region", { name: "Ajouter un lien" });
+  await add.getByLabel("Type").selectOption("website");
+  await add.getByLabel("Adresse").fill(`https://example.com/${stamp}`);
+  await add.getByRole("button", { name: "Enregistrer" }).click();
+  const card = page
+    .getByRole("listitem")
+    .filter({ has: page.getByRole("heading", { name: "Site web" }) });
+  await card.getByRole("button", { name: "Monter Site web" }).click();
+  await expect(
+    card.getByRole("button", { name: "Monter Site web" }),
+  ).toBeFocused();
+  await page.goto("/fr/a-propos");
+  await expect(
+    page.locator(`a[href="https://example.com/${stamp}"]`).first(),
+  ).toBeAttached();
+  await page.goto("/admin/links");
+  await card.getByRole("button", { name: "Supprimer" }).click();
+  await page
+    .getByRole("dialog", { name: /Supprimer le lien Site web/ })
+    .getByRole("button", { name: "Supprimer définitivement" })
+    .click();
+  await expect(card).toHaveCount(0);
+
+  // Skills: created, shown on the site, renamed, then deleted.
+  const name = `Outil E2E ${stamp}`;
+  await page.goto("/admin/skills/new");
+  await page.getByLabel("Nom").fill(name);
+  await page.getByLabel("Slug").fill(`outil-e2e-${stamp}`);
+  await page.getByLabel("Domaine").selectOption("devops");
+  await page.getByRole("button", { name: "Enregistrer" }).click();
+  await expect(page).toHaveURL(/\/admin\/skills$/);
+  await expect(page).toHaveTitle(/^Compétences/);
+  await expectNoAxeViolation(page);
+  const devops = page.getByRole("region", { name: "DevOps" });
+  await devops.getByRole("link", { name: `Modifier ${name}` }).click();
+  await expect(page).toHaveTitle(/^Modifier une compétence/);
+  await expectNoAxeViolation(page);
+  // By role: pages visited earlier stay mounted, hidden, with fields of the same name.
+  await page.getByRole("textbox", { name: "Nom" }).fill(`${name} bis`);
+  await page.getByRole("button", { name: "Enregistrer" }).click();
+  // The form's region: the frame's announcer is another one.
+  await expect(page.getByRole("main").getByRole("status")).toHaveText(
+    "Modifications enregistrées.",
+  );
+  await page.goto("/fr/competences");
+  await expect(page.getByText(`${name} bis`)).toBeVisible();
+  await page.goto("/admin/skills");
+  await devops.getByRole("link", { name: `Modifier ${name} bis` }).click();
+  await expect(page).toHaveTitle(/^Modifier une compétence/);
+  await page.getByRole("button", { name: `Supprimer ${name} bis` }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Supprimer définitivement" })
+    .click();
+  await expect(page).toHaveURL(/\/admin\/skills$/);
+  // The visible list: the entry's own page stays mounted, hidden, a while.
+  await expect(
+    devops.getByRole("link", { name: `Modifier ${name} bis` }),
+  ).toHaveCount(0);
+});
+
 test("revokes the other sessions, renews the recovery codes, and signs out", async ({
   page,
 }) => {
