@@ -1,4 +1,4 @@
-import { act, render, screen, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -17,6 +17,7 @@ import { CheckboxField, SelectField } from "./choice-fields";
 import { ContentForm } from "./content-form";
 import { DeleteEntry, MoveButtons } from "./list-actions";
 import { TextField } from "./text-field";
+import { regionWith } from "../../../../test/dom";
 
 const save =
   vi.fn<
@@ -86,9 +87,7 @@ describe("ContentForm", () => {
     expect(previous).toEqual({ status: "idle" });
     expect(sent?.get("id")).toBe("skill-1");
     expect(sent?.get("name")).toBe("Rust");
-    expect(await screen.findByRole("status")).toHaveTextContent(
-      "Modifications enregistrées.",
-    );
+    await regionWith(screen, "status", "Modifications enregistrées.");
   });
 
   it("keeps what was sent after a refusal, an unticked box and a chosen option included", async () => {
@@ -105,11 +104,11 @@ describe("ContentForm", () => {
     await user.selectOptions(screen.getByLabelText("Domaine"), "devops");
     await user.click(screen.getByRole("button", { name: "Enregistrer" }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Vérifiez les champs signalés.",
-    );
+    await regionWith(screen, "alert", "Vérifiez les champs signalés.");
     const slug = screen.getByLabelText("Slug");
-    expect(slug).toHaveFocus();
+    await waitFor(() => {
+      expect(slug).toHaveFocus();
+    });
     expect(slug).toHaveValue("Not A Slug");
     expect(slug).toHaveAccessibleDescription(
       "Lettres minuscules, chiffres et tirets.",
@@ -141,9 +140,11 @@ describe("ContentForm", () => {
 
     await user.click(screen.getByRole("button", { name: "Enregistrer" }));
 
-    expect(await screen.findByLabelText("Slug")).toHaveAccessibleDescription(
-      "Ce slug est déjà pris.",
-    );
+    await waitFor(() => {
+      expect(screen.getByLabelText("Slug")).toHaveAccessibleDescription(
+        "Ce slug est déjà pris.",
+      );
+    });
   });
 
   it.each([
@@ -157,7 +158,7 @@ describe("ContentForm", () => {
 
     await user.click(screen.getByRole("button", { name: "Enregistrer" }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(text);
+    await regionWith(screen, "alert", text);
   });
 
   it("stops saying it is saved once something is typed again", async () => {
@@ -319,9 +320,7 @@ describe("list actions", () => {
       settle({ status: "done" });
       return Promise.resolve();
     });
-    expect(await screen.findByRole("status")).toHaveTextContent(
-      "Ordre enregistré.",
-    );
+    await regionWith(screen, "status", "Ordre enregistré.");
   });
 
   it("delete only after a confirmation that names the entry and what goes with it", async () => {
@@ -349,9 +348,7 @@ describe("list actions", () => {
     );
 
     expect(listAction.mock.calls[0]?.[1].get("id")).toBe("s-1");
-    expect(await within(dialog).findByRole("alert")).toHaveTextContent(
-      "Cette entrée n'existe plus.",
-    );
+    await regionWith(within(dialog), "alert", "Cette entrée n'existe plus.");
   });
 
   it("once deleted, say so through the frame, and go back to the list if asked", async () => {

@@ -3,7 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import {
   useActionState,
-  useEffect,
+  useLayoutEffect,
   useId,
   useRef,
   useState,
@@ -80,7 +80,8 @@ export function ContactForm({ action, siteKey, nonce }: ContactFormProps) {
   const isChecking = isHydrated && !hasToken && !hasWidgetFailed;
   const handledState = useRef(state);
 
-  useEffect(() => {
+  // During the commit that shows the response: focus moves before it paints.
+  useLayoutEffect(() => {
     // Once per response: a page shown again (Activity) keeps its last state.
     if (handledState.current === state) {
       return;

@@ -32,6 +32,7 @@ import { PasswordForm } from "./password-form";
 import { RecoveryCodesForm } from "./recovery-codes-form";
 import { SecondFactorForm } from "./second-factor-form";
 import { SessionsForm } from "./sessions-form";
+import { regionWith } from "../../../test/dom";
 
 const EMAIL = "admin@example.com";
 const RECOVERY_CODE = "abcd-efgh-ijkl-mnop-qrst-uvwx";
@@ -82,7 +83,7 @@ describe("admin forms", () => {
         );
         await user.click(screen.getByRole("button", { name: "Continuer" }));
 
-        expect(await screen.findByRole("alert")).toHaveTextContent(text);
+        await regionWith(screen, "alert", text);
         expect(screen.getByLabelText("E-mail")).toHaveValue("x@y.z");
         expect(screen.getByLabelText("Mot de passe")).toHaveValue("");
       },
@@ -125,7 +126,7 @@ describe("admin forms", () => {
 
       await user.type(screen.getByLabelText("Code à 6 chiffres"), "000000");
       await user.click(screen.getByRole("button", { name: "Vérifier" }));
-      expect(await screen.findByRole("alert")).toHaveTextContent(REFUSED);
+      await regionWith(screen, "alert", REFUSED);
       await user.click(
         screen.getByRole("button", {
           name: "Utiliser un code de récupération",
@@ -154,7 +155,7 @@ describe("admin forms", () => {
       const sent = actions.secondFactorAction.mock.calls[0]?.[1];
       expect(sent?.get("method")).toBe("recovery_code");
       expect(sent?.get("code")).toBe(RECOVERY_CODE);
-      const alert = await screen.findByRole("alert");
+      const alert = await regionWith(screen, "alert", /Trop de tentatives/);
       expect(
         within(alert).getByRole("link", { name: "Recommencer la connexion" }),
       ).toHaveAttribute("href", "/admin/login");
@@ -203,9 +204,7 @@ describe("admin forms", () => {
         screen.getByRole("button", { name: "Copier les codes" }),
       );
       expect(await navigator.clipboard.readText()).toBe(CODES.join("\n"));
-      expect(await screen.findByRole("status")).toHaveTextContent(
-        "Codes copiés",
-      );
+      await regionWith(screen, "status", "Codes copiés");
     });
 
     it("says when the codes cannot be copied", async () => {
@@ -223,9 +222,7 @@ describe("admin forms", () => {
         await screen.findByRole("button", { name: "Copier les codes" }),
       );
 
-      expect(await screen.findByRole("status")).toHaveTextContent(
-        "Copie impossible",
-      );
+      await regionWith(screen, "status", "Copie impossible");
     });
 
     it("words the count when none or several are left", () => {
@@ -248,7 +245,7 @@ describe("admin forms", () => {
 
       await submit("000000");
 
-      expect(await screen.findByRole("alert")).toHaveTextContent(REFUSED);
+      await regionWith(screen, "alert", REFUSED);
     });
   });
 
@@ -379,9 +376,7 @@ describe("admin forms", () => {
       expect(sent?.getAll("sessionId")).toEqual([OTHER]);
       expect(sent?.get("scope")).toBe("selected");
       expect(sent?.get("code")).toBe("123456");
-      expect(await screen.findByRole("status")).toHaveTextContent(
-        "1 session révoquée.",
-      );
+      await regionWith(screen, "status", "1 session révoquée.");
     });
 
     it("keeps the chosen sessions ticked when the code is refused", async () => {
@@ -396,7 +391,7 @@ describe("admin forms", () => {
       expect(
         actions.revokeSessionsAction.mock.calls[0]?.[1]?.get("scope"),
       ).toBe("others");
-      expect(await screen.findByRole("alert")).toHaveTextContent(REFUSED);
+      await regionWith(screen, "alert", REFUSED);
       expect(
         screen.getByRole("checkbox", { name: /Appareil inconnu/ }),
       ).toBeChecked();
@@ -414,9 +409,7 @@ describe("admin forms", () => {
 
       await revoke("Révoquer la sélection");
 
-      expect(await screen.findByRole("alert")).toHaveTextContent(
-        "Sélectionnez au moins une session",
-      );
+      await regionWith(screen, "alert", "Sélectionnez au moins une session");
     });
   });
 

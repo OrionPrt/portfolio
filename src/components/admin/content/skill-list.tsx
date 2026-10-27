@@ -26,7 +26,7 @@ function SkillRow({ skill, isFirst, isLast }: SkillRowProps) {
         <p className="flex flex-wrap items-center gap-2">
           <span className="font-medium">{skill.name}</span>
           {skill.featured && (
-            <span className="bg-accent/10 text-accent rounded-chip px-1.5 font-mono text-xs">
+            <span className="bg-accent/15 text-fg rounded-chip px-1.5 font-mono text-xs">
               {COPY.featuredBadge}
             </span>
           )}

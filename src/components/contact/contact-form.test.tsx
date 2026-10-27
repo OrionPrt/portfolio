@@ -1,4 +1,4 @@
-import { act, screen } from "@testing-library/react";
+import { act, screen, waitFor } from "@testing-library/react";
 import { Activity } from "react";
 import userEvent, { type UserEvent } from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -12,6 +12,7 @@ import {
 import { renderWithIntl } from "../../../test/render";
 import { ContactForm } from "./contact-form";
 import type { TurnstileApi, TurnstileRenderOptions } from "./turnstile-loader";
+import { regionWith } from "../../../test/dom";
 
 const VALUES = {
   name: "Ada",
@@ -154,9 +155,7 @@ describe("ContactForm", () => {
     await fill(user);
     await user.click(submitButton());
 
-    expect(await screen.findByRole("status")).toHaveTextContent(
-      "Message envoyé, merci.",
-    );
+    await regionWith(screen, "status", "Message envoyé, merci.");
     const [state, data] = vi.mocked(action).mock.calls[0] ?? [];
     expect(state).toEqual(INITIAL_CONTACT_STATE);
     expect(data && Object.fromEntries(data)).toEqual({
@@ -178,9 +177,7 @@ describe("ContactForm", () => {
     await user.click(submitButton());
 
     // Politely: the focus move already announces the first field's error.
-    expect(await screen.findByRole("status")).toHaveTextContent(
-      "Le message n'est pas parti",
-    );
+    await regionWith(screen, "status", "Le message n'est pas parti");
     expect(screen.getByRole("alert")).toBeEmptyDOMElement();
     const email = screen.getByLabelText("E-mail");
     expect(email).toHaveAttribute("aria-invalid", "true");
@@ -209,7 +206,9 @@ describe("ContactForm", () => {
     await act(() => Promise.resolve());
     await fill(user);
     await user.click(submitButton());
-    expect(await screen.findByLabelText("E-mail")).toHaveFocus();
+    await waitFor(() => {
+      expect(screen.getByLabelText("E-mail")).toHaveFocus();
+    });
 
     screen.getByLabelText("Objet").focus();
     rerender(page("hidden"));
@@ -240,7 +239,7 @@ describe("ContactForm", () => {
       await fill(user);
       await user.click(submitButton());
 
-      expect(await screen.findByRole("alert")).toHaveTextContent(text);
+      await regionWith(screen, "alert", text);
       expect(screen.getByLabelText("Message")).toHaveValue(VALUES.message);
     },
   );
@@ -254,7 +253,9 @@ describe("ContactForm", () => {
     await fill(user);
     await user.click(submitButton());
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(
+    await regionWith(
+      screen,
+      "alert",
       "Le formulaire est momentanément indisponible",
     );
     expect(screen.getByLabelText("Message")).toHaveValue(VALUES.message);

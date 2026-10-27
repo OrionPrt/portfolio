@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 import { BUTTON_CLASSES } from "@/components/ui/button-classes";
 
@@ -31,7 +31,8 @@ export function RecoveryCodesList({
   const headingRef = useRef<HTMLHeadingElement>(null);
   const Heading = headingLevel === 2 ? "h2" : "h3";
 
-  useEffect(() => {
+  // In the commit that shows the codes: focus is there before they paint.
+  useLayoutEffect(() => {
     headingRef.current?.focus();
   }, []);
 

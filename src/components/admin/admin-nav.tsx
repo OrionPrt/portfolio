@@ -62,7 +62,7 @@ function currentOf(
 /** The count, visible, then in words for screen readers: "Messages 3 non lus". */
 function UnreadBadge({ count }: { readonly count: number }) {
   return (
-    <span className="bg-accent/10 text-accent ml-auto rounded-full px-2 font-mono text-xs">
+    <span className="bg-accent/15 text-fg ml-auto rounded-full px-2 font-mono text-xs">
       {count} <span className="sr-only">{NAV.unreadWord(count)}</span>
     </span>
   );

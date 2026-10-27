@@ -4,7 +4,7 @@ import {
   createContext,
   useActionState,
   useContext,
-  useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type ReactNode,
@@ -123,7 +123,8 @@ export function ContentForm({
   const focusedRevision = useRef(0);
   useUnsavedGuard(isDirty);
 
-  useEffect(() => {
+  // During the commit that shows the refusal: focus is in place before anything paints.
+  useLayoutEffect(() => {
     // Once per outcome: a hidden page shown again must not take focus back.
     if (
       state.status === "invalid" &&

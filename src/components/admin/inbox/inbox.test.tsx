@@ -21,6 +21,7 @@ vi.mock("@/features/contact/inbox-actions", () => actions);
 import { InboxPagination } from "./inbox-pagination";
 import { MessageActions } from "./message-actions";
 import { MessageList } from "./message-list";
+import { regionWith } from "../../../../test/dom";
 
 const ID = "0f8fad5b-d9cb-469f-a165-70867728950e";
 const AT = new Date("2026-10-25T12:00:00Z");
@@ -135,9 +136,7 @@ describe("MessageActions", () => {
     const sent = actions.setMessageStatusAction.mock.calls[0]?.[1];
     expect(sent?.get("id")).toBe(ID);
     expect(sent?.get("status")).toBe("archived");
-    expect(await screen.findByRole("status")).toHaveTextContent(
-      "Message archivé.",
-    );
+    await regionWith(screen, "status", "Message archivé.");
   });
 
   it("says when the message is gone", async () => {
@@ -147,9 +146,7 @@ describe("MessageActions", () => {
 
     await user.click(screen.getByRole("button", { name: "Archiver" }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Ce message n'existe plus.",
-    );
+    await regionWith(screen, "alert", "Ce message n'existe plus.");
   });
 
   it("deletes only after an explicit confirmation, focus on Cancel first", async () => {
@@ -170,7 +167,9 @@ describe("MessageActions", () => {
       within(dialog).getByRole("button", { name: "Supprimer définitivement" }),
     );
     expect(actions.deleteMessageAction.mock.calls[0]?.[1]?.get("id")).toBe(ID);
-    expect(await within(dialog).findByRole("alert")).toHaveTextContent(
+    await regionWith(
+      within(dialog),
+      "alert",
       "Service momentanément indisponible",
     );
 
@@ -187,9 +186,7 @@ describe("MessageActions", () => {
     await user.click(
       within(dialog).getByRole("button", { name: "Supprimer définitivement" }),
     );
-    expect(await within(dialog).findByRole("alert")).toHaveTextContent(
-      "Ce message n'existe plus.",
-    );
+    await regionWith(within(dialog), "alert", "Ce message n'existe plus.");
 
     await user.click(within(dialog).getByRole("button", { name: "Annuler" }));
     await user.click(screen.getByRole("button", { name: "Supprimer" }));
