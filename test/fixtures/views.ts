@@ -2,6 +2,17 @@ import type { ExperienceView } from "@/features/experiences/repository";
 import type { ProfileView } from "@/features/profile/repository";
 import type { ProjectView } from "@/features/projects/types";
 
+/** An image of the library, as a page shows it. */
+export const COVER = {
+  alt: "Le tableau de bord du portfolio",
+  width: 960,
+  height: 540,
+  variants: [
+    { width: 480, height: 270, url: "/api/media/media/c/480.webp", bytes: 1 },
+    { width: 960, height: 540, url: "/api/media/media/c/960.webp", bytes: 2 },
+  ],
+};
+
 const SUMMARY = {
   context: "Le contexte.",
   action: "L'action.",
@@ -39,6 +50,7 @@ export function projectView(overrides: Partial<ProjectView> = {}): ProjectView {
     technicalMd: "",
     seoDescription: null,
     skills: [],
+    cover: undefined,
     isFallback: false,
     contentLocale: "fr",
     ...overrides,
@@ -61,6 +73,7 @@ export function experienceView(
     summary: SUMMARY,
     technicalMd: "",
     skills: [],
+    logo: undefined,
     isFallback: false,
     contentLocale: "fr",
     ...overrides,

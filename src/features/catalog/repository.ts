@@ -18,6 +18,12 @@ import {
   type TileSize,
 } from "@/features/content/vocabulary";
 import { LOCALES, type Locale } from "@/i18n/locales";
+import {
+  toMediaView,
+  WITH_MEDIA,
+  type MediaRow,
+} from "@/features/media/mappers";
+import type { MediaView } from "@/features/media/types";
 import type { Result } from "@/lib/result";
 
 // One tile per kind (unique column), so the enum size bounds the layout.
@@ -51,6 +57,8 @@ export interface CertificationView {
   readonly verifyUrl: string | null;
   /** Empty when no translation exists: the description is optional. */
   readonly description: string;
+  /** Its badge, its text in the page's language. */
+  readonly badge: MediaView | undefined;
 }
 
 export interface TileView {
@@ -73,6 +81,7 @@ type EducationRow = typeof education.$inferSelect & {
 
 type CertificationRow = typeof certifications.$inferSelect & {
   readonly translations: readonly (typeof certificationTranslations.$inferSelect)[];
+  readonly badge: MediaRow | null;
 };
 
 const WITH_TRANSLATIONS = { translations: { limit: LOCALES.length } };
@@ -111,6 +120,7 @@ function toCertificationView(
     verifyUrl: row.verifyUrl,
     description:
       pickTranslation(row.translations, locale)?.value.description ?? "",
+    badge: toMediaView(row.badge, locale),
   };
 }
 
@@ -149,7 +159,7 @@ export function createCatalogRepository(db: Database): CatalogRepository {
         const rows = await db.query.certifications.findMany({
           orderBy: [desc(certifications.issuedOn), asc(certifications.slug)],
           limit: MAX_PAGE_SIZE,
-          with: WITH_TRANSLATIONS,
+          with: { ...WITH_TRANSLATIONS, badge: WITH_MEDIA },
         });
         return rows.map((row) => toCertificationView(row, locale));
       }),

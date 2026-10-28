@@ -11,6 +11,7 @@ import {
 
 import { endsAfterStart, httpsOrNull, slugFormat, timestamps } from "./columns";
 import { contentStatusEnum, employmentTypeEnum, localeEnum } from "./enums";
+import { media } from "./media";
 import { skills } from "./skills";
 
 export const experiences = pgTable(
@@ -20,6 +21,9 @@ export const experiences = pgTable(
     slug: text("slug").notNull().unique(),
     company: text("company").notNull(),
     companyUrl: text("company_url"),
+    logoMediaId: uuid("logo_media_id").references(() => media.id, {
+      onDelete: "restrict",
+    }),
     location: text("location"),
     employmentType: employmentTypeEnum("employment_type").notNull(),
     status: contentStatusEnum("status").notNull().default("draft"),
@@ -33,6 +37,7 @@ export const experiences = pgTable(
     check("experiences_slug_format", slugFormat(t.slug)),
     check("experiences_company_url_https", httpsOrNull(t.companyUrl)),
     check("experiences_dates_ordered", endsAfterStart(t.startedOn, t.endedOn)),
+    index("experiences_logo_media_idx").on(t.logoMediaId),
   ],
 );
 

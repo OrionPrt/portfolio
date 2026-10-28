@@ -28,6 +28,7 @@ const INSA: EducationForEdit = {
   id: "e-1",
   school: "INSA Lyon",
   location: "Villeurbanne",
+  logoMediaId: null,
   startedOn: "2018-09-01",
   endedOn: null,
   sortOrder: 0,
@@ -44,6 +45,7 @@ const OSCP: CertificationForEdit = {
   expiresOn: null,
   credentialId: "OS-1",
   verifyUrl: "https://credentials.offsec.com/1",
+  badgeMediaId: null,
   sortOrder: 0,
   translations: { fr: { description: "" } },
 };
@@ -152,7 +154,7 @@ describe("CertificationList", () => {
 
 describe("EducationForm", () => {
   it("asks for a school, a start and a French degree, never a slug", () => {
-    render(<EducationForm action={vi.fn()} />);
+    render(<EducationForm action={vi.fn()} media={[]} />);
 
     expect(screen.getByLabelText("Établissement")).toBeRequired();
     expect(screen.getByLabelText("Début")).toBeRequired();
@@ -175,7 +177,7 @@ describe("EducationForm", () => {
 
   it("starts from the entry to edit", () => {
     const { container } = render(
-      <EducationForm action={vi.fn()} entry={INSA} />,
+      <EducationForm action={vi.fn()} entry={INSA} media={[]} />,
     );
 
     expect(screen.getByLabelText("Lieu")).toHaveValue("Villeurbanne");
@@ -190,7 +192,7 @@ describe("EducationForm", () => {
 
 describe("CertificationForm", () => {
   it("asks for a name, an issuer and a date; the rest, in both languages, may wait", () => {
-    render(<CertificationForm action={vi.fn()} />);
+    render(<CertificationForm action={vi.fn()} media={[]} />);
 
     expect(screen.getByLabelText("Nom")).toBeRequired();
     expect(screen.getByLabelText("Organisme")).toBeRequired();
@@ -211,7 +213,7 @@ describe("CertificationForm", () => {
 
   it("starts from the certification, its dates named as such", () => {
     const { container } = render(
-      <CertificationForm action={vi.fn()} certification={OSCP} />,
+      <CertificationForm action={vi.fn()} certification={OSCP} media={[]} />,
     );
 
     const issued = screen.getByLabelText("Obtenue le");
@@ -238,7 +240,7 @@ describe("CertificationForm", () => {
       status: "invalid",
       problems: { expiresOn: { problem: "invalid" } },
     });
-    render(<CertificationForm action={save} certification={OSCP} />);
+    render(<CertificationForm action={save} certification={OSCP} media={[]} />);
 
     await user.click(screen.getByRole("button", { name: "Enregistrer" }));
     await regionWith(screen, "alert", "Vérifiez les champs signalés.");

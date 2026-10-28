@@ -67,6 +67,7 @@ const FIELDS = {
   sortOrder: projects.sortOrder,
   repoUrl: projects.repoUrl,
   demoUrl: projects.demoUrl,
+  coverMediaId: projects.coverMediaId,
   startedOn: projects.startedOn,
   endedOn: projects.endedOn,
 };
@@ -102,7 +103,7 @@ function endOf(featured: boolean) {
 /** The project's own columns, without what it links or how it is ordered. */
 function columnsOf(input: ProjectInput) {
   const { slug, domain, status, featured, repoUrl, demoUrl } = input;
-  const { startedOn, endedOn } = input;
+  const { coverMediaId, startedOn, endedOn } = input;
   return {
     slug,
     domain,
@@ -110,6 +111,7 @@ function columnsOf(input: ProjectInput) {
     featured,
     repoUrl,
     demoUrl,
+    coverMediaId,
     startedOn,
     endedOn,
   };

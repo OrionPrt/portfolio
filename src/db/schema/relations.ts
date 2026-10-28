@@ -11,6 +11,7 @@ import {
   experienceSkills,
   experienceTranslations,
 } from "./experiences";
+import { media, mediaTranslations } from "./media";
 import { profile, profileTranslations } from "./profile";
 import { projects, projectSkills, projectTranslations } from "./projects";
 import { skills } from "./skills";
@@ -37,9 +38,13 @@ export const skillsRelations = relations(skills, ({ many }) => ({
   experiences: many(experienceSkills),
 }));
 
-export const projectsRelations = relations(projects, ({ many }) => ({
+export const projectsRelations = relations(projects, ({ many, one }) => ({
   translations: many(projectTranslations),
   skills: many(projectSkills),
+  cover: one(media, {
+    fields: [projects.coverMediaId],
+    references: [media.id],
+  }),
 }));
 
 export const projectTranslationsRelations = relations(
@@ -63,9 +68,13 @@ export const projectSkillsRelations = relations(projectSkills, ({ one }) => ({
   }),
 }));
 
-export const experiencesRelations = relations(experiences, ({ many }) => ({
+export const experiencesRelations = relations(experiences, ({ many, one }) => ({
   translations: many(experienceTranslations),
   skills: many(experienceSkills),
+  logo: one(media, {
+    fields: [experiences.logoMediaId],
+    references: [media.id],
+  }),
 }));
 
 export const experienceTranslationsRelations = relations(
@@ -92,8 +101,12 @@ export const experienceSkillsRelations = relations(
   }),
 );
 
-export const educationRelations = relations(education, ({ many }) => ({
+export const educationRelations = relations(education, ({ many, one }) => ({
   translations: many(educationTranslations),
+  logo: one(media, {
+    fields: [education.logoMediaId],
+    references: [media.id],
+  }),
 }));
 
 export const educationTranslationsRelations = relations(
@@ -108,8 +121,12 @@ export const educationTranslationsRelations = relations(
 
 export const certificationsRelations = relations(
   certifications,
-  ({ many }) => ({
+  ({ many, one }) => ({
     translations: many(certificationTranslations),
+    badge: one(media, {
+      fields: [certifications.badgeMediaId],
+      references: [media.id],
+    }),
   }),
 );
 
@@ -119,6 +136,20 @@ export const certificationTranslationsRelations = relations(
     certification: one(certifications, {
       fields: [certificationTranslations.certificationId],
       references: [certifications.id],
+    }),
+  }),
+);
+
+export const mediaRelations = relations(media, ({ many }) => ({
+  translations: many(mediaTranslations),
+}));
+
+export const mediaTranslationsRelations = relations(
+  mediaTranslations,
+  ({ one }) => ({
+    media: one(media, {
+      fields: [mediaTranslations.mediaId],
+      references: [media.id],
     }),
   }),
 );

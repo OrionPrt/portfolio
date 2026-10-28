@@ -36,6 +36,7 @@ const FIELDS = {
   id: education.id,
   school: education.school,
   location: education.location,
+  logoMediaId: education.logoMediaId,
   startedOn: education.startedOn,
   endedOn: education.endedOn,
   sortOrder: education.sortOrder,
@@ -65,8 +66,9 @@ const LIST_ORDER = [
 ];
 
 /** The entry's own columns, as the admin edits them. */
-function columnsOf({ school, location, startedOn, endedOn }: EducationContent) {
-  return { school, location, startedOn, endedOn };
+function columnsOf(input: EducationContent) {
+  const { school, location, logoMediaId, startedOn, endedOn } = input;
+  return { school, location, logoMediaId, startedOn, endedOn };
 }
 
 function translationsWrite(

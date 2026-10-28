@@ -42,6 +42,7 @@ function projectInput(formData: FormData) {
     featured: fields.featured === "on",
     repoUrl: blankToNull(fields.repoUrl),
     demoUrl: blankToNull(fields.demoUrl),
+    coverMediaId: blankToNull(fields.coverMediaId),
     startedOn: blankToNull(fields.startedOn),
     endedOn: blankToNull(fields.endedOn),
     skills: textList(formData, "skills"),

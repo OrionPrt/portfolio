@@ -8,7 +8,8 @@ export type ContentEntity =
   | "experience"
   | "education"
   | "certification"
-  | "bento_tile";
+  | "bento_tile"
+  | "media";
 
 export interface ContentChange {
   readonly entity: ContentEntity;
@@ -27,6 +28,7 @@ const LIST_TAGS: Readonly<Record<ContentEntity, string>> = {
   education: CACHE_TAGS.education,
   certification: CACHE_TAGS.certifications,
   bento_tile: CACHE_TAGS.bento,
+  media: CACHE_TAGS.media,
 };
 
 /** The cache tags a change makes stale: the entity's list, and each page it has. */

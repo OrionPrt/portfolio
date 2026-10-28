@@ -18,7 +18,7 @@ export async function getPublishedProjects(
   locale: Locale,
 ): Promise<Result<readonly ProjectView[]>> {
   "use cache";
-  cacheTag(CACHE_TAGS.projects, CACHE_TAGS.skills);
+  cacheTag(CACHE_TAGS.projects, CACHE_TAGS.skills, CACHE_TAGS.media);
   const result = await withDatabase((db) =>
     createProjectRepository(db).listPublished(locale, {
       limit: MAX_PAGE_SIZE,
@@ -37,7 +37,7 @@ async function getCachedProject(
   locale: Locale,
 ): Promise<Result<ProjectView | undefined>> {
   "use cache";
-  cacheTag(projectTag(slug), CACHE_TAGS.skills);
+  cacheTag(projectTag(slug), CACHE_TAGS.skills, CACHE_TAGS.media);
   const result = await withDatabase((db) =>
     createProjectRepository(db).findPublishedBySlug(slug, locale),
   );
@@ -74,7 +74,7 @@ export async function getFeaturedProject(
   locale: Locale,
 ): Promise<Result<ProjectView | undefined>> {
   "use cache";
-  cacheTag(CACHE_TAGS.projects, CACHE_TAGS.skills);
+  cacheTag(CACHE_TAGS.projects, CACHE_TAGS.skills, CACHE_TAGS.media);
   const result = await withDatabase((db) =>
     createProjectRepository(db).findFeatured(locale),
   );

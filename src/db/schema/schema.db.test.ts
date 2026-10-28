@@ -4,6 +4,8 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { createTestDatabase, type TestDatabase } from "../../../test/db";
 import {
   education,
+  media,
+  mediaTranslations,
   profile,
   projects,
   projectSkills,
@@ -26,6 +28,22 @@ afterAll(async () => {
 beforeEach(async () => {
   await testDb.reset();
 });
+
+const VARIANT = { width: 480, height: 270, url: "/m/480.webp", bytes: 1000 };
+
+function newMedia(overrides: Partial<typeof media.$inferInsert> = {}) {
+  return testDb.db
+    .insert(media)
+    .values({
+      sha256: "a".repeat(64),
+      pathname: "media/one",
+      width: 480,
+      height: 270,
+      variants: [VARIANT],
+      ...overrides,
+    })
+    .returning();
+}
 
 function newProject(overrides: Partial<typeof projects.$inferInsert> = {}) {
   return testDb.db
@@ -54,6 +72,8 @@ describe("migrations", () => {
       "experience_translations",
       "experiences",
       "login_throttles",
+      "media",
+      "media_translations",
       "profile",
       "profile_translations",
       "project_skills",
@@ -231,5 +251,52 @@ describe("constraints", () => {
     expect(await testDb.db.select().from(projectTranslations)).toEqual([]);
     expect(await testDb.db.select().from(projectSkills)).toEqual([]);
     expect(await testDb.db.select().from(skills)).toHaveLength(1);
+  });
+
+  it.each([
+    [{ sha256: "A".repeat(64) }, "media_sha256_format"],
+    [{ width: 0 }, "media_dimensions_positive"],
+    [{ variants: [] }, "media_variants_count"],
+  ])("refuses a media row such as %j", async (overrides, constraint) => {
+    await expectRefusedBy(newMedia(overrides), constraint);
+  });
+
+  it("stores the same image once", async () => {
+    await newMedia();
+
+    await expectRefusedBy(
+      newMedia({ pathname: "media/two" }),
+      "media_sha256_unique",
+    );
+  });
+
+  it("keeps an image while an entry shows it, and its alt texts go with it", async () => {
+    const [image] = await newMedia();
+    const mediaId = image?.id ?? "";
+    await testDb.db.insert(mediaTranslations).values([
+      { mediaId, locale: "fr", alt: "Capture" },
+      { mediaId, locale: "en", alt: "Screenshot" },
+    ]);
+    await expectRefusedBy(
+      testDb.db.insert(mediaTranslations).values({
+        mediaId,
+        locale: "fr",
+        alt: "  ",
+      }),
+      "media_translations_alt_not_blank",
+    );
+    const [project] = await newProject({ coverMediaId: mediaId });
+
+    await expectRefusedBy(
+      testDb.db.delete(media).where(eq(media.id, mediaId)),
+      "projects_cover_media_id_media_id_fk",
+    );
+
+    await testDb.db
+      .update(projects)
+      .set({ coverMediaId: null })
+      .where(eq(projects.id, project?.id ?? ""));
+    await testDb.db.delete(media).where(eq(media.id, mediaId));
+    expect(await testDb.db.select().from(mediaTranslations)).toEqual([]);
   });
 });

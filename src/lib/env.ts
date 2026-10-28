@@ -74,6 +74,9 @@ const serverSchema = z.object({
     emptyAsUndefined,
     z.string().refine(isBase64Key, "must be 32 bytes in base64").optional(),
   ),
+  // Media (P6c): set by Vercel's Blob integration. Without it, development and
+  // E2E store images on the local disk, and production refuses uploads.
+  BLOB_READ_WRITE_TOKEN: optionalText(),
   // Set by Vercel: the production domain, a bare host. Base of canonical URLs
   // when NEXT_PUBLIC_SITE_URL is not set.
   VERCEL_PROJECT_PRODUCTION_URL: z.preprocess(

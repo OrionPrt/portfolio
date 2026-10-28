@@ -29,6 +29,7 @@ function educationInput(formData: FormData) {
   return {
     school: fields.school ?? "",
     location: blankToNull(fields.location),
+    logoMediaId: blankToNull(fields.logoMediaId),
     // Blank reads as missing: the field says "required", not "invalid".
     startedOn: blankToNull(fields.startedOn),
     // Blank while still under way.

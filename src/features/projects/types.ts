@@ -3,6 +3,7 @@ import type {
   SkillRef,
   StorySummary,
 } from "@/features/content/types";
+import type { MediaView } from "@/features/media/types";
 import type { Locale } from "@/i18n/locales";
 
 export interface ProjectView {
@@ -19,6 +20,8 @@ export interface ProjectView {
   readonly technicalMd: string;
   readonly seoDescription: string | null;
   readonly skills: readonly SkillRef[];
+  /** Its cover, its text in the page's language. */
+  readonly cover: MediaView | undefined;
   /** True when the requested language was missing and another one is shown. */
   readonly isFallback: boolean;
   /** The language the text is in: the page marks a fallback with `lang`. */

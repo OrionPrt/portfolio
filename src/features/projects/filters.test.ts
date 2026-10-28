@@ -22,6 +22,7 @@ function project(
     technicalMd: "",
     seoDescription: null,
     skills: skills.map((name) => ({ slug: name, name: name.toUpperCase() })),
+    cover: undefined,
     isFallback: false,
     contentLocale: "fr",
   };

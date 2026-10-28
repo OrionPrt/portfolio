@@ -8,5 +8,9 @@ allowBuilds:
 # drizzle-kit's loader (@esbuild-kit) pins esbuild 0.18, affected by
 # GHSA-67mh-4wv8-2f99 (dev server open to any origin). It only calls the
 # transform API, unchanged in 0.25, the version drizzle-kit already uses.
+# @vercel/blob's OIDC helper reads the Vercel CLI's config with zod 4.1.11,
+# affected by GHSA-mrhx-c7xc-m3w5 (memory exhaustion on oversized collections).
+# Only a local config file reaches it; 4.6.7, the app's own zod, is the fix.
 overrides:
   "@esbuild-kit/core-utils>esbuild": 0.25.12
+  "@vercel/cli-config>zod": 4.6.7

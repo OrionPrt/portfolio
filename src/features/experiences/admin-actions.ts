@@ -41,6 +41,7 @@ function experienceInput(formData: FormData) {
     slug: fields.slug ?? "",
     company: fields.company ?? "",
     companyUrl: blankToNull(fields.companyUrl),
+    logoMediaId: blankToNull(fields.logoMediaId),
     location: blankToNull(fields.location),
     employmentType: fields.employmentType ?? "",
     status: fields.status ?? "",

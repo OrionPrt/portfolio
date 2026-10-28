@@ -9,6 +9,7 @@ import { ADMIN_PATHS } from "@/features/auth/admin-paths";
 import { requireAdmin } from "@/features/auth/dal";
 import { loadSkillOptions } from "@/features/catalog/skill-options";
 import { createExperienceAction } from "@/features/experiences/admin-actions";
+import { loadMediaOptions } from "@/features/media/media-options";
 
 export const metadata: Metadata = { title: ADMIN_COPY.experiences.newTitle };
 
@@ -19,14 +20,21 @@ const COPY = ADMIN_COPY.experiences;
 
 export default async function NewExperiencePage() {
   await requireAdmin();
-  const skills = await withDatabase(loadSkillOptions);
+  const [skills, media] = await Promise.all([
+    withDatabase(loadSkillOptions),
+    withDatabase(loadMediaOptions),
+  ]);
 
   return (
     <>
       <AdminPageHeader title={COPY.newTitle} />
       <BackLink href={ADMIN_PATHS.experiences} label={COPY.back} />
-      {skills.ok ? (
-        <ExperienceForm action={createExperienceAction} skills={skills.data} />
+      {skills.ok && media.ok ? (
+        <ExperienceForm
+          action={createExperienceAction}
+          skills={skills.data}
+          media={media.data}
+        />
       ) : (
         <p className="text-danger">{ADMIN_COPY.unavailable}</p>
       )}

@@ -1,6 +1,6 @@
 # ADR-0007 — Admin back office
 
-- **Status:** Accepted; implemented slice by slice (P6a and P6b done, P6c and P6d to come)
+- **Status:** Accepted; implemented slice by slice (P6a, P6b and P6c1 done, P6c2 and P6d to come)
 - **Date:** 2026-10-26
 - **Phase:** P6
 
@@ -53,6 +53,16 @@ Implemented for the profile, the social links and the skills (P6b1), the project
 - **Outcomes said aloud.** A save is announced in the form's live region; a move in the list's; a deletion, whose row or page goes away, through a polite region the frame keeps (`announce`), focus moving to the page, or back to the list from the entry's own page.
 - **Request size.** Server actions accept up to 512 KB (two Markdown texts of 50,000 characters at most); Zod bounds every field. Skills stop at 200, the most the public read shows; projects and experiences at 1,000 each, where the slug listings stop.
 
+### An image library
+
+Implemented in P6c1 (decided on 2026-10-26 and 2026-10-28); images in the Markdown follow in P6c2.
+
+- **Upload, checked before anything is decoded.** A route handler takes the file (`POST /api/admin/media`), so the server actions' body limit stays small for every other form; it answers 401 rather than redirect a fetch to the login. A body without a length, or over 4 MB plus the form's wrapping, is refused unread; the session and the origin are checked before the body is parsed. The format comes from the first bytes (JPEG, PNG, WebP; SVG, GIF and anything else refused), and the header's size from sharp before any decoding (40 megapixels at most: a decompression bomb is refused undecoded).
+- **Re-encoded, three widths.** sharp turns the image upright, then writes WebP at about 480, 960 and 1,600 pixels wide (never wider than the source), without its metadata (location, camera), which also defeats polyglot files. The widths are made at upload and served in a `srcset` (`MediaImage`): no image optimizer runs, so no Vercel quota is spent, and each image knows which widths it has (decided on 2026-10-28). The same file is stored once (SHA-256), and the library stops at 200 images.
+- **Stored on Blob's own domain.** Production stores the files in Vercel Blob, public, at `media/<id>/<width>.webp`, never overwritten (a new upload gets a new id), so they are cached for a year; the CSP's `img-src` allows that domain, for images only. Without Blob's token, a production build refuses uploads rather than write to a disk that may not last, on Vercel or elsewhere; development and E2E (where development defaults are allowed) write under `.media/`, served by a route of the app whose paths follow a strict pattern. The CSP admits any store's subdomain: images only, and the exact host is only known once a store exists (to tighten in the final CSP review, P11).
+- **Described in both languages.** Each image carries an alternative text in French and in English, both required (an image has no translation to fall back on). Pages use it where the image says something (a project's cover on its page); on cards, tiles and beside a company or certification name, the image adorns text that already says it, and is silent (`alt=""`).
+- **Kept while shown.** Projects have a cover, experiences and education a logo, certifications a badge (included on 2026-10-28; the education logo waits for the CV and the About page). A foreign key keeps an image while an entry shows it: its page lists those entries and offers no deletion meanwhile. Deleted, its record goes with a snapshot in the audit log, then its files; files a failure leaves behind are logged (`media.cleanup_failed`). An alternative text edited expires every read showing an image (the `media` cache tag).
+
 ### Renamed slugs lead to the new ones
 
 Implemented in P6b2a (decided on 2026-10-26 and 2026-10-27).
@@ -63,12 +73,12 @@ Implemented in P6b2a (decided on 2026-10-26 and 2026-10-27).
 
 ### Decided for the next slices
 
-- **Images**: uploaded through the server, at most 4 MB, checked by magic bytes before anything is stored, then re-encoded with sharp (WebP, metadata stripped), which also defeats polyglot files. Stored in Vercel Blob in production, on the local disk in development and E2E. A route handler takes the upload, so the 64 KB body limit of server actions stays for every other form. Images serve project covers, company and school logos, and Markdown content; each carries a French and an English alternative text (P6c).
 - **Ordering** (bento, lists): move up / move down buttons, accessible as they are, rather than drag and drop (P6d).
 - **Database roles**: the site runs with a role limited to data changes (no DDL); the owner's URL only serves migrations and the seed (P6d).
 
 ## Alternatives considered
 
+- **`next/image` with Vercel's optimizer**: one file stored and any width on demand, but each transformation counts against the Hobby plan's quota, and the result varies with the host.
 - **Direct browser-to-Blob uploads** (`@vercel/blob/client`): larger files and no function involved, but a file reaches storage before it is checked, and the completion callback cannot reach a local machine.
 - **Drag and drop (dnd-kit)**: nicer with a mouse, but a client dependency and more to test, for about ten tiles.
 - **Marking a message read when its page renders**: simpler, but a prefetch would mark it read unseen.
@@ -84,4 +94,5 @@ Implemented in P6b2a (decided on 2026-10-26 and 2026-10-27).
 - The navigation reads the unread count when the frame renders (one `count(*)` on an indexed column, once per request); it follows the actions, which refresh the page, not plain navigations between pages.
 - The frame checks the session too (`requireAdmin`, cached per request), so nothing it shows reaches anyone else, whatever page renders inside it.
 - Server-rendered admin pages are dynamic: Next.js sends them with `Cache-Control: no-store` (checked by the E2E suite).
-- P6c adds a route handler under `/api/admin/`, listed in `src/lib/non-localized-routes.ts`, and the Blob host to the CSP's `img-src`.
+- The upload route and the disk storage's route are listed in `src/lib/non-localized-routes.ts` (a catch-all path matches what follows it); the CSP's `img-src` allows Vercel Blob's domain.
+- Migration `0004` (the image library) must be applied before the code that reads it is deployed, and Vercel Blob connected to the project (`docs/deploy.md`).

@@ -12,6 +12,7 @@ describe("tagsFor", () => {
     [{ entity: "education" }, ["education"]],
     [{ entity: "certification" }, ["certifications"]],
     [{ entity: "bento_tile" }, ["bento"]],
+    [{ entity: "media" }, ["media"]],
   ] as const)("invalidates %j through %j", (change, tags) => {
     expect(tagsFor(change)).toEqual(tags);
   });

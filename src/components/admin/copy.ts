@@ -24,6 +24,7 @@ export const ADMIN_COPY = {
     experiences: "Expériences",
     education: "Formation",
     certifications: "Certifications",
+    media: "Médiathèque",
     unreadWord: (count: number) => (count > 1 ? "non lus" : "non lu"),
     security: "Sécurité",
     groups: {
@@ -167,6 +168,7 @@ export const ADMIN_COPY = {
       confirm: "Supprimer définitivement",
       pending: "Suppression…",
       done: (label: string) => `${label}${NB}: supprimé.`,
+      inUse: `Une entrée l'affiche encore${NB}: retirez-la d'abord.`,
       snapshot:
         "La suppression est définitive. Le journal d'audit garde un instantané de l'entrée, pour la recréer à la main si besoin.",
     },
@@ -328,6 +330,7 @@ export const ADMIN_COPY = {
     seoDescription: "Description pour les moteurs de recherche",
     seoHint: "Facultatif. À défaut, l'accroche.",
     linksAndDates: "Liens et dates",
+    cover: "Couverture",
     repoUrl: "Dépôt de code",
     demoUrl: "Démo en ligne",
     endedOnInvalid: "La fin ne peut ni précéder le début, ni venir sans lui.",
@@ -346,6 +349,7 @@ export const ADMIN_COPY = {
     slugTaken: "Ce slug est déjà pris par une autre expérience.",
     company: "Entreprise",
     companyUrl: "Site de l'entreprise",
+    logo: "Logo de l'entreprise",
     location: "Lieu",
     employmentType: "Type de contrat",
     employmentTypes: {
@@ -372,6 +376,7 @@ export const ADMIN_COPY = {
     back: "Retour à la formation",
     empty: "Aucune formation pour l'instant.",
     school: "Établissement",
+    logo: "Logo de l'établissement",
     location: "Lieu",
     studies: "Les études",
     degree: "Diplôme",
@@ -401,6 +406,7 @@ export const ADMIN_COPY = {
     expiresOnHint: "Vide si elle n'expire pas.",
     expiresOnInvalid: "L'expiration ne peut précéder l'obtention.",
     credentialId: "Identifiant du certificat",
+    badge: "Badge",
     verifyUrl: "Lien de vérification",
     description: "Description",
     descriptionHint: "Facultatif. Ce qu'elle atteste, en une ou deux phrases.",
@@ -415,6 +421,52 @@ export const ADMIN_COPY = {
       `Supprimer la certification «${NB}${name}${NB}»${NB}?`,
     deleteConsequence: "Ses traductions disparaissent aussi.",
     notFound: "Cette certification n'existe pas, ou a été supprimée.",
+  },
+  mediaField: {
+    none: "Aucune",
+    hint: "Choisie dans la médiathèque, où l'on ajoute les images.",
+  },
+  media: {
+    title: "Médiathèque",
+    lead: `Les images du site${NB}: couvertures de projets, logos, badges. Chacune est ré-encodée en WebP à trois largeurs, sans ses métadonnées, et décrite en français comme en anglais.`,
+    add: "Ajouter une image",
+    images: "Les images",
+    send: "Ajouter",
+    adding: "Envoi…",
+    added: "Image ajoutée à la médiathèque.",
+    file: "Image",
+    fileHint: "JPEG, PNG ou WebP, 4 Mo au plus.",
+    fileMissing: "Choisissez une image.",
+    fileInvalid: "Une image JPEG, PNG ou WebP lisible, de 4 Mo au plus.",
+    fileTaken: "Cette image est déjà dans la médiathèque.",
+    alt: "Texte alternatif",
+    altHint: `Ce que l'image montre, pour qui ne la voit pas${NB}: une phrase, sans «${NB}image de${NB}».`,
+    empty: "La médiathèque est vide.",
+    editTitle: "Modifier une image",
+    back: "Retour à la médiathèque",
+    preview: "Aperçu",
+    size: (width: number, height: number) =>
+      `${String(width)} × ${String(height)} px`,
+    variants: (widths: readonly number[]) =>
+      `Largeurs stockées${NB}: ${widths.join(", ")} px.`,
+    usage: (count: number) =>
+      count === 0
+        ? "Affichée nulle part"
+        : `Affichée par ${String(count)} entrée${count > 1 ? "s" : ""}`,
+    usedBy: "Affichée par",
+    unused: "Aucune entrée ne l'affiche.",
+    inUse:
+      "Retirez-la d'abord des entrées qui l'affichent pour pouvoir la supprimer.",
+    usageKinds: {
+      project: "Projet",
+      experience: "Expérience",
+      education: "Formation",
+      certification: "Certification",
+    },
+    deleteTitle: `Supprimer cette image${NB}?`,
+    deleteConsequence:
+      "Ses fichiers sont effacés du stockage, et ses textes alternatifs avec elle.",
+    notFound: "Cette image n'existe pas, ou a été supprimée.",
   },
   cancel: "Annuler",
   security: {

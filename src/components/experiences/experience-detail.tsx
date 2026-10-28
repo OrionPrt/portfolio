@@ -6,6 +6,7 @@ import { SkillBadge } from "@/components/content/skill-badge";
 import { TwoLevelContent } from "@/components/content/two-level-content";
 import { ViewShell } from "@/components/content/view-shell";
 import { CHIP_CLASSES } from "@/components/ui/chip-classes";
+import { MediaImage } from "@/components/ui/media-image";
 import { experienceTransitionName } from "@/features/content/view-names";
 import type { ExperienceView } from "@/features/experiences/repository";
 import { Link } from "@/i18n/navigation";
@@ -45,7 +46,22 @@ export function ExperienceDetail({ experience }: ExperienceDetailProps) {
         titleId={`${idPrefix}-title`}
         label={tExperience("label")}
         title={experience.role}
-        lead={company}
+        lead={
+          experience.logo === undefined ? (
+            company
+          ) : (
+            <span className="flex items-center gap-3">
+              {/* The company is named beside it: the logo adorns the name. */}
+              <MediaImage
+                image={experience.logo}
+                alt=""
+                sizes="56px"
+                className="border-line rounded-control size-14 shrink-0 border bg-white object-contain p-1"
+              />
+              <span>{company}</span>
+            </span>
+          )
+        }
         lang={lang}
       >
         <div className="text-fg-muted flex flex-wrap items-center gap-x-6 gap-y-3 text-sm">

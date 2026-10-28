@@ -28,6 +28,7 @@ function input(overrides: Partial<EducationContent> = {}): EducationContent {
   return {
     school: "INSA Lyon",
     location: "Villeurbanne",
+    logoMediaId: null,
     startedOn: "2018-09-01",
     endedOn: "2023-06-30",
     sortOrder: 0,

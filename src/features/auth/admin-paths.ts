@@ -17,6 +17,7 @@ export const ADMIN_PATHS = {
   newEducation: "/admin/education/new",
   certifications: "/admin/certifications",
   newCertification: "/admin/certifications/new",
+  media: "/admin/media",
 } as const;
 
 /** Pages with a dynamic segment, spelled as their folders: `[id]` is a UUID. */
@@ -27,6 +28,7 @@ export const ADMIN_PATTERNS: readonly string[] = [
   "/admin/experiences/[id]",
   "/admin/education/[id]",
   "/admin/certifications/[id]",
+  "/admin/media/[id]",
 ];
 
 /** Lowercase, as PostgreSQL prints it: an uppercase copy is another URL. */
@@ -56,6 +58,10 @@ export function educationPath(id: string): string {
 
 export function certificationPath(id: string): string {
   return `${ADMIN_PATHS.certifications}/${id}`;
+}
+
+export function mediaPath(id: string): string {
+  return `${ADMIN_PATHS.media}/${id}`;
 }
 
 /** Pages reachable without a full session: the login and its steps. */

@@ -3,6 +3,7 @@ export * from "./bento";
 export * from "./contact";
 export * from "./credentials";
 export * from "./enums";
+export * from "./media";
 export * from "./experiences";
 export * from "./profile";
 export * from "./projects";

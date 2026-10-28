@@ -1,6 +1,7 @@
 import {
   check,
   date,
+  index,
   integer,
   pgTable,
   primaryKey,
@@ -10,6 +11,7 @@ import {
 
 import { endsAfterStart, httpsOrNull, slugFormat, timestamps } from "./columns";
 import { localeEnum } from "./enums";
+import { media } from "./media";
 
 export const education = pgTable(
   "education",
@@ -19,6 +21,9 @@ export const education = pgTable(
     slug: text("slug").notNull().unique(),
     school: text("school").notNull(),
     location: text("location"),
+    logoMediaId: uuid("logo_media_id").references(() => media.id, {
+      onDelete: "restrict",
+    }),
     startedOn: date("started_on", { mode: "string" }).notNull(),
     endedOn: date("ended_on", { mode: "string" }),
     sortOrder: integer("sort_order").notNull().default(0),
@@ -27,6 +32,7 @@ export const education = pgTable(
   (t) => [
     check("education_slug_format", slugFormat(t.slug)),
     check("education_dates_ordered", endsAfterStart(t.startedOn, t.endedOn)),
+    index("education_logo_media_idx").on(t.logoMediaId),
   ],
 );
 
@@ -54,6 +60,9 @@ export const certifications = pgTable(
     expiresOn: date("expires_on", { mode: "string" }),
     credentialId: text("credential_id"),
     verifyUrl: text("verify_url"),
+    badgeMediaId: uuid("badge_media_id").references(() => media.id, {
+      onDelete: "restrict",
+    }),
     sortOrder: integer("sort_order").notNull().default(0),
     ...timestamps,
   },
@@ -64,6 +73,7 @@ export const certifications = pgTable(
       "certifications_dates_ordered",
       endsAfterStart(t.issuedOn, t.expiresOn),
     ),
+    index("certifications_badge_media_idx").on(t.badgeMediaId),
   ],
 );
 

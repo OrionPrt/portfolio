@@ -9,6 +9,7 @@ import { ADMIN_PATHS } from "@/features/auth/admin-paths";
 import { requireAdmin } from "@/features/auth/dal";
 import { loadSkillOptions } from "@/features/catalog/skill-options";
 import { createProjectAction } from "@/features/projects/admin-actions";
+import { loadMediaOptions } from "@/features/media/media-options";
 
 export const metadata: Metadata = { title: ADMIN_COPY.projects.newTitle };
 
@@ -19,14 +20,21 @@ const COPY = ADMIN_COPY.projects;
 
 export default async function NewProjectPage() {
   await requireAdmin();
-  const skills = await withDatabase(loadSkillOptions);
+  const [skills, media] = await Promise.all([
+    withDatabase(loadSkillOptions),
+    withDatabase(loadMediaOptions),
+  ]);
 
   return (
     <>
       <AdminPageHeader title={COPY.newTitle} />
       <BackLink href={ADMIN_PATHS.projects} label={COPY.back} />
-      {skills.ok ? (
-        <ProjectForm action={createProjectAction} skills={skills.data} />
+      {skills.ok && media.ok ? (
+        <ProjectForm
+          action={createProjectAction}
+          skills={skills.data}
+          media={media.data}
+        />
       ) : (
         <p className="text-danger">{ADMIN_COPY.unavailable}</p>
       )}

@@ -59,6 +59,7 @@ const FIELDS = {
   slug: experiences.slug,
   company: experiences.company,
   companyUrl: experiences.companyUrl,
+  logoMediaId: experiences.logoMediaId,
   location: experiences.location,
   employmentType: experiences.employmentType,
   status: experiences.status,
@@ -95,12 +96,14 @@ const LIST_ORDER = [
 
 /** The experience's own columns, without what it links. */
 function columnsOf(input: ExperienceInput) {
-  const { slug, company, companyUrl, location, employmentType } = input;
+  const { slug, company, companyUrl, logoMediaId, location, employmentType } =
+    input;
   const { status, startedOn, endedOn } = input;
   return {
     slug,
     company,
     companyUrl,
+    logoMediaId,
     location,
     employmentType,
     status,

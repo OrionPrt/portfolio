@@ -30,6 +30,7 @@ function input(
     expiresOn: null,
     credentialId: "OS-101-12345",
     verifyUrl: "https://credentials.offsec.com/12345",
+    badgeMediaId: null,
     sortOrder: 0,
     translations: { fr: { description: "Test d'intrusion" } },
     ...overrides,

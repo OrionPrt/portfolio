@@ -4,6 +4,7 @@ import { TileLink } from "@/components/bento/tile";
 import { Period } from "@/components/content/period";
 import { ArrowIcon } from "@/components/ui/arrow-icon";
 import { CHIP_CLASSES } from "@/components/ui/chip-classes";
+import { MediaImage } from "@/components/ui/media-image";
 import type { ExperienceView } from "@/features/experiences/repository";
 
 interface ExperienceCardProps {
@@ -22,24 +23,35 @@ export function ExperienceCard({ experience }: ExperienceCardProps) {
       aria-labelledby={titleId}
       className="group bg-surface border-line rounded-tile hover:border-fg-muted has-focus-visible:outline-focus relative flex flex-col gap-2 border p-6 transition-colors has-focus-visible:outline-2 has-focus-visible:outline-offset-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
     >
-      <div className="flex flex-col gap-1.5">
-        <h2
-          id={titleId}
-          lang={experience.isFallback ? experience.contentLocale : undefined}
-          className="text-xl font-semibold tracking-tight"
-        >
-          <TileLink
-            href={{
-              pathname: "/experiences/[slug]",
-              params: { slug: experience.slug },
-            }}
+      <div className="flex items-center gap-4">
+        {experience.logo !== undefined && (
+          // The company is named beside it: the logo adorns the name.
+          <MediaImage
+            image={experience.logo}
+            alt=""
+            sizes="48px"
+            className="border-line rounded-control size-12 shrink-0 border bg-white object-contain p-1"
+          />
+        )}
+        <div className="flex flex-col gap-1.5">
+          <h2
+            id={titleId}
+            lang={experience.isFallback ? experience.contentLocale : undefined}
+            className="text-xl font-semibold tracking-tight"
           >
-            {experience.role}
-          </TileLink>
-        </h2>
-        <p className="text-fg-muted text-sm">
-          {experience.company} · {tTypes(experience.employmentType)}
-        </p>
+            <TileLink
+              href={{
+                pathname: "/experiences/[slug]",
+                params: { slug: experience.slug },
+              }}
+            >
+              {experience.role}
+            </TileLink>
+          </h2>
+          <p className="text-fg-muted text-sm">
+            {experience.company} · {tTypes(experience.employmentType)}
+          </p>
+        </div>
       </div>
       <div className="text-fg-muted flex items-center gap-4 text-sm">
         {experience.isCurrent && (

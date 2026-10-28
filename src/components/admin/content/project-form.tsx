@@ -2,6 +2,7 @@ import type { ContentAction } from "@/features/admin/content-form-state";
 import type { SkillOption } from "@/features/catalog/skill-options";
 import { TEXT_LIMITS } from "@/features/content/limits";
 import { SKILL_DOMAINS } from "@/features/content/vocabulary";
+import type { MediaOption } from "@/features/media/types";
 import type { ProjectForEdit } from "@/features/projects/admin-repository";
 
 import { ADMIN_COPY } from "../copy";
@@ -16,6 +17,7 @@ import {
   UrlField,
   type TranslatedField,
 } from "./entry-fields";
+import { MediaField } from "./media-field";
 import { SkillPicker } from "./skill-picker";
 
 const COPY = ADMIN_COPY.projects;
@@ -57,10 +59,17 @@ interface ProjectFormProps {
   readonly project?: ProjectForEdit;
   /** The catalog its skills are picked from. */
   readonly skills: readonly SkillOption[];
+  /** The library its cover is picked from. */
+  readonly media: readonly MediaOption[];
 }
 
 /** A project in both languages, with its links, dates and skills; one save for all of it. */
-export function ProjectForm({ action, project, skills }: ProjectFormProps) {
+export function ProjectForm({
+  action,
+  project,
+  skills,
+  media,
+}: ProjectFormProps) {
   return (
     <ContentForm
       action={action}
@@ -85,6 +94,12 @@ export function ProjectForm({ action, project, skills }: ProjectFormProps) {
         />
       </PublicationFields>
       <FormSection title={COPY.presentation}>
+        <MediaField
+          name="coverMediaId"
+          label={COPY.cover}
+          initial={project?.coverMediaId ?? null}
+          options={media}
+        />
         <BilingualFields
           fields={PRESENTATION}
           translations={project?.translations}

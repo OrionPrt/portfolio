@@ -14,6 +14,7 @@ import {
   updateCertificationAction,
 } from "@/features/catalog/certifications-admin-actions";
 import { createCertificationsAdminRepository } from "@/features/catalog/certifications-admin-repository";
+import { loadMediaOptions } from "@/features/media/media-options";
 
 export const metadata: Metadata = {
   title: ADMIN_COPY.certifications.editTitle,
@@ -29,9 +30,10 @@ export default async function EditCertificationPage({
 }: PageProps<"/admin/certifications/[id]">) {
   await requireAdmin();
   const { id } = await params;
-  const found = await withDatabase((db) =>
-    createCertificationsAdminRepository(db).find(id),
-  );
+  const [found, media] = await Promise.all([
+    withDatabase((db) => createCertificationsAdminRepository(db).find(id)),
+    withDatabase(loadMediaOptions),
+  ]);
   const certification = found.ok ? found.data : undefined;
   const label =
     certification === undefined
@@ -42,13 +44,14 @@ export default async function EditCertificationPage({
     <>
       <AdminPageHeader title={COPY.editTitle} />
       <BackLink href={ADMIN_PATHS.certifications} label={COPY.back} />
-      {certification !== undefined ? (
+      {certification !== undefined && media.ok ? (
         <>
           {/* Keyed: another entry's page keeps its own form state. */}
           <CertificationForm
             key={certification.id}
             action={updateCertificationAction}
             certification={certification}
+            media={media.data}
           />
           <div className="border-line border-t pt-6">
             <DeleteEntry
@@ -62,7 +65,10 @@ export default async function EditCertificationPage({
           </div>
         </>
       ) : (
-        <EntryMissing isAvailable={found.ok} notFound={COPY.notFound} />
+        <EntryMissing
+          isAvailable={found.ok && media.ok}
+          notFound={COPY.notFound}
+        />
       )}
     </>
   );

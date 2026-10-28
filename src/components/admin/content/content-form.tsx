@@ -112,6 +112,12 @@ interface ContentFormProps {
   readonly context?: string;
   /** What saving does beyond saving, shown above the button and read with it. */
   readonly saveNote?: string;
+  /** The button and what it says once done, when not "Enregistrer": "Ajouter". */
+  readonly labels?: {
+    readonly save: string;
+    readonly pending: string;
+    readonly saved: string;
+  };
 }
 
 /**
@@ -126,6 +132,7 @@ export function ContentForm({
   hidden = {},
   context,
   saveNote,
+  labels = { save: COPY.save, pending: COPY.saving, saved: COPY.saved },
 }: ContentFormProps) {
   const [state, formAction] = useActionState(
     async (previous: FormOutcome, formData: FormData): Promise<FormOutcome> => {
@@ -192,10 +199,10 @@ export function ContentForm({
             </p>
           )}
           <SubmitButton
-            pendingLabel={COPY.saving}
+            pendingLabel={labels.pending}
             describedBy={saveNote === undefined ? undefined : noteId}
           >
-            {COPY.save}
+            {labels.save}
             {/* The space outside the span: name computation trims inside it. */}
             {context !== undefined && (
               <>
@@ -206,7 +213,7 @@ export function ContentForm({
           </SubmitButton>
           <FormStatus
             message={
-              state.status === "saved" && !isDirty ? COPY.saved : undefined
+              state.status === "saved" && !isDirty ? labels.saved : undefined
             }
           />
           <FormAlert message={alertOf(state)} />

@@ -16,6 +16,12 @@ import {
 import type { Database } from "@/db/types";
 import { toSkillRefs, toStorySummary } from "@/features/content/mappers";
 import type { SkillRef, StorySummary } from "@/features/content/types";
+import {
+  toMediaView,
+  WITH_MEDIA,
+  type MediaRow,
+} from "@/features/media/mappers";
+import type { MediaView } from "@/features/media/types";
 import { LOCALES, type Locale } from "@/i18n/locales";
 import type { Result } from "@/lib/result";
 
@@ -32,6 +38,8 @@ export interface ExperienceView {
   readonly summary: StorySummary;
   readonly technicalMd: string;
   readonly skills: readonly SkillRef[];
+  /** The company's logo, its text in the page's language. */
+  readonly logo: MediaView | undefined;
   readonly isFallback: boolean;
   readonly contentLocale: Locale;
 }
@@ -39,6 +47,7 @@ export interface ExperienceView {
 type ExperienceRow = typeof experiences.$inferSelect & {
   readonly translations: readonly (typeof experienceTranslations.$inferSelect)[];
   readonly skills: readonly { readonly skill: typeof skills.$inferSelect }[];
+  readonly logo: MediaRow | null;
 };
 
 const WITH_CONTENT = {
@@ -48,6 +57,7 @@ const WITH_CONTENT = {
     limit: MAX_LINKED_SKILLS,
     with: { skill: true as const },
   },
+  logo: WITH_MEDIA,
 };
 
 // Same rule as projects: a published experience without any translation has
@@ -84,6 +94,7 @@ function toExperienceView(
     summary: toStorySummary(translation.value),
     technicalMd: translation.value.technicalMd,
     skills: toSkillRefs(row.skills),
+    logo: toMediaView(row.logo, locale),
     isFallback: translation.isFallback,
     contentLocale: translation.value.locale,
   };

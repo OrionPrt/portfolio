@@ -15,6 +15,7 @@ import {
   updateExperienceAction,
 } from "@/features/experiences/admin-actions";
 import { createExperiencesAdminRepository } from "@/features/experiences/admin-repository";
+import { loadMediaOptions } from "@/features/media/media-options";
 
 export const metadata: Metadata = { title: ADMIN_COPY.experiences.editTitle };
 
@@ -28,12 +29,13 @@ export default async function EditExperiencePage({
 }: PageProps<"/admin/experiences/[id]">) {
   await requireAdmin();
   const { id } = await params;
-  const [found, skills] = await Promise.all([
+  const [found, skills, media] = await Promise.all([
     withDatabase((db) => createExperiencesAdminRepository(db).find(id)),
     withDatabase(loadSkillOptions),
+    withDatabase(loadMediaOptions),
   ]);
   const experience = found.ok ? found.data : undefined;
-  const isAvailable = found.ok && skills.ok;
+  const isAvailable = found.ok && skills.ok && media.ok;
   const label =
     experience === undefined
       ? ""
@@ -46,7 +48,7 @@ export default async function EditExperiencePage({
     <>
       <AdminPageHeader title={COPY.editTitle} />
       <BackLink href={ADMIN_PATHS.experiences} label={COPY.back} />
-      {experience !== undefined && skills.ok ? (
+      {experience !== undefined && skills.ok && media.ok ? (
         <>
           {/* Keyed: another experience's page keeps its own form state. */}
           <ExperienceForm
@@ -54,6 +56,7 @@ export default async function EditExperiencePage({
             action={updateExperienceAction}
             experience={experience}
             skills={skills.data}
+            media={media.data}
           />
           <div className="border-line border-t pt-6">
             <DeleteEntry

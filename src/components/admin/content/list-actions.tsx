@@ -28,6 +28,8 @@ function failureOf(state: ListActionState): string | undefined {
       return COPY.notFound;
     case "unavailable":
       return COPY.unavailable;
+    case "in_use":
+      return COPY.delete.inUse;
     default:
       return undefined;
   }

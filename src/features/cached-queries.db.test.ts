@@ -59,12 +59,12 @@ const READS: readonly [string, CachedRead, readonly string[]][] = [
   [
     "getPublishedProjects",
     () => projects.getPublishedProjects("fr"),
-    ["projects", "skills"],
+    ["projects", "skills", "media"],
   ],
   [
     "getFeaturedProject",
     () => projects.getFeaturedProject("fr"),
-    ["projects", "skills"],
+    ["projects", "skills", "media"],
   ],
   [
     "getPublishedProjectSlugs",
@@ -74,12 +74,12 @@ const READS: readonly [string, CachedRead, readonly string[]][] = [
   [
     "getPublishedExperiences",
     () => experiences.getPublishedExperiences("fr"),
-    ["experiences", "skills"],
+    ["experiences", "skills", "media"],
   ],
   [
     "getCurrentExperience",
     () => experiences.getCurrentExperience("fr"),
-    ["experiences", "skills"],
+    ["experiences", "skills", "media"],
   ],
   [
     "getPublishedExperienceSlugs",
@@ -91,7 +91,7 @@ const READS: readonly [string, CachedRead, readonly string[]][] = [
   [
     "getCertifications",
     () => catalog.getCertifications("fr"),
-    ["certifications"],
+    ["certifications", "media"],
   ],
   ["getBentoTiles", () => catalog.getBentoTiles(), ["bento"]],
 ];
@@ -151,7 +151,7 @@ describe.each(SLUG_READS)("reading one $kind", (entity) => {
     expect(result.ok && result.data).toMatchObject({ slug: "demo" });
     expect(vi.mocked(cacheTag).mock.calls).toEqual([
       [entity.listTag],
-      [entity.entityTag("demo"), "skills"],
+      [entity.entityTag("demo"), "skills", "media"],
     ]);
   });
 

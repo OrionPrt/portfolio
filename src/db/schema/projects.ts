@@ -12,6 +12,7 @@ import {
 
 import { endsAfterStart, httpsOrNull, slugFormat, timestamps } from "./columns";
 import { contentStatusEnum, localeEnum, skillDomainEnum } from "./enums";
+import { media } from "./media";
 import { skills } from "./skills";
 
 export const projects = pgTable(
@@ -25,6 +26,9 @@ export const projects = pgTable(
     sortOrder: integer("sort_order").notNull().default(0),
     repoUrl: text("repo_url"),
     demoUrl: text("demo_url"),
+    coverMediaId: uuid("cover_media_id").references(() => media.id, {
+      onDelete: "restrict",
+    }),
     startedOn: date("started_on", { mode: "string" }),
     endedOn: date("ended_on", { mode: "string" }),
     ...timestamps,
@@ -34,6 +38,7 @@ export const projects = pgTable(
     check("projects_repo_url_https", httpsOrNull(t.repoUrl)),
     check("projects_demo_url_https", httpsOrNull(t.demoUrl)),
     check("projects_dates_ordered", endsAfterStart(t.startedOn, t.endedOn)),
+    index("projects_cover_media_idx").on(t.coverMediaId),
   ],
 );
 

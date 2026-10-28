@@ -15,6 +15,7 @@ import {
   updateProjectAction,
 } from "@/features/projects/admin-actions";
 import { createProjectsAdminRepository } from "@/features/projects/admin-repository";
+import { loadMediaOptions } from "@/features/media/media-options";
 
 export const metadata: Metadata = { title: ADMIN_COPY.projects.editTitle };
 
@@ -28,12 +29,13 @@ export default async function EditProjectPage({
 }: PageProps<"/admin/projects/[id]">) {
   await requireAdmin();
   const { id } = await params;
-  const [found, skills] = await Promise.all([
+  const [found, skills, media] = await Promise.all([
     withDatabase((db) => createProjectsAdminRepository(db).find(id)),
     withDatabase(loadSkillOptions),
+    withDatabase(loadMediaOptions),
   ]);
   const project = found.ok ? found.data : undefined;
-  const isAvailable = found.ok && skills.ok;
+  const isAvailable = found.ok && skills.ok && media.ok;
   const title =
     project === undefined
       ? ""
@@ -43,7 +45,7 @@ export default async function EditProjectPage({
     <>
       <AdminPageHeader title={COPY.editTitle} />
       <BackLink href={ADMIN_PATHS.projects} label={COPY.back} />
-      {project !== undefined && skills.ok ? (
+      {project !== undefined && skills.ok && media.ok ? (
         <>
           {/* Keyed: another project's page keeps its own form state. */}
           <ProjectForm
@@ -51,6 +53,7 @@ export default async function EditProjectPage({
             action={updateProjectAction}
             project={project}
             skills={skills.data}
+            media={media.data}
           />
           <div className="border-line border-t pt-6">
             <DeleteEntry

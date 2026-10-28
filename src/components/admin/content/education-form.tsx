@@ -1,6 +1,7 @@
 import type { ContentAction } from "@/features/admin/content-form-state";
 import type { EducationForEdit } from "@/features/catalog/education-admin-repository";
 import { TEXT_LIMITS } from "@/features/content/limits";
+import type { MediaOption } from "@/features/media/types";
 
 import { ADMIN_COPY } from "../copy";
 import { ContentForm } from "./content-form";
@@ -10,6 +11,7 @@ import {
   FormSection,
   type TranslatedField,
 } from "./entry-fields";
+import { MediaField } from "./media-field";
 import { TextField } from "./text-field";
 
 const COPY = ADMIN_COPY.education;
@@ -37,10 +39,12 @@ interface EducationFormProps {
   readonly action: ContentAction;
   /** The entry to edit; undefined for a new one. */
   readonly entry?: EducationForEdit;
+  /** The library its logo is picked from. */
+  readonly media: readonly MediaOption[];
 }
 
 /** A degree or course in both languages, with its school and dates; public once saved. */
-export function EducationForm({ action, entry }: EducationFormProps) {
+export function EducationForm({ action, entry, media }: EducationFormProps) {
   return (
     <ContentForm
       action={action}
@@ -68,6 +72,12 @@ export function EducationForm({ action, entry }: EducationFormProps) {
             maxLength={TEXT_LIMITS.name}
           />
         </div>
+        <MediaField
+          name="logoMediaId"
+          label={COPY.logo}
+          initial={entry?.logoMediaId ?? null}
+          options={media}
+        />
         <DateFields
           start={{ initial: entry?.startedOn ?? null, isRequired: true }}
           end={{

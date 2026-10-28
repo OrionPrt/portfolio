@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   config: vi.fn(),
   context: vi.fn(),
   requireAdmin: vi.fn(),
+  getAdminSession: vi.fn(),
   database: vi.fn(),
   record: vi.fn(),
 }));
@@ -14,13 +15,16 @@ vi.mock("@/features/auth/config", () => ({ authConfig: mocks.config }));
 vi.mock("@/features/auth/request-context", () => ({
   requestContext: mocks.context,
 }));
-vi.mock("@/features/auth/dal", () => ({ requireAdmin: mocks.requireAdmin }));
+vi.mock("@/features/auth/dal", () => ({
+  requireAdmin: mocks.requireAdmin,
+  getAdminSession: mocks.getAdminSession,
+}));
 vi.mock("@/db/client", () => ({ withDatabase: mocks.database }));
 vi.mock("@/features/auth/audit-repository", () => ({
   createAuditRepository: () => ({ record: mocks.record }),
 }));
 
-import { runAdmin } from "./run-admin";
+import { runAdmin, runAdminRoute } from "./run-admin";
 
 const SESSION = {
   sessionId: "a".repeat(64),
@@ -128,5 +132,40 @@ describe("runAdmin", () => {
         Promise.resolve(err({ code: "DB_UNAVAILABLE", message: "down" })),
       ),
     ).toEqual(err("unavailable"));
+  });
+});
+
+describe("runAdminRoute", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.config.mockReturnValue({ enabled: true, ipHashSalt: "s" });
+    mocks.context.mockResolvedValue(CONTEXT);
+    mocks.database.mockImplementation((run: (db: unknown) => unknown) =>
+      run(DB),
+    );
+  });
+
+  it("says when no one is signed in, rather than redirect a request a fetch would follow", async () => {
+    const work = vi.fn();
+
+    for (const session of [undefined, { ...SESSION, stage: "totp_pending" }]) {
+      mocks.getAdminSession.mockResolvedValue(session);
+      expect(await runAdminRoute(work)).toEqual(err("signed_out"));
+    }
+    expect(work).not.toHaveBeenCalled();
+    expect(mocks.requireAdmin).not.toHaveBeenCalled();
+  });
+
+  it("runs the work like an action once signed in, the origin checked first", async () => {
+    mocks.getAdminSession.mockResolvedValue(SESSION);
+
+    expect(await runAdminRoute(() => Promise.resolve(ok("done")))).toEqual(
+      ok("done"),
+    );
+
+    mocks.context.mockResolvedValue({ ...CONTEXT, isSameOrigin: false });
+    expect(await runAdminRoute(() => Promise.resolve(ok("done")))).toEqual(
+      err("unavailable"),
+    );
   });
 });

@@ -8,7 +8,11 @@ import {
   type AuditEvent,
 } from "@/features/auth/audit-repository";
 import { checkedRequest } from "@/features/auth/checked-request";
-import { requireAdmin, type AdminSession } from "@/features/auth/dal";
+import {
+  getAdminSession,
+  requireAdmin,
+  type AdminSession,
+} from "@/features/auth/dal";
 import { logger } from "@/lib/logger";
 import { err, type Result } from "@/lib/result";
 
@@ -27,16 +31,11 @@ export interface AdminScope {
   readonly audit: (event: AdminAuditEvent) => Promise<Result<void>>;
 }
 
-/**
- * Runs an admin action. An action is a public endpoint, whatever page shows
- * its form: a full session (else a redirect to the login), the configuration
- * and the origin are checked first, every time. Any failure, from those checks
- * or from the work, reads as unavailable; the details are logged.
- */
-export async function runAdmin<T>(
+/** The checks and the work, once the session is known. */
+async function runSignedIn<T>(
+  session: AdminSession,
   work: (scope: AdminScope) => Promise<Result<T>>,
 ): Promise<Result<T, "unavailable">> {
-  const session = await requireAdmin();
   const checked = await checkedRequest();
   if (!checked.ok) {
     return checked;
@@ -68,4 +67,30 @@ export async function runAdmin<T>(
     });
   });
   return result.ok ? result : err("unavailable");
+}
+
+/**
+ * Runs an admin action. An action is a public endpoint, whatever page shows
+ * its form: a full session (else a redirect to the login), the configuration
+ * and the origin are checked first, every time. Any failure, from those checks
+ * or from the work, reads as unavailable; the details are logged.
+ */
+export async function runAdmin<T>(
+  work: (scope: AdminScope) => Promise<Result<T>>,
+): Promise<Result<T, "unavailable">> {
+  return runSignedIn(await requireAdmin(), work);
+}
+
+/**
+ * The same, for a route handler the admin's pages fetch (an upload): no
+ * session reads as such, rather than as a redirect the fetch would follow.
+ */
+export async function runAdminRoute<T>(
+  work: (scope: AdminScope) => Promise<Result<T>>,
+): Promise<Result<T, "unavailable" | "signed_out">> {
+  const session = await getAdminSession();
+  if (session?.stage !== "signed_in") {
+    return err("signed_out");
+  }
+  return runSignedIn(session, work);
 }

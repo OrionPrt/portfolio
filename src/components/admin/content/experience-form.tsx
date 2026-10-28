@@ -3,6 +3,7 @@ import type { SkillOption } from "@/features/catalog/skill-options";
 import { TEXT_LIMITS } from "@/features/content/limits";
 import { EMPLOYMENT_TYPES } from "@/features/content/vocabulary";
 import type { ExperienceForEdit } from "@/features/experiences/admin-repository";
+import type { MediaOption } from "@/features/media/types";
 
 import { ADMIN_COPY } from "../copy";
 import { SelectField } from "./choice-fields";
@@ -16,6 +17,7 @@ import {
   UrlField,
   type TranslatedField,
 } from "./entry-fields";
+import { MediaField } from "./media-field";
 import { SkillPicker } from "./skill-picker";
 import { TextField } from "./text-field";
 
@@ -44,11 +46,14 @@ interface ExperienceFormProps {
   readonly experience?: ExperienceForEdit;
   /** The catalog its skills are picked from. */
   readonly skills: readonly SkillOption[];
+  /** The library its logo is picked from. */
+  readonly media: readonly MediaOption[];
 }
 
 function PositionFields({
   experience,
-}: Pick<ExperienceFormProps, "experience">) {
+  media,
+}: Pick<ExperienceFormProps, "experience" | "media">) {
   return (
     <FormSection title={COPY.position}>
       <div className="grid gap-6 md:grid-cols-2">
@@ -78,6 +83,12 @@ function PositionFields({
           initial={experience?.companyUrl ?? null}
         />
       </div>
+      <MediaField
+        name="logoMediaId"
+        label={COPY.logo}
+        initial={experience?.logoMediaId ?? null}
+        options={media}
+      />
       <DateFields
         start={{ initial: experience?.startedOn ?? null, isRequired: true }}
         end={{
@@ -95,6 +106,7 @@ export function ExperienceForm({
   action,
   experience,
   skills,
+  media,
 }: ExperienceFormProps) {
   return (
     <ContentForm
@@ -106,7 +118,7 @@ export function ExperienceForm({
         slug={experience?.slug ?? ""}
         slugTaken={COPY.slugTaken}
       />
-      <PositionFields experience={experience} />
+      <PositionFields experience={experience} media={media} />
       <FormSection title={ENTRIES.summary}>
         <BilingualFields
           fields={SUMMARY}

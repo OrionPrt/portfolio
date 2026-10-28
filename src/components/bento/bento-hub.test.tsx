@@ -5,6 +5,7 @@ import type { TileView } from "@/features/catalog/repository";
 import type { TileKind } from "@/features/content/vocabulary";
 
 import {
+  COVER,
   experienceView,
   profileView,
   projectView,
@@ -62,6 +63,7 @@ function hub(overrides: Partial<HubData> = {}): HubData {
         credentialId: null,
         verifyUrl: null,
         description: "",
+        badge: undefined,
       },
     ],
     ...overrides,
@@ -200,13 +202,20 @@ describe("BentoHub", () => {
     ).toHaveAttribute("href", "/fr/contact");
   });
 
-  it("lists the latest certifications", () => {
-    renderWithIntl(<BentoHub data={hub()} />);
+  it("lists the latest certifications, a badge beside the name it adorns", () => {
+    const data = hub();
+    const [oscp] = data.certifications;
+    renderWithIntl(
+      <BentoHub
+        data={{
+          ...data,
+          certifications: oscp === undefined ? [] : [{ ...oscp, badge: COVER }],
+        }}
+      />,
+    );
 
-    expect(
-      within(screen.getByRole("region", { name: "certifications" })).getByText(
-        "OSCP",
-      ),
-    ).toBeVisible();
+    const tile = screen.getByRole("region", { name: "certifications" });
+    expect(within(tile).getByText("OSCP")).toBeVisible();
+    expect(tile.querySelector("img")).toHaveAttribute("alt", "");
   });
 });

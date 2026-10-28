@@ -51,7 +51,7 @@ export async function getCertifications(
   locale: Locale,
 ): Promise<Result<readonly CertificationView[]>> {
   "use cache";
-  cacheTag(CACHE_TAGS.certifications);
+  cacheTag(CACHE_TAGS.certifications, CACHE_TAGS.media);
   const result = await withDatabase((db) =>
     createCatalogRepository(db).listCertifications(locale),
   );

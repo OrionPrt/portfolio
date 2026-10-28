@@ -14,3 +14,6 @@ export const MAX_SKILLS = 200;
 
 /** Skills linked to one project or experience. */
 export const MAX_LINKED_SKILLS = 30;
+
+/** Images in the library: enough for every cover, logo and badge, and then some. */
+export const MAX_MEDIA = 200;

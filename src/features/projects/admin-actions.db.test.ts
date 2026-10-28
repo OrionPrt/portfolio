@@ -169,6 +169,28 @@ describe("project actions", () => {
     expect(mocks.updateTag).toHaveBeenCalledWith("project:demo");
   });
 
+  it("keep the cover chosen, and refuse one that is no image's id", async () => {
+    const [image] = await testDb.query<{ id: string }>(
+      `insert into media (sha256, pathname, width, height, variants)
+       values ('${"a".repeat(64)}', 'media/one', 480, 270,
+         '[{"width":480,"height":270,"url":"/x","bytes":1}]') returning id`,
+    );
+    const id = await createdProject({ ...DEMO, coverMediaId: image?.id ?? "" });
+
+    expect(await testDb.query("select cover_media_id from projects")).toEqual([
+      { cover_media_id: image?.id },
+    ]);
+    expect(
+      await updateProjectAction(
+        CONTENT_IDLE,
+        form({ ...DEMO, id, coverMediaId: "not-an-id" }),
+      ),
+    ).toEqual({
+      status: "invalid",
+      problems: { coverMediaId: { problem: "invalid" } },
+    });
+  });
+
   it("refuse dates out of order on the end date, and a missing French title", async () => {
     expect(
       await createProjectAction(

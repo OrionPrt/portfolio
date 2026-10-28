@@ -38,6 +38,7 @@ const PROJECT: ProjectForEdit = {
   sortOrder: 0,
   repoUrl: "https://github.com/orion/demo",
   demoUrl: null,
+  coverMediaId: null,
   startedOn: "2024-01-01",
   endedOn: null,
   skills: ["rust"],
@@ -105,7 +106,7 @@ describe("ProjectList", () => {
 describe("ProjectForm", () => {
   it("starts a new project as a draft, with no skill linked", () => {
     const { container } = render(
-      <ProjectForm action={vi.fn()} skills={SKILLS} />,
+      <ProjectForm action={vi.fn()} skills={SKILLS} media={[]} />,
     );
 
     expect(screen.getByLabelText("Statut")).toHaveValue("draft");
@@ -116,7 +117,12 @@ describe("ProjectForm", () => {
 
   it("starts from the project to edit, by parts", () => {
     const { container } = render(
-      <ProjectForm action={vi.fn()} project={PROJECT} skills={SKILLS} />,
+      <ProjectForm
+        action={vi.fn()}
+        project={PROJECT}
+        skills={SKILLS}
+        media={[]}
+      />,
     );
 
     const publication = screen.getByRole("group", { name: "Publication" });
@@ -145,7 +151,9 @@ describe("ProjectForm", () => {
         (state: ContentFormState, data: FormData) => Promise<ContentFormState>
       >();
     save.mockResolvedValue({ status: "invalid", problems: {} });
-    const { container } = render(<ProjectForm action={save} skills={SKILLS} />);
+    const { container } = render(
+      <ProjectForm action={save} skills={SKILLS} media={[]} />,
+    );
     // The server's refusal is under test, not the browser's own checks.
     container.querySelector("form")?.setAttribute("novalidate", "");
     const title = () => screen.getByRole("group", { name: "Titre" });
@@ -168,7 +176,14 @@ describe("ProjectForm", () => {
       status: "invalid",
       problems: { endedOn: { problem: "invalid" } },
     });
-    render(<ProjectForm action={save} project={PROJECT} skills={SKILLS} />);
+    render(
+      <ProjectForm
+        action={save}
+        project={PROJECT}
+        skills={SKILLS}
+        media={[]}
+      />,
+    );
 
     await user.click(screen.getByRole("button", { name: "Enregistrer" }));
     await regionWith(screen, "alert", "Vérifiez les champs signalés.");
@@ -227,7 +242,7 @@ describe("ExperienceList", () => {
 
 describe("ExperienceForm", () => {
   it("asks for a start, and leaves the end blank for a current position", () => {
-    render(<ExperienceForm action={vi.fn()} skills={SKILLS} />);
+    render(<ExperienceForm action={vi.fn()} skills={SKILLS} media={[]} />);
 
     expect(screen.getByLabelText("Début")).toBeRequired();
     expect(screen.getByLabelText("Fin")).not.toBeRequired();

@@ -35,6 +35,7 @@ function certificationInput(formData: FormData) {
     expiresOn: blankToNull(fields.expiresOn),
     credentialId: blankToNull(fields.credentialId),
     verifyUrl: blankToNull(fields.verifyUrl),
+    badgeMediaId: blankToNull(fields.badgeMediaId),
     translations: translationsFrom(fields, TRANSLATED),
   };
 }

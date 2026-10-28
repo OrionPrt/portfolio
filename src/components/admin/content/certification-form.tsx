@@ -1,6 +1,7 @@
 import type { ContentAction } from "@/features/admin/content-form-state";
 import type { CertificationForEdit } from "@/features/catalog/certifications-admin-repository";
 import { TEXT_LIMITS } from "@/features/content/limits";
+import type { MediaOption } from "@/features/media/types";
 
 import { ADMIN_COPY } from "../copy";
 import { ContentForm } from "./content-form";
@@ -11,6 +12,7 @@ import {
   UrlField,
   type TranslatedField,
 } from "./entry-fields";
+import { MediaField } from "./media-field";
 import { TextField } from "./text-field";
 
 const COPY = ADMIN_COPY.certifications;
@@ -29,12 +31,15 @@ interface CertificationFormProps {
   readonly action: ContentAction;
   /** The certification to edit; undefined for a new one. */
   readonly certification?: CertificationForEdit;
+  /** The library its badge is picked from. */
+  readonly media: readonly MediaOption[];
 }
 
 /** A certification, its proof and its description in both languages; public once saved. */
 export function CertificationForm({
   action,
   certification,
+  media,
 }: CertificationFormProps) {
   return (
     <ContentForm
@@ -59,6 +64,12 @@ export function CertificationForm({
             isRequired
           />
         </div>
+        <MediaField
+          name="badgeMediaId"
+          label={COPY.badge}
+          initial={certification?.badgeMediaId ?? null}
+          options={media}
+        />
         <DateFields
           start={{
             name: "issuedOn",

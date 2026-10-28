@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
+import sharp from "sharp";
 
 import {
   ADMIN_PATTERNS,
@@ -511,6 +512,137 @@ test("adds an education entry still under way, then deletes it", async ({
     .getByRole("button", { name: "Supprimer définitivement" })
     .click();
   await expect(row).toHaveCount(0);
+});
+
+test("adds an image to the library, shows it as a cover, and deletes it once nothing does", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  const stamp = String(Date.now());
+  const alt = `Capture E2E ${stamp}`;
+  const title = `Projet illustré ${stamp}`;
+  const slug = `projet-illustre-${stamp}`;
+  // A picture of its own: the library refuses a file it already holds.
+  const picture = {
+    name: "capture.png",
+    mimeType: "image/png",
+    buffer: await sharp({
+      create: {
+        width: 1200 + (Number(stamp) % 400),
+        height: 675,
+        channels: 3,
+        background: { r: Number(stamp) % 256, g: 91, b: 219 },
+      },
+    })
+      .png()
+      .toBuffer(),
+  };
+  const french = (field: string) =>
+    page.getByRole("group", { name: field }).getByLabel("Français");
+  const altTexts = () => page.getByRole("group", { name: "Texte alternatif" });
+  await signIn(page);
+
+  await page.goto("/admin/media");
+  await expect(page).toHaveTitle(/^Médiathèque/);
+  await expectNoAxeViolation(page);
+  await page.getByLabel("Image", { exact: true }).setInputFiles(picture);
+  await altTexts().getByLabel("Anglais").fill(`E2E screenshot ${stamp}`);
+  // The French text missing, past the browser's own check: refused by the
+  // server on that field, the file chosen stays chosen.
+  await altTexts()
+    .getByLabel("Français")
+    .evaluate((input) => {
+      input.removeAttribute("required");
+    });
+  await page.getByRole("button", { name: "Ajouter", exact: true }).click();
+  await expect(altTexts().getByLabel("Français")).toBeFocused();
+  await expect
+    .poll(() =>
+      page
+        .getByLabel("Image", { exact: true })
+        .evaluate((input) => (input as HTMLInputElement).files?.length ?? 0),
+    )
+    .toBe(1);
+  await altTexts().getByLabel("Français").fill(alt);
+  await page.getByRole("button", { name: "Ajouter", exact: true }).click();
+  await expect(page.getByRole("main").getByRole("status")).toHaveText(
+    "Image ajoutée à la médiathèque.",
+  );
+  await expect(
+    page.getByRole("link", { name: `Modifier ${alt}` }),
+  ).toBeVisible();
+  // The same file again: refused on its field.
+  await page.getByLabel("Image", { exact: true }).setInputFiles(picture);
+  await altTexts().getByLabel("Français").fill("Doublon");
+  await altTexts().getByLabel("Anglais").fill("Duplicate");
+  await page.getByRole("button", { name: "Ajouter", exact: true }).click();
+  await expect(
+    page.getByLabel("Image", { exact: true }),
+  ).toHaveAccessibleDescription(/Cette image est déjà dans la médiathèque\./);
+
+  await page.goto("/admin/projects/new");
+  await page.getByLabel("Statut").selectOption("published");
+  await page.getByRole("textbox", { name: "Slug" }).fill(slug);
+  await page.getByLabel("Couverture").selectOption({ label: alt });
+  await french("Titre").fill(title);
+  await french("Accroche").fill("Une accroche");
+  await french("Contexte").fill("Le contexte");
+  await french("Ce que j'ai fait").fill("Ce qui a été fait");
+  await french("Résultat").fill("Le résultat");
+  await page.getByRole("button", { name: "Enregistrer" }).click();
+  await expect(page).toHaveTitle(/^Modifier un projet/);
+
+  // The cover, described, at the widths stored; each one served.
+  await expect(async () => {
+    await page.goto(`/fr/projets/${slug}`);
+    await expect(page.getByRole("img", { name: alt })).toBeVisible();
+  }).toPass({ timeout: 15_000 });
+  const srcset =
+    (await page.getByRole("img", { name: alt }).getAttribute("srcset")) ?? "";
+  const urls = srcset
+    .split(", ")
+    .map((candidate) => candidate.split(" ")[0] ?? "");
+  expect(urls).toHaveLength(3);
+  for (const url of urls) {
+    const file = await page.request.get(url);
+    expect(file.status()).toBe(200);
+    expect(file.headers()["content-type"]).toBe("image/webp");
+  }
+
+  // Shown by the project: its page says so, and offers no deletion.
+  await page.goto("/admin/media");
+  await page.getByRole("link", { name: `Modifier ${alt}` }).click();
+  await expect(page).toHaveTitle(/^Modifier une image/);
+  await expectNoAxeViolation(page);
+  await expect(
+    page.getByRole("link", { name: `Projet ${title}` }),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Supprimer/ })).toHaveCount(0);
+  const imagePage = page.url();
+
+  await page.goto("/admin/projects");
+  await page.getByRole("button", { name: `Supprimer ${title}` }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Supprimer définitivement" })
+    .click();
+  await expect(
+    page.getByRole("link", { name: `Modifier ${title}` }),
+  ).toHaveCount(0);
+
+  await page.goto(imagePage);
+  await page.getByRole("button", { name: `Supprimer ${alt}` }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Supprimer définitivement" })
+    .click();
+  await expect(page).toHaveURL(/\/admin\/media$/);
+  await expect(page.getByRole("link", { name: `Modifier ${alt}` })).toHaveCount(
+    0,
+  );
+  for (const url of urls) {
+    expect((await page.request.get(url)).status()).toBe(404);
+  }
 });
 
 test("revokes the other sessions, renews the recovery codes, and signs out", async ({

@@ -11,7 +11,25 @@ export const NON_LOCALIZED_PREFIXES: readonly string[] = [
 // default one of Next.js ships scripts without a nonce.
 const ROUTED_PREFIXES: readonly string[] = ["/api/", "/.well-known/"];
 
-export const ROUTED_PATHS: ReadonlySet<string> = new Set(["/api/csp-report"]);
+export const ROUTED_PATHS: ReadonlySet<string> = new Set([
+  "/api/csp-report",
+  "/api/admin/media",
+  // Images stored on the local disk, in development and E2E (P6c).
+  "/api/media/[...path]",
+]);
+
+/** A catch-all segment: the prefix before it, followed by at least one segment. */
+const CATCH_ALL = "/[...path]";
+
+function isRouted(pathname: string): boolean {
+  return [...ROUTED_PATHS].some((route) => {
+    if (!route.endsWith(CATCH_ALL)) {
+      return pathname === route;
+    }
+    const prefix = `${route.slice(0, -CATCH_ALL.length)}/`;
+    return pathname.startsWith(prefix) && pathname.length > prefix.length;
+  });
+}
 
 export function isNonLocalized(pathname: string): boolean {
   return NON_LOCALIZED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
@@ -21,6 +39,6 @@ export function isNonLocalized(pathname: string): boolean {
 export function isUnroutedPath(pathname: string): boolean {
   return (
     ROUTED_PREFIXES.some((prefix) => pathname.startsWith(prefix)) &&
-    !ROUTED_PATHS.has(pathname)
+    !isRouted(pathname)
   );
 }

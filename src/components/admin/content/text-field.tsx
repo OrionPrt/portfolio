@@ -21,6 +21,8 @@ interface TextFieldProps {
   readonly takenMessage?: string;
   readonly type?: "text" | "url" | "date";
   readonly autoComplete?: string;
+  /** The text's language, when not the page's ("en" in the French admin). */
+  readonly lang?: string;
 }
 
 /** A text field of a content form; its id is unique, whatever page stays mounted. */
@@ -36,6 +38,7 @@ export function TextField({
   takenMessage,
   type = "text",
   autoComplete = "off",
+  lang,
 }: TextFieldProps) {
   const id = useId();
   const { value, problem } = useField(name, initial);
@@ -54,6 +57,7 @@ export function TextField({
             defaultValue={value}
             required={isRequired}
             maxLength={maxLength}
+            lang={lang}
             rows={4}
           />
         ) : (
@@ -66,6 +70,7 @@ export function TextField({
             maxLength={maxLength}
             autoComplete={autoComplete}
             spellCheck={type === "text"}
+            lang={lang}
           />
         )
       }

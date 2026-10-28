@@ -36,6 +36,7 @@ const FIELDS = {
   expiresOn: certifications.expiresOn,
   credentialId: certifications.credentialId,
   verifyUrl: certifications.verifyUrl,
+  badgeMediaId: certifications.badgeMediaId,
   sortOrder: certifications.sortOrder,
 };
 
@@ -66,7 +67,15 @@ const LIST_ORDER = [desc(certifications.issuedOn), asc(certifications.slug)];
 /** The certification's own columns, as the admin edits them. */
 function columnsOf(input: CertificationContent) {
   const { name, issuer, issuedOn, expiresOn, credentialId, verifyUrl } = input;
-  return { name, issuer, issuedOn, expiresOn, credentialId, verifyUrl };
+  return {
+    name,
+    issuer,
+    issuedOn,
+    expiresOn,
+    credentialId,
+    verifyUrl,
+    badgeMediaId: input.badgeMediaId,
+  };
 }
 
 /** The description is optional: English is wanted where the French says something. */

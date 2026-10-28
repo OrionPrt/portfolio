@@ -15,6 +15,11 @@ import {
 } from "@/db/schema";
 import type { Database } from "@/db/types";
 import { toSkillRefs, toStorySummary } from "@/features/content/mappers";
+import {
+  toMediaView,
+  WITH_MEDIA,
+  type MediaRow,
+} from "@/features/media/mappers";
 import { LOCALES, type Locale } from "@/i18n/locales";
 import type { Result } from "@/lib/result";
 
@@ -23,6 +28,7 @@ import type { ProjectView } from "./types";
 type ProjectRow = typeof projects.$inferSelect & {
   readonly translations: readonly (typeof projectTranslations.$inferSelect)[];
   readonly skills: readonly { readonly skill: typeof skills.$inferSelect }[];
+  readonly cover: MediaRow | null;
 };
 
 const WITH_CONTENT = {
@@ -32,6 +38,7 @@ const WITH_CONTENT = {
     limit: MAX_LINKED_SKILLS,
     with: { skill: true as const },
   },
+  cover: WITH_MEDIA,
 };
 
 // A page needs a translation to show, so lists, slug listings and lookups all
@@ -71,6 +78,7 @@ function toProjectView(
     technicalMd: value.technicalMd,
     seoDescription: value.seoDescription,
     skills: toSkillRefs(row.skills),
+    cover: toMediaView(row.cover, locale),
     isFallback: translation.isFallback,
     contentLocale: value.locale,
   };

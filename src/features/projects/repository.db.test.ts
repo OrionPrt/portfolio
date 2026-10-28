@@ -131,6 +131,39 @@ describe("findPublishedBySlug", () => {
   );
 });
 
+describe("covers", () => {
+  it("shows a project's cover with its text in the page's language", async () => {
+    const [image] = await testDb.query<{ id: string }>(
+      `insert into media (sha256, pathname, width, height, variants)
+       values ('${"a".repeat(64)}', 'media/one', 960, 540,
+         '[{"width":480,"height":270,"url":"/m/480.webp","bytes":1},{"width":960,"height":540,"url":"/m/960.webp","bytes":2}]')
+       returning id`,
+    );
+    const mediaId = image?.id ?? "";
+    await testDb.exec(
+      `insert into media_translations (media_id, locale, alt)
+       values ('${mediaId}', 'fr', 'Tableau de bord'), ('${mediaId}', 'en', 'Dashboard')`,
+    );
+    await insertProject(testDb.db, { slug: "demo", coverMediaId: mediaId });
+    await insertProject(testDb.db, { slug: "bare" });
+
+    const projects = createProjectRepository(testDb.db);
+    const found = await projects.findPublishedBySlug("demo", "en");
+    const bare = await projects.findPublishedBySlug("bare", "en");
+
+    expect(found.ok && found.data?.cover).toEqual({
+      alt: "Dashboard",
+      width: 960,
+      height: 540,
+      variants: [
+        { width: 480, height: 270, url: "/m/480.webp", bytes: 1 },
+        { width: 960, height: 540, url: "/m/960.webp", bytes: 2 },
+      ],
+    });
+    expect(bare.ok && bare.data?.cover).toBeUndefined();
+  });
+});
+
 describe("findFeatured", () => {
   it("returns the first featured published project", async () => {
     await insertProject(testDb.db, { slug: "plain" });

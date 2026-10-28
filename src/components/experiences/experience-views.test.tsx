@@ -1,7 +1,7 @@
 import { screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { experienceView } from "../../../test/fixtures/views";
+import { COVER, experienceView } from "../../../test/fixtures/views";
 import { renderWithIntl } from "../../../test/render";
 import { ExperienceCard } from "./experience-card";
 import { ExperienceDetail } from "./experience-detail";
@@ -63,5 +63,24 @@ describe("ExperienceCard", () => {
       "/fr/experiences/acme",
     );
     expect(screen.getByText("Acme · Alternance")).toBeVisible();
+  });
+});
+
+describe("logos", () => {
+  it("sets the company's logo beside its name, which speaks for it", () => {
+    const { container } = renderWithIntl(
+      <ExperienceDetail experience={experienceView({ logo: COVER })} />,
+    );
+
+    expect(container.querySelector("img")).toHaveAttribute("alt", "");
+    expect(screen.getByText("Acme")).toBeInTheDocument();
+
+    const card = renderWithIntl(
+      <ExperienceCard experience={experienceView({ logo: COVER })} />,
+    );
+    expect(card.container.querySelector("img")).toHaveAttribute(
+      "sizes",
+      "48px",
+    );
   });
 });

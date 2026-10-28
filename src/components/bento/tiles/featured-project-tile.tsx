@@ -4,6 +4,7 @@ import { ViewTransition } from "react";
 import { ArrowIcon } from "@/components/ui/arrow-icon";
 import { CHIP_CLASSES } from "@/components/ui/chip-classes";
 import { Eyebrow } from "@/components/ui/eyebrow";
+import { MediaImage } from "@/components/ui/media-image";
 import { projectTransitionName } from "@/features/content/view-names";
 import type { TileSize } from "@/features/content/vocabulary";
 import type { ProjectView } from "@/features/projects/types";
@@ -44,6 +45,17 @@ export function FeaturedProjectTile({
           <Eyebrow>{t("featuredProject")}</Eyebrow>
           <ArrowIcon />
         </div>
+        {project.cover !== undefined && (
+          // The title below says what it is: the cover adorns it.
+          <MediaImage
+            image={project.cover}
+            alt=""
+            sizes="(min-width: 1024px) 50vw, 100vw"
+            // The hub's first tile: likely its largest paint.
+            isPriority
+            className="border-line rounded-control aspect-[21/9] w-full border object-cover"
+          />
+        )}
         <h2
           id={titleId}
           lang={lang}

@@ -121,6 +121,25 @@ describe("third parties", () => {
   });
 });
 
+describe("images", () => {
+  it("come from the site, or from Vercel Blob's own domain for the library", () => {
+    const policy = buildContentSecurityPolicy({
+      nonce: NONCE,
+      mode: "enforce",
+      isDev: false,
+    });
+
+    expect(sourcesOf(policy, "img-src")).toEqual([
+      "'self'",
+      "data:",
+      "blob:",
+      "https://*.public.blob.vercel-storage.com",
+    ]);
+    // Images only: nothing else may be fetched from there.
+    expect(sourcesOf(policy, "connect-src")).toEqual(["'self'"]);
+  });
+});
+
 describe("violation reports", () => {
   it("go to the reporting endpoint through report-to, and report-uri as a fallback", () => {
     const policy = buildContentSecurityPolicy({

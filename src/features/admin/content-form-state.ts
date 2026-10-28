@@ -24,6 +24,7 @@ export type ContentAction = (
 /** A list action (move, delete): only its outcome. */
 export type ListActionState =
   | { readonly status: "idle" | "done" }
-  | { readonly status: "not_found" | "unavailable" };
+  /** in_use: an entry still shows it (an image), so it stays. */
+  | { readonly status: "not_found" | "unavailable" | "in_use" };
 
 export const LIST_IDLE: ListActionState = { status: "idle" };

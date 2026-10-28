@@ -17,7 +17,7 @@ export async function getPublishedExperiences(
   locale: Locale,
 ): Promise<Result<readonly ExperienceView[]>> {
   "use cache";
-  cacheTag(CACHE_TAGS.experiences, CACHE_TAGS.skills);
+  cacheTag(CACHE_TAGS.experiences, CACHE_TAGS.skills, CACHE_TAGS.media);
   const result = await withDatabase((db) =>
     createExperienceRepository(db).listPublished(locale, {
       limit: MAX_PAGE_SIZE,
@@ -35,7 +35,7 @@ export async function getCurrentExperience(
   locale: Locale,
 ): Promise<Result<ExperienceView | undefined>> {
   "use cache";
-  cacheTag(CACHE_TAGS.experiences, CACHE_TAGS.skills);
+  cacheTag(CACHE_TAGS.experiences, CACHE_TAGS.skills, CACHE_TAGS.media);
   const result = await withDatabase((db) =>
     createExperienceRepository(db).findCurrent(locale),
   );
@@ -52,7 +52,7 @@ async function getCachedExperience(
   locale: Locale,
 ): Promise<Result<ExperienceView | undefined>> {
   "use cache";
-  cacheTag(experienceTag(slug), CACHE_TAGS.skills);
+  cacheTag(experienceTag(slug), CACHE_TAGS.skills, CACHE_TAGS.media);
   const result = await withDatabase((db) =>
     createExperienceRepository(db).findPublishedBySlug(slug, locale),
   );

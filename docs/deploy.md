@@ -64,17 +64,28 @@ The admin lives at `/admin` ([ADR-0006](adr/0006-auth.md)). Without the variable
 
 Previews have no `TOTP_ENCRYPTION_KEY` unless one is added for Preview: their admin then says it is not configured, which is expected. The development key is refused on Vercel.
 
+## Media
+
+The image library (`/admin/media`, [ADR-0007](adr/0007-admin.md)) keeps its files in Vercel Blob.
+
+1. **Database.** Apply the migrations not yet on Neon, `0003_slug_redirects` and `0004_media` among them: `pnpm db:migrate`, from the machine whose `.env.local` holds its `DATABASE_URL`. `0003` also tightens the social links' `mailto:` check: a stored address followed by `?` or `#` would stop it, so correct such a link first.
+2. **Blob store.** In the Vercel project, _Storage_ → _Create_ → _Blob_, connected to Production (and to Preview, to upload there too). Vercel adds `BLOB_READ_WRITE_TOKEN`.
+3. **Redeploy**, so the variable applies.
+
+Without the token, production builds and previews refuse uploads: the library says the service is unavailable, and the logs show `media.storage_not_configured`. Development and the E2E suite store images under `.media/` (gitignored), served by the app itself.
+
 ## After a deployment
 
 - `https://<project>.vercel.app/fr` shows the hub, and an unknown path such as `/fr/inconnu` answers `404`.
 - The response headers carry `Content-Security-Policy` (enforced) and `Reporting-Endpoints`.
 - The runtime logs show no `csp.violation` warnings, and no `db.not_configured` or `DB_UNAVAILABLE` errors.
 - `/admin` redirects to `/admin/login`, whose response carries `X-Robots-Tag: noindex, nofollow`; the logs show no `auth.not_configured`.
+- `/admin/media` takes an image, and the project page whose cover it is shows it, served from `*.public.blob.vercel-storage.com`.
 - `/fr/contact` shows the form and the Turnstile widget. A test message appears in `contact_messages` and arrives by email, and the logs show no `contact.not_configured`, `contact.turnstile_*` or `contact.mail_*` entries.
 
 ## Content updates
 
-Until the admin exists (P6), content changes go through `scripts/seed/content.ts` and `pnpm db:seed`. Cached reads expire within the hour, or at the next deployment. The seed never deletes: a renamed slug leaves the old row in the database.
+Content is edited in the admin, and shows on the site at once. `scripts/seed/content.ts` and `pnpm db:seed` fill an empty database: run again, the seed writes its own content over the admin's edits of the entries it knows (by slug), their images included. It never deletes: a renamed slug leaves the old row in the database.
 
 ## Schema changes
 

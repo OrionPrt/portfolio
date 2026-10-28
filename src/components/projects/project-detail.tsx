@@ -6,6 +6,7 @@ import { SkillBadge } from "@/components/content/skill-badge";
 import { TwoLevelContent } from "@/components/content/two-level-content";
 import { ViewShell } from "@/components/content/view-shell";
 import { CHIP_CLASSES } from "@/components/ui/chip-classes";
+import { MediaImage } from "@/components/ui/media-image";
 import { projectTransitionName } from "@/features/content/view-names";
 import type { ProjectView } from "@/features/projects/types";
 import { Link } from "@/i18n/navigation";
@@ -61,6 +62,15 @@ export function ProjectDetail({ project }: ProjectDetailProps) {
             </a>
           )}
         </div>
+        {project.cover !== undefined && (
+          // The page's main image: described, and fetched at once.
+          <MediaImage
+            image={project.cover}
+            sizes="(min-width: 1280px) 1100px, 100vw"
+            isPriority
+            className="border-line rounded-tile bg-surface-muted max-h-[70vh] w-full border object-contain"
+          />
+        )}
         <TwoLevelContent
           idPrefix={idPrefix}
           summary={project.summary}

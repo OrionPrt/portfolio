@@ -22,6 +22,8 @@
 
 # misc
 .DS_Store
+# images uploaded in development and E2E (production stores them in Vercel Blob)
+/.media/
 *.pem
 
 # debug

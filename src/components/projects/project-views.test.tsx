@@ -1,7 +1,7 @@
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { projectView } from "../../../test/fixtures/views";
+import { COVER, projectView } from "../../../test/fixtures/views";
 import { renderWithIntl } from "../../../test/render";
 import { ProjectCard } from "./project-card";
 import { ProjectDetail } from "./project-detail";
@@ -75,6 +75,29 @@ describe("ProjectCard", () => {
       "/en/projects/portfolio",
     );
     expect(screen.getByText("web")).toBeVisible();
+  });
+});
+
+describe("covers", () => {
+  it("describes the cover on the project's page, and fetches it first", () => {
+    renderWithIntl(<ProjectDetail project={projectView({ cover: COVER })} />);
+
+    const cover = screen.getByRole("img", {
+      name: "Le tableau de bord du portfolio",
+    });
+    expect(cover).toHaveAttribute("loading", "eager");
+    expect(cover.getAttribute("srcset")).toContain(
+      "/api/media/media/c/480.webp 480w",
+    );
+  });
+
+  it("lets the card's title speak for its cover", () => {
+    const { container } = renderWithIntl(
+      <ProjectCard project={projectView({ cover: COVER })} />,
+    );
+
+    expect(container.querySelector("img")).toHaveAttribute("alt", "");
+    expect(screen.queryByRole("img")).toBeNull();
   });
 });
 

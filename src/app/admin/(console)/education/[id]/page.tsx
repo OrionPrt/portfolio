@@ -14,6 +14,7 @@ import {
   updateEducationAction,
 } from "@/features/catalog/education-admin-actions";
 import { createEducationAdminRepository } from "@/features/catalog/education-admin-repository";
+import { loadMediaOptions } from "@/features/media/media-options";
 
 export const metadata: Metadata = { title: ADMIN_COPY.education.editTitle };
 
@@ -27,9 +28,10 @@ export default async function EditEducationPage({
 }: PageProps<"/admin/education/[id]">) {
   await requireAdmin();
   const { id } = await params;
-  const found = await withDatabase((db) =>
-    createEducationAdminRepository(db).find(id),
-  );
+  const [found, media] = await Promise.all([
+    withDatabase((db) => createEducationAdminRepository(db).find(id)),
+    withDatabase(loadMediaOptions),
+  ]);
   const entry = found.ok ? found.data : undefined;
   const label =
     entry === undefined
@@ -40,13 +42,14 @@ export default async function EditEducationPage({
     <>
       <AdminPageHeader title={COPY.editTitle} />
       <BackLink href={ADMIN_PATHS.education} label={COPY.back} />
-      {entry !== undefined ? (
+      {entry !== undefined && media.ok ? (
         <>
           {/* Keyed: another entry's page keeps its own form state. */}
           <EducationForm
             key={entry.id}
             action={updateEducationAction}
             entry={entry}
+            media={media.data}
           />
           <div className="border-line border-t pt-6">
             <DeleteEntry
@@ -60,7 +63,10 @@ export default async function EditEducationPage({
           </div>
         </>
       ) : (
-        <EntryMissing isAvailable={found.ok} notFound={COPY.notFound} />
+        <EntryMissing
+          isAvailable={found.ok && media.ok}
+          notFound={COPY.notFound}
+        />
       )}
     </>
   );

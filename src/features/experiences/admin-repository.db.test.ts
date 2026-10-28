@@ -41,6 +41,7 @@ function input(overrides: Partial<ExperienceInput> = {}): ExperienceInput {
     slug: "acme",
     company: "Acme",
     companyUrl: null,
+    logoMediaId: null,
     location: null,
     employmentType: "full_time",
     status: "draft",

@@ -82,6 +82,9 @@ function optionalText(max: number) {
   return text(max).nullable().default(null);
 }
 
+/** An image of the library, or none: the database checks it exists. */
+const mediaIdSchema = z.uuid().nullable().default(null);
+
 const markdownSchema = z.string().trim().max(TEXT_LIMITS.markdown).default("");
 
 const skillSlugsSchema = z
@@ -159,6 +162,7 @@ export const projectInputSchema = z
     sortOrder: sortOrderSchema,
     repoUrl: httpsUrlSchema.nullable().default(null),
     demoUrl: httpsUrlSchema.nullable().default(null),
+    coverMediaId: mediaIdSchema,
     startedOn: isoDateSchema.nullable().default(null),
     endedOn: isoDateSchema.nullable().default(null),
     skills: skillSlugsSchema,
@@ -182,6 +186,7 @@ export const experienceInputSchema = z
     slug: slugSchema,
     company: text(TEXT_LIMITS.name),
     companyUrl: httpsUrlSchema.nullable().default(null),
+    logoMediaId: mediaIdSchema,
     location: optionalText(TEXT_LIMITS.name),
     employmentType: z.enum(EMPLOYMENT_TYPES),
     status: z.enum(CONTENT_STATUSES).default("draft"),
@@ -206,6 +211,7 @@ export const experienceInputSchema = z
 const educationFields = {
   school: text(TEXT_LIMITS.name),
   location: optionalText(TEXT_LIMITS.name),
+  logoMediaId: mediaIdSchema,
   startedOn: isoDateSchema,
   endedOn: isoDateSchema.nullable().default(null),
   sortOrder: sortOrderSchema,
@@ -240,6 +246,7 @@ const certificationFields = {
   expiresOn: isoDateSchema.nullable().default(null),
   credentialId: optionalText(TEXT_LIMITS.name),
   verifyUrl: httpsUrlSchema.nullable().default(null),
+  badgeMediaId: mediaIdSchema,
   sortOrder: sortOrderSchema,
   translations: translationsSchema(
     z.object({
@@ -263,6 +270,14 @@ export const certificationContentSchema = z
 export const certificationInputSchema = z
   .object({ slug: slugSchema, ...certificationFields })
   .refine(certificationDatesInOrder, datesOutOfOrder("expiresOn"));
+
+/** An image's alternative text, in both languages: neither falls back. */
+export const mediaAltSchema = z.object({
+  fr: text(TEXT_LIMITS.alt),
+  en: text(TEXT_LIMITS.alt),
+});
+
+export type MediaAlt = z.output<typeof mediaAltSchema>;
 
 export const tileInputSchema = z.object({
   kind: z.enum(TILE_KINDS),

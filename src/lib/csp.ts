@@ -5,6 +5,13 @@ export const CSP_MODE: CspMode = "enforce";
 
 const TURNSTILE_ORIGIN = "https://challenges.cloudflare.com";
 
+/**
+ * Vercel Blob serves the library's images from a domain apart from the
+ * site's (ADR-0007). Each store has its own subdomain, unknown until the
+ * first upload: the wildcard covers them, for images only.
+ */
+const MEDIA_ORIGIN = "https://*.public.blob.vercel-storage.com";
+
 /** Where browsers send violation reports (src/app/api/csp-report/route.ts). */
 export const CSP_REPORT_PATH = "/api/csp-report";
 
@@ -54,7 +61,7 @@ export function buildContentSecurityPolicy({
     ],
     // Style attributes (React `style`, animations) cannot carry a nonce: see ADR-0002.
     ["style-src", "'self'", "'unsafe-inline'"],
-    ["img-src", "'self'", "data:", "blob:"],
+    ["img-src", "'self'", "data:", "blob:", MEDIA_ORIGIN],
     ["font-src", "'self'"],
     ["connect-src", "'self'"],
     // Cloudflare Turnstile renders its challenge in an iframe (contact form).

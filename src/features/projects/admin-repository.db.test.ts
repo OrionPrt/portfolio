@@ -55,6 +55,7 @@ function input(overrides: Partial<ProjectInput> = {}): ProjectInput {
     sortOrder: 0,
     repoUrl: null,
     demoUrl: null,
+    coverMediaId: null,
     startedOn: null,
     endedOn: null,
     skills: [],
