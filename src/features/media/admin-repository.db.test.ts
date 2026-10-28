@@ -131,10 +131,42 @@ describe("media admin repository", () => {
     const found = await repository().find(ID);
 
     expect(found.ok && found.data?.usages).toEqual([
-      { kind: "project", id: projectId, label: "demo (fr)" },
-      { kind: "experience", id: experienceId, label: "Acme" },
-      { kind: "certification", id: certification?.id, label: "OSCP" },
+      { kind: "project", id: projectId, label: "demo (fr)", inText: false },
+      { kind: "experience", id: experienceId, label: "Acme", inText: false },
+      {
+        kind: "certification",
+        id: certification?.id,
+        label: "OSCP",
+        inText: false,
+      },
     ]);
+  });
+
+  it("counts the texts that show an image as using it, each entry once", async () => {
+    await repository().create(image());
+    const reference = `![Schéma](media:${ID})`;
+    const projectId = await insertProject(testDb.db, { slug: "demo" });
+    await testDb.exec(
+      `update project_translations set technical_md = '${reference}' where project_id = '${projectId}';
+       insert into profile (id, display_name) values (1, 'Orion');
+       insert into profile_translations (profile_id, locale, headline, availability, pitch, about_md)
+       values (1, 'en', 'h', 'a', 'p', 'See ${reference}')`,
+    );
+    const experienceId = await insertExperience(testDb.db, {
+      slug: "acme",
+      company: "Acme",
+      logoMediaId: ID,
+    });
+
+    const found = await repository().find(ID);
+    const listed = await repository().list();
+
+    expect(found.ok && found.data?.usages).toEqual([
+      { kind: "experience", id: experienceId, label: "Acme", inText: false },
+      { kind: "project", id: projectId, label: "demo (fr)", inText: true },
+      { kind: "profile", id: "1", label: "", inText: true },
+    ]);
+    expect(listed.ok && listed.data[0]?.usageCount).toBe(3);
   });
 
   it("changes the alternative texts, or says the image is gone", async () => {
@@ -158,6 +190,10 @@ describe("media admin repository", () => {
         {
           id: ID,
           alt: "Capture du tableau de bord",
+          alts: {
+            fr: "Capture du tableau de bord",
+            en: "Dashboard screenshot",
+          },
           thumbnail: image().variants[0],
         },
       ]),

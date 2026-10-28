@@ -9,14 +9,20 @@ import { CHIP_CLASSES } from "@/components/ui/chip-classes";
 import { MediaImage } from "@/components/ui/media-image";
 import { experienceTransitionName } from "@/features/content/view-names";
 import type { ExperienceView } from "@/features/experiences/repository";
+import type { MediaById } from "@/features/media/types";
 import { Link } from "@/i18n/navigation";
 
 interface ExperienceDetailProps {
   readonly experience: ExperienceView;
+  /** The library's images its technical text shows. */
+  readonly images?: MediaById;
 }
 
 /** A position's full-screen view: the current-experience tile morphs into it. */
-export function ExperienceDetail({ experience }: ExperienceDetailProps) {
+export function ExperienceDetail({
+  experience,
+  images,
+}: ExperienceDetailProps) {
   const t = useTranslations("Experiences");
   const tExperience = useTranslations("Experience");
   const tTypes = useTranslations("EmploymentTypes");
@@ -79,6 +85,7 @@ export function ExperienceDetail({ experience }: ExperienceDetailProps) {
           idPrefix={idPrefix}
           summary={experience.summary}
           technicalMd={experience.technicalMd}
+          images={images}
           lang={lang}
         />
         {experience.skills.length > 0 && (

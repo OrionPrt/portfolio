@@ -3,6 +3,7 @@ import { useId } from "react";
 
 import { MediaThumbnail } from "@/components/ui/media-image";
 import {
+  ADMIN_PATHS,
   certificationPath,
   educationPath,
   experiencePath,
@@ -67,6 +68,8 @@ const PATHS: Readonly<Record<MediaUsage["kind"], (id: string) => string>> = {
   experience: experiencePath,
   education: educationPath,
   certification: certificationPath,
+  // One profile: its page has no id.
+  profile: () => ADMIN_PATHS.profile,
 };
 
 interface MediaUsagesProps {
@@ -87,15 +90,18 @@ export function MediaUsages({ usages }: MediaUsagesProps) {
       ) : (
         <ul role="list" className="flex flex-col gap-2">
           {usages.map((usage) => (
-            <li key={`${usage.kind}-${usage.id}`}>
+            <li key={`${usage.kind}-${usage.id}-${String(usage.inText)}`}>
               <Link
                 href={PATHS[usage.kind](usage.id)}
                 className="underline-offset-4 hover:underline"
               >
                 <span className="text-fg-muted">
                   {COPY.usageKinds[usage.kind]}
-                </span>{" "}
-                {usage.label}
+                </span>
+                {usage.label === "" ? "" : ` ${usage.label}`}
+                {usage.inText && (
+                  <span className="text-fg-muted">, {COPY.inText}</span>
+                )}
               </Link>
             </li>
           ))}

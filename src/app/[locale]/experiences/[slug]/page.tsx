@@ -6,6 +6,7 @@ import { DataUnavailable } from "@/components/content/data-unavailable";
 import { ExperienceDetail } from "@/components/experiences/experience-detail";
 import { movedSlug } from "@/features/content/moved-slugs";
 import { getPublishedExperience } from "@/features/experiences/queries";
+import { getMarkdownImages } from "@/features/media/queries";
 import { localizedAlternates } from "@/features/seo/alternates";
 import { getPathname } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
@@ -59,5 +60,10 @@ export default async function ExperiencePage({
     }
     notFound();
   }
-  return <ExperienceDetail experience={experience.data} />;
+  return (
+    <ExperienceDetail
+      experience={experience.data}
+      images={await getMarkdownImages(experience.data.technicalMd, locale)}
+    />
+  );
 }

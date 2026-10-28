@@ -6,6 +6,7 @@ import { DataUnavailable } from "@/components/content/data-unavailable";
 import { ProjectDetail } from "@/components/projects/project-detail";
 import { JsonLd } from "@/components/seo/json-ld";
 import { movedSlug } from "@/features/content/moved-slugs";
+import { getMarkdownImages } from "@/features/media/queries";
 import { getPublishedProject } from "@/features/projects/queries";
 import { localizedAlternates } from "@/features/seo/alternates";
 import { projectJsonLd } from "@/features/seo/json-ld";
@@ -80,7 +81,10 @@ export default async function ProjectPage({
           repoUrl: project.data.repoUrl,
         })}
       />
-      <ProjectDetail project={project.data} />
+      <ProjectDetail
+        project={project.data}
+        images={await getMarkdownImages(project.data.technicalMd, locale)}
+      />
     </>
   );
 }

@@ -1,10 +1,21 @@
 "use client";
 
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useMemo, useRef, useState } from "react";
 
 import type { ControlProps } from "@/components/ui/form-field";
+import {
+  imagesToLoad,
+  markdownImage,
+  MAX_IMAGES_PER_TEXT,
+} from "@/features/media/references";
+import type { MediaById, MediaOption } from "@/features/media/types";
+import type { Locale } from "@/i18n/locales";
 
+import { announce } from "../announce";
 import { ADMIN_COPY } from "../copy";
+import { insertBlock } from "./markdown-insert";
+import { MarkdownImageInserter } from "./markdown-image-inserter";
+import { useMediaOptions } from "./media-options";
 
 const COPY = ADMIN_COPY.content.markdown;
 
@@ -19,11 +30,73 @@ interface MarkdownEditorProps {
   readonly control: ControlProps;
   readonly name: string;
   readonly initial: string;
-  readonly lang: string;
+  readonly lang: Locale;
   readonly isRequired: boolean;
   /** Tells same-named toggles apart for screen readers: "français". */
   readonly context: string;
   readonly onText: (text: string) => void;
+}
+
+/** An image's text in the field's language, else the other's: as the site falls back. */
+function altFor(option: MediaOption, lang: Locale): string {
+  const own = option.alts[lang];
+  return own !== ""
+    ? own
+    : (Object.values(option.alts).find((alt) => alt !== "") ?? option.alt);
+}
+
+/** The images the text names, as the preview shows them: those its page would load. */
+function previewImages(
+  options: readonly MediaOption[],
+  lang: Locale,
+  text: string,
+): MediaById {
+  const named = new Set(imagesToLoad(text, MAX_IMAGES_PER_TEXT));
+  return Object.fromEntries(
+    options
+      .filter((option) => named.has(option.id))
+      .map((option) => [
+        option.id,
+        {
+          alt: altFor(option, lang),
+          width: option.thumbnail.width,
+          height: option.thumbnail.height,
+          variants: [option.thumbnail],
+        },
+      ]),
+  );
+}
+
+/**
+ * Writes over the selection as typing does, so the browser keeps it in its
+ * undo history and fires its own input event. Where it cannot, the value is
+ * set and an input event sent: the editor, the bilingual field and the
+ * unsaved guard all listen to it.
+ */
+function typeInto(
+  textarea: HTMLTextAreaElement,
+  [start, end]: readonly [number, number],
+  inserted: { readonly text: string; readonly caret: number },
+): void {
+  textarea.focus();
+  textarea.setSelectionRange(start, end);
+  let isTyped = false;
+  try {
+    // Deprecated, yet alone in keeping the undo history.
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- see above
+    isTyped = document.execCommand(
+      "insertText",
+      false,
+      inserted.text.slice(start, inserted.caret),
+    );
+  } catch {
+    isTyped = false;
+  }
+  if (!isTyped) {
+    textarea.value = inserted.text;
+    textarea.setSelectionRange(inserted.caret, inserted.caret);
+    textarea.dispatchEvent(new Event("input", { bubbles: true }));
+  }
 }
 
 /**
@@ -42,6 +115,32 @@ export function MarkdownEditor({
 }: MarkdownEditorProps) {
   const [isPreview, setPreview] = useState(false);
   const [text, setText] = useState(initial);
+  // Outside a form offering the library (MediaOptionsProvider), nothing to insert.
+  const options = useMediaOptions();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  // Kept between renders: the preview's components and images stay the same.
+  const images = useMemo(
+    () => previewImages(options, lang, text),
+    [options, lang, text],
+  );
+  const insertImage = (option: MediaOption) => {
+    const textarea = textareaRef.current;
+    if (textarea === null) {
+      return;
+    }
+    const selection = [textarea.selectionStart, textarea.selectionEnd] as const;
+    typeInto(
+      textarea,
+      selection,
+      insertBlock(
+        textarea.value,
+        selection[0],
+        selection[1],
+        markdownImage(option.id, altFor(option, lang)),
+      ),
+    );
+    announce(COPY.inserted(context));
+  };
   const toggle = (label: string, isOn: boolean) => (
     <button
       type="button"
@@ -56,11 +155,19 @@ export function MarkdownEditor({
   );
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex gap-1">
+      <div className="flex flex-wrap items-center gap-1">
         {toggle(COPY.write, false)}
         {toggle(COPY.preview, true)}
+        {options.length > 0 && !isPreview && (
+          <MarkdownImageInserter
+            options={options}
+            context={context}
+            onInsert={insertImage}
+          />
+        )}
       </div>
       <textarea
+        ref={textareaRef}
         {...control}
         name={name}
         lang={lang}
@@ -83,7 +190,7 @@ export function MarkdownEditor({
             <p className="text-fg-muted">{COPY.empty}</p>
           ) : (
             <Suspense fallback={null}>
-              <Markdown source={text} topLevel={2} />
+              <Markdown source={text} topLevel={2} images={images} />
             </Suspense>
           )}
         </div>

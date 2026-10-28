@@ -8,6 +8,7 @@ import { ViewShell } from "@/components/content/view-shell";
 import { CHIP_CLASSES } from "@/components/ui/chip-classes";
 import { MediaImage } from "@/components/ui/media-image";
 import { projectTransitionName } from "@/features/content/view-names";
+import type { MediaById } from "@/features/media/types";
 import type { ProjectView } from "@/features/projects/types";
 import { Link } from "@/i18n/navigation";
 
@@ -16,10 +17,12 @@ const EXTERNAL_LINK_CLASSES =
 
 interface ProjectDetailProps {
   readonly project: ProjectView;
+  /** The library's images its technical text shows. */
+  readonly images?: MediaById;
 }
 
 /** A project's full-screen view: the featured tile morphs into it. */
-export function ProjectDetail({ project }: ProjectDetailProps) {
+export function ProjectDetail({ project, images }: ProjectDetailProps) {
   const t = useTranslations("Projects");
   const tProject = useTranslations("Project");
   const tDomains = useTranslations("Domains");
@@ -75,6 +78,7 @@ export function ProjectDetail({ project }: ProjectDetailProps) {
           idPrefix={idPrefix}
           summary={project.summary}
           technicalMd={project.technicalMd}
+          images={images}
           lang={lang}
         />
         {project.skills.length > 0 && (

@@ -1,4 +1,5 @@
-import { and, count, desc, eq, sql } from "drizzle-orm";
+import { and, count, desc, eq, sql, type SQL } from "drizzle-orm";
+import { alias, type PgColumn } from "drizzle-orm/pg-core";
 
 import { MAX_MEDIA } from "@/db/limits";
 import { alongside } from "@/db/one-statement";
@@ -7,8 +8,10 @@ import {
   certifications,
   education,
   experiences,
+  experienceTranslations,
   media,
   mediaTranslations,
+  profileTranslations,
   projects,
   projectTranslations,
   type MediaVariant,
@@ -20,6 +23,7 @@ import type { MediaAlt } from "@/features/content/schemas";
 import { DEFAULT_LOCALE, LOCALES, type Locale } from "@/i18n/locales";
 import type { Result } from "@/lib/result";
 
+import { mediaReference } from "./references";
 import type { MediaOption } from "./types";
 
 export type { MediaOption };
@@ -37,12 +41,15 @@ export interface NewMedia {
 
 /** What shows an image: deleting it waits until none does. */
 export interface MediaUsage {
-  readonly kind: "project" | "experience" | "education" | "certification";
+  readonly kind:
+    "project" | "experience" | "education" | "certification" | "profile";
   readonly id: string;
   readonly label: string;
+  /** Named in its Markdown (`media:<id>`), rather than its cover, logo or badge. */
+  readonly inText: boolean;
 }
 
-export interface MediaListEntry extends MediaOption {
+export interface MediaListEntry extends Omit<MediaOption, "alts"> {
   readonly width: number;
   readonly height: number;
   readonly usageCount: number;
@@ -59,12 +66,28 @@ export interface MediaForEdit {
 
 const NOT_FOUND = { status: "not_found" } as const;
 
-/** How many entries show the image: a cover, a logo or a badge each. */
+/** Whether a text names the image (`media:<id>`); ids are fixed-length hex. */
+const CITES = (text: SQL | PgColumn, reference: SQL) =>
+  sql`strpos(${text}, ${reference}) > 0`;
+
+/** The reference to the image of the row being counted. */
+const ROW_REFERENCE = sql`('media:' || ${media.id}::text)`;
+
+/**
+ * How many entries show the image: as a cover, a logo or a badge, and in
+ * their Markdown (each entry once, whatever its languages).
+ */
 const USAGE_COUNT = sql<number>`(
   (select count(*) from ${projects} where ${projects.coverMediaId} = ${media.id})
   + (select count(*) from ${experiences} where ${experiences.logoMediaId} = ${media.id})
   + (select count(*) from ${education} where ${education.logoMediaId} = ${media.id})
   + (select count(*) from ${certifications} where ${certifications.badgeMediaId} = ${media.id})
+  + (select count(distinct ${projectTranslations.projectId}) from ${projectTranslations}
+     where ${CITES(projectTranslations.technicalMd, ROW_REFERENCE)})
+  + (select count(distinct ${experienceTranslations.experienceId}) from ${experienceTranslations}
+     where ${CITES(experienceTranslations.technicalMd, ROW_REFERENCE)})
+  + (select count(distinct ${profileTranslations.profileId}) from ${profileTranslations}
+     where ${CITES(profileTranslations.aboutMd, ROW_REFERENCE)})
 )::int`;
 
 /** The narrowest variant: a list's or a picker's thumbnail. */
@@ -87,22 +110,33 @@ function altsWrite(db: Database, mediaId: string, alt: MediaAlt) {
     });
 }
 
-/** The entries that show the image, each named as its list names it. */
-function usagesOf(db: Database, id: string): Promise<readonly MediaUsage[]> {
-  const named = (
-    kind: MediaUsage["kind"],
-    rows: readonly { id: string; label: string | null }[],
-  ) => rows.map((row) => ({ kind, id: row.id, label: row.label ?? "" }));
-  return Promise.all([
+type Kind = MediaUsage["kind"];
+type Row = { readonly id: string; readonly label: string | null };
+
+function usagesFrom(kind: Kind, inText: boolean, rows: readonly Row[]) {
+  return rows.map((row) => ({
+    kind,
+    id: row.id,
+    label: row.label ?? "",
+    inText,
+  }));
+}
+
+/** A project's title in the default language, for its usage's label. */
+function projectTitles() {
+  return alias(projectTranslations, "named");
+}
+
+/** The entries showing the image as their cover, logo or badge. */
+async function imageUsages(db: Database, id: string) {
+  const named = projectTitles();
+  const [project, experience, school, certification] = await Promise.all([
     db
-      .select({ id: projects.id, label: projectTranslations.title })
+      .select({ id: projects.id, label: named.title })
       .from(projects)
       .leftJoin(
-        projectTranslations,
-        and(
-          eq(projectTranslations.projectId, projects.id),
-          eq(projectTranslations.locale, DEFAULT_LOCALE),
-        ),
+        named,
+        and(eq(named.projectId, projects.id), eq(named.locale, DEFAULT_LOCALE)),
       )
       .where(eq(projects.coverMediaId, id)),
     db
@@ -117,12 +151,65 @@ function usagesOf(db: Database, id: string): Promise<readonly MediaUsage[]> {
       .select({ id: certifications.id, label: certifications.name })
       .from(certifications)
       .where(eq(certifications.badgeMediaId, id)),
-  ]).then(([project, experience, school, certification]) => [
-    ...named("project", project),
-    ...named("experience", experience),
-    ...named("education", school),
-    ...named("certification", certification),
   ]);
+  return [
+    ...usagesFrom("project", false, project),
+    ...usagesFrom("experience", false, experience),
+    ...usagesFrom("education", false, school),
+    ...usagesFrom("certification", false, certification),
+  ];
+}
+
+/** The entries whose Markdown names the image, in any of its languages. */
+async function textUsages(db: Database, id: string) {
+  const reference = sql`${mediaReference(id)}`;
+  const named = projectTitles();
+  const [project, experience, about] = await Promise.all([
+    db
+      .select({ id: projects.id, label: named.title })
+      .from(projects)
+      .leftJoin(
+        named,
+        and(eq(named.projectId, projects.id), eq(named.locale, DEFAULT_LOCALE)),
+      )
+      .where(
+        sql`exists (select 1 from ${projectTranslations}
+          where ${projectTranslations.projectId} = ${projects.id}
+          and ${CITES(projectTranslations.technicalMd, reference)})`,
+      ),
+    db
+      .select({ id: experiences.id, label: experiences.company })
+      .from(experiences)
+      .where(
+        sql`exists (select 1 from ${experienceTranslations}
+          where ${experienceTranslations.experienceId} = ${experiences.id}
+          and ${CITES(experienceTranslations.technicalMd, reference)})`,
+      ),
+    db
+      .selectDistinct({
+        id: sql<string>`${profileTranslations.profileId}::text`,
+        label: sql<string>`''`,
+      })
+      .from(profileTranslations)
+      .where(CITES(profileTranslations.aboutMd, reference)),
+  ]);
+  return [
+    ...usagesFrom("project", true, project),
+    ...usagesFrom("experience", true, experience),
+    ...usagesFrom("profile", true, about),
+  ];
+}
+
+/** The entries that show the image, each named as its list names it. */
+async function usagesOf(
+  db: Database,
+  id: string,
+): Promise<readonly MediaUsage[]> {
+  const [images, texts] = await Promise.all([
+    imageUsages(db, id),
+    textUsages(db, id),
+  ]);
+  return [...images, ...texts];
 }
 
 /** The image library as the admin manages it (ADR-0007). */
@@ -185,19 +272,30 @@ export function createMediaAdminRepository(db: Database) {
     /** The images a form's picker offers, latest first. */
     options: (): Promise<Result<readonly MediaOption[]>> =>
       runQuery("media.admin_read_failed", async () => {
+        const french = alias(mediaTranslations, "french");
+        const english = alias(mediaTranslations, "english");
         const rows = await db
           .select({
             id: media.id,
             variants: media.variants,
-            alt: mediaTranslations.alt,
+            fr: french.alt,
+            en: english.alt,
           })
           .from(media)
-          .leftJoin(mediaTranslations, withAlt(DEFAULT_LOCALE))
+          .leftJoin(
+            french,
+            and(eq(french.mediaId, media.id), eq(french.locale, "fr")),
+          )
+          .leftJoin(
+            english,
+            and(eq(english.mediaId, media.id), eq(english.locale, "en")),
+          )
           .orderBy(desc(media.createdAt), desc(media.id))
           .limit(MAX_MEDIA);
-        return rows.map(({ id, variants, alt }) => ({
+        return rows.map(({ id, variants, fr, en }) => ({
           id,
-          alt: alt ?? "",
+          alt: fr ?? "",
+          alts: { fr: fr ?? "", en: en ?? "" },
           thumbnail: thumbnailOf(variants),
         }));
       }),

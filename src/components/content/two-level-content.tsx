@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 
 import type { StorySummary } from "@/features/content/types";
+import type { MediaById } from "@/features/media/types";
 
 import { Markdown } from "./markdown";
 
@@ -11,6 +12,8 @@ interface TwoLevelContentProps {
   readonly technicalMd: string;
   /** `lang` of the stored text when it falls back to another language. */
   readonly lang?: string;
+  /** The library's images the technical text shows. */
+  readonly images?: MediaById;
 }
 
 /**
@@ -23,6 +26,7 @@ export function TwoLevelContent({
   summary,
   technicalMd,
   lang,
+  images,
 }: TwoLevelContentProps) {
   const t = useTranslations("TwoLevel");
   const essentialsId = `${idPrefix}-essentials`;
@@ -66,7 +70,7 @@ export function TwoLevelContent({
             </span>
           </summary>
           <div lang={lang} className="border-line border-t p-5">
-            <Markdown source={technicalMd} />
+            <Markdown source={technicalMd} images={images} />
           </div>
         </details>
       )}

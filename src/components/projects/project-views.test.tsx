@@ -91,6 +91,22 @@ describe("covers", () => {
     );
   });
 
+  it("shows the library's images its technical text names", () => {
+    const id = "0f8fad5b-d9cb-469f-a165-70867728950e";
+    const { container } = renderWithIntl(
+      <ProjectDetail
+        project={projectView({
+          technicalMd: `![Le schéma](media:${id} "Trois services")`,
+        })}
+        images={{ [id]: COVER }}
+      />,
+    );
+
+    const figure = container.querySelector("details figure");
+    expect(figure?.querySelector("img")).toHaveAttribute("alt", "Le schéma");
+    expect(figure).toHaveTextContent("Trois services");
+  });
+
   it("lets the card's title speak for its cover", () => {
     const { container } = renderWithIntl(
       <ProjectCard project={projectView({ cover: COVER })} />,

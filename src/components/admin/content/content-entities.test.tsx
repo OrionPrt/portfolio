@@ -107,6 +107,7 @@ describe("ProfileForm", () => {
   it("starts from the saved profile, French and English side by side", () => {
     render(
       <ProfileForm
+        media={[]}
         profile={{
           displayName: "Orion",
           location: null,

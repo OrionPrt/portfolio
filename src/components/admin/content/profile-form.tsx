@@ -1,11 +1,13 @@
 import { TEXT_LIMITS } from "@/features/content/limits";
 import { saveProfileAction } from "@/features/profile/admin-actions";
+import type { MediaOption } from "@/features/media/types";
 import type { ProfileForEdit } from "@/features/profile/admin-repository";
 import type { Locale } from "@/i18n/locales";
 
 import { ADMIN_COPY } from "../copy";
 import { BilingualField } from "./bilingual-field";
 import { ContentForm } from "./content-form";
+import { MediaOptionsProvider } from "./media-options";
 import { TextField } from "./text-field";
 
 const COPY = ADMIN_COPY.profile;
@@ -15,9 +17,11 @@ type Translated = keyof NonNullable<ProfileForEdit["translations"]["fr"]>;
 interface ProfileFormProps {
   /** Undefined before the first save. */
   readonly profile: ProfileForEdit | undefined;
+  /** The library the about text's images are inserted from. */
+  readonly media: readonly MediaOption[];
 }
 
-function IdentityFields({ profile }: ProfileFormProps) {
+function IdentityFields({ profile }: Pick<ProfileFormProps, "profile">) {
   return (
     <div className="grid gap-6 md:grid-cols-2">
       <TextField
@@ -84,7 +88,7 @@ const TRANSLATED: readonly {
 ];
 
 /** The profile in both languages; one save for the whole of it. */
-export function ProfileForm({ profile }: ProfileFormProps) {
+export function ProfileForm({ profile, media }: ProfileFormProps) {
   const initial = (
     field: Translated,
   ): Partial<Record<Locale, string | null>> => ({
@@ -92,15 +96,17 @@ export function ProfileForm({ profile }: ProfileFormProps) {
     en: profile?.translations.en?.[field] ?? "",
   });
   return (
-    <ContentForm action={saveProfileAction}>
-      <IdentityFields profile={profile} />
-      {TRANSLATED.map((field) => (
-        <BilingualField
-          key={field.name}
-          {...field}
-          initial={initial(field.name)}
-        />
-      ))}
-    </ContentForm>
+    <MediaOptionsProvider options={media}>
+      <ContentForm action={saveProfileAction}>
+        <IdentityFields profile={profile} />
+        {TRANSLATED.map((field) => (
+          <BilingualField
+            key={field.name}
+            {...field}
+            initial={initial(field.name)}
+          />
+        ))}
+      </ContentForm>
+    </MediaOptionsProvider>
   );
 }

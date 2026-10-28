@@ -1,4 +1,5 @@
 import type { MediaVariant } from "@/db/schema";
+import type { Locale } from "@/i18n/locales";
 
 /** An image as a page shows it: its text in the page's language, its widths. */
 export interface MediaView {
@@ -15,6 +16,11 @@ export interface MediaOption {
   readonly id: string;
   /** In the default language. */
   readonly alt: string;
+  /** In each language: the Markdown editor writes the field's own. */
+  readonly alts: Readonly<Record<Locale, string>>;
   /** The narrowest variant. */
   readonly thumbnail: MediaVariant;
 }
+
+/** The library's images a text shows (`media:<id>`), by id: loaded with the page. */
+export type MediaById = Readonly<Record<string, MediaView>>;

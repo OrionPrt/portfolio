@@ -9,11 +9,13 @@ const OPTIONS = [
   {
     id: "m-1",
     alt: "Capture du tableau de bord",
+    alts: { fr: "Capture du tableau de bord", en: "Dashboard screenshot" },
     thumbnail: { width: 480, height: 270, url: "/m/1.webp", bytes: 1 },
   },
   {
     id: "m-2",
     alt: "Logo",
+    alts: { fr: "Logo", en: "Logo" },
     thumbnail: { width: 480, height: 480, url: "/m/2.webp", bytes: 1 },
   },
 ];

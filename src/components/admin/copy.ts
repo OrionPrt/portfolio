@@ -157,6 +157,11 @@ export const ADMIN_COPY = {
       preview: "Aperçu",
       empty: "Rien à afficher pour l'instant.",
       hint: `Markdown${NB}: titres, listes, liens, code, tableaux.`,
+      insertImage: "Insérer une image",
+      imageToInsert: "Image à insérer",
+      insert: "Insérer",
+      insertHint: `Son texte alternatif vient de la médiathèque, dans la langue du champ, et se corrige ici. Pour une légende, ajoutez-la entre guillemets après l'identifiant${NB}: (media:… "Légende").`,
+      inserted: (context: string) => `Image insérée dans le texte ${context}.`,
     },
     move: {
       up: (label: string) => `Monter ${label}`,
@@ -462,7 +467,9 @@ export const ADMIN_COPY = {
       experience: "Expérience",
       education: "Formation",
       certification: "Certification",
+      profile: "Profil",
     },
+    inText: "dans le texte",
     deleteTitle: `Supprimer cette image${NB}?`,
     deleteConsequence:
       "Ses fichiers sont effacés du stockage, et ses textes alternatifs avec elle.",

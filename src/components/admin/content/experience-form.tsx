@@ -18,6 +18,7 @@ import {
   type TranslatedField,
 } from "./entry-fields";
 import { MediaField } from "./media-field";
+import { MediaOptionsProvider } from "./media-options";
 import { SkillPicker } from "./skill-picker";
 import { TextField } from "./text-field";
 
@@ -109,27 +110,29 @@ export function ExperienceForm({
   media,
 }: ExperienceFormProps) {
   return (
-    <ContentForm
-      action={action}
-      hidden={experience === undefined ? {} : { id: experience.id }}
-    >
-      <PublicationFields
-        status={experience?.status ?? "draft"}
-        slug={experience?.slug ?? ""}
-        slugTaken={COPY.slugTaken}
-      />
-      <PositionFields experience={experience} media={media} />
-      <FormSection title={ENTRIES.summary}>
-        <BilingualFields
-          fields={SUMMARY}
-          translations={experience?.translations}
+    <MediaOptionsProvider options={media}>
+      <ContentForm
+        action={action}
+        hidden={experience === undefined ? {} : { id: experience.id }}
+      >
+        <PublicationFields
+          status={experience?.status ?? "draft"}
+          slug={experience?.slug ?? ""}
+          slugTaken={COPY.slugTaken}
         />
-      </FormSection>
-      <SkillPicker
-        name="skills"
-        skills={skills}
-        initial={experience?.skills ?? []}
-      />
-    </ContentForm>
+        <PositionFields experience={experience} media={media} />
+        <FormSection title={ENTRIES.summary}>
+          <BilingualFields
+            fields={SUMMARY}
+            translations={experience?.translations}
+          />
+        </FormSection>
+        <SkillPicker
+          name="skills"
+          skills={skills}
+          initial={experience?.skills ?? []}
+        />
+      </ContentForm>
+    </MediaOptionsProvider>
   );
 }

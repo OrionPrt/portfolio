@@ -18,6 +18,7 @@ import {
   type TranslatedField,
 } from "./entry-fields";
 import { MediaField } from "./media-field";
+import { MediaOptionsProvider } from "./media-options";
 import { SkillPicker } from "./skill-picker";
 
 const COPY = ADMIN_COPY.projects;
@@ -71,66 +72,68 @@ export function ProjectForm({
   media,
 }: ProjectFormProps) {
   return (
-    <ContentForm
-      action={action}
-      hidden={project === undefined ? {} : { id: project.id }}
-    >
-      <PublicationFields
-        status={project?.status ?? "draft"}
-        slug={project?.slug ?? ""}
-        slugTaken={COPY.slugTaken}
+    <MediaOptionsProvider options={media}>
+      <ContentForm
+        action={action}
+        hidden={project === undefined ? {} : { id: project.id }}
       >
-        <SelectField
-          name="domain"
-          label={ENTRIES.domain}
-          initial={project?.domain ?? "web"}
-          options={DOMAIN_OPTIONS}
-        />
-        <CheckboxField
-          name="featured"
-          label={COPY.featured}
-          hint={COPY.featuredHint}
-          initial={project?.featured ?? false}
-        />
-      </PublicationFields>
-      <FormSection title={COPY.presentation}>
-        <MediaField
-          name="coverMediaId"
-          label={COPY.cover}
-          initial={project?.coverMediaId ?? null}
-          options={media}
-        />
-        <BilingualFields
-          fields={PRESENTATION}
-          translations={project?.translations}
-        />
-      </FormSection>
-      <FormSection title={COPY.linksAndDates}>
-        <div className="grid gap-6 md:grid-cols-2">
-          <UrlField
-            name="repoUrl"
-            label={COPY.repoUrl}
-            initial={project?.repoUrl ?? null}
+        <PublicationFields
+          status={project?.status ?? "draft"}
+          slug={project?.slug ?? ""}
+          slugTaken={COPY.slugTaken}
+        >
+          <SelectField
+            name="domain"
+            label={ENTRIES.domain}
+            initial={project?.domain ?? "web"}
+            options={DOMAIN_OPTIONS}
           />
-          <UrlField
-            name="demoUrl"
-            label={COPY.demoUrl}
-            initial={project?.demoUrl ?? null}
+          <CheckboxField
+            name="featured"
+            label={COPY.featured}
+            hint={COPY.featuredHint}
+            initial={project?.featured ?? false}
           />
-        </div>
-        <DateFields
-          start={{ initial: project?.startedOn ?? null, isRequired: false }}
-          end={{
-            initial: project?.endedOn ?? null,
-            invalid: COPY.endedOnInvalid,
-          }}
+        </PublicationFields>
+        <FormSection title={COPY.presentation}>
+          <MediaField
+            name="coverMediaId"
+            label={COPY.cover}
+            initial={project?.coverMediaId ?? null}
+            options={media}
+          />
+          <BilingualFields
+            fields={PRESENTATION}
+            translations={project?.translations}
+          />
+        </FormSection>
+        <FormSection title={COPY.linksAndDates}>
+          <div className="grid gap-6 md:grid-cols-2">
+            <UrlField
+              name="repoUrl"
+              label={COPY.repoUrl}
+              initial={project?.repoUrl ?? null}
+            />
+            <UrlField
+              name="demoUrl"
+              label={COPY.demoUrl}
+              initial={project?.demoUrl ?? null}
+            />
+          </div>
+          <DateFields
+            start={{ initial: project?.startedOn ?? null, isRequired: false }}
+            end={{
+              initial: project?.endedOn ?? null,
+              invalid: COPY.endedOnInvalid,
+            }}
+          />
+        </FormSection>
+        <SkillPicker
+          name="skills"
+          skills={skills}
+          initial={project?.skills ?? []}
         />
-      </FormSection>
-      <SkillPicker
-        name="skills"
-        skills={skills}
-        initial={project?.skills ?? []}
-      />
-    </ContentForm>
+      </ContentForm>
+    </MediaOptionsProvider>
   );
 }

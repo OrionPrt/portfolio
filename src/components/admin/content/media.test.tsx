@@ -92,8 +92,10 @@ describe("MediaUsages", () => {
     render(
       <MediaUsages
         usages={[
-          { kind: "project", id: "p-1", label: "Démo" },
-          { kind: "certification", id: "c-1", label: "OSCP" },
+          { kind: "project", id: "p-1", label: "Démo", inText: false },
+          { kind: "certification", id: "c-1", label: "OSCP", inText: false },
+          { kind: "project", id: "p-2", label: "Blog", inText: true },
+          { kind: "profile", id: "1", label: "", inText: true },
         ]}
       />,
     );
@@ -105,6 +107,12 @@ describe("MediaUsages", () => {
     expect(
       screen.getByRole("link", { name: "Certification OSCP" }),
     ).toHaveAttribute("href", "/admin/certifications/c-1");
+    expect(
+      screen.getByRole("link", { name: "Projet Blog, dans le texte" }),
+    ).toHaveAttribute("href", "/admin/projects/p-2");
+    expect(
+      screen.getByRole("link", { name: "Profil, dans le texte" }),
+    ).toHaveAttribute("href", "/admin/profile");
   });
 
   it("says when nothing shows it", () => {

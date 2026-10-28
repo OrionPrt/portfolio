@@ -1,6 +1,6 @@
 # ADR-0007 — Admin back office
 
-- **Status:** Accepted; implemented slice by slice (P6a, P6b and P6c1 done, P6c2 and P6d to come)
+- **Status:** Accepted; implemented slice by slice (P6a, P6b and P6c done, P6d to come)
 - **Date:** 2026-10-26
 - **Phase:** P6
 
@@ -55,13 +55,14 @@ Implemented for the profile, the social links and the skills (P6b1), the project
 
 ### An image library
 
-Implemented in P6c1 (decided on 2026-10-26 and 2026-10-28); images in the Markdown follow in P6c2.
+Implemented in P6c (decided on 2026-10-26, 2026-10-28 and 2026-10-29).
 
 - **Upload, checked before anything is decoded.** A route handler takes the file (`POST /api/admin/media`), so the server actions' body limit stays small for every other form; it answers 401 rather than redirect a fetch to the login. A body without a length, or over 4 MB plus the form's wrapping, is refused unread; the session and the origin are checked before the body is parsed. The format comes from the first bytes (JPEG, PNG, WebP; SVG, GIF and anything else refused), and the header's size from sharp before any decoding (40 megapixels at most: a decompression bomb is refused undecoded).
 - **Re-encoded, three widths.** sharp turns the image upright, then writes WebP at about 480, 960 and 1,600 pixels wide (never wider than the source), without its metadata (location, camera), which also defeats polyglot files. The widths are made at upload and served in a `srcset` (`MediaImage`): no image optimizer runs, so no Vercel quota is spent, and each image knows which widths it has (decided on 2026-10-28). The same file is stored once (SHA-256), and the library stops at 200 images.
 - **Stored on Blob's own domain.** Production stores the files in Vercel Blob, public, at `media/<id>/<width>.webp`, never overwritten (a new upload gets a new id), so they are cached for a year; the CSP's `img-src` allows that domain, for images only. Without Blob's token, a production build refuses uploads rather than write to a disk that may not last, on Vercel or elsewhere; development and E2E (where development defaults are allowed) write under `.media/`, served by a route of the app whose paths follow a strict pattern. The CSP admits any store's subdomain: images only, and the exact host is only known once a store exists (to tighten in the final CSP review, P11).
 - **Described in both languages.** Each image carries an alternative text in French and in English, both required (an image has no translation to fall back on). Pages use it where the image says something (a project's cover on its page); on cards, tiles and beside a company or certification name, the image adorns text that already says it, and is silent (`alt=""`).
-- **Kept while shown.** Projects have a cover, experiences and education a logo, certifications a badge (included on 2026-10-28; the education logo waits for the CV and the About page). A foreign key keeps an image while an entry shows it: its page lists those entries and offers no deletion meanwhile. Deleted, its record goes with a snapshot in the audit log, then its files; files a failure leaves behind are logged (`media.cleanup_failed`). An alternative text edited expires every read showing an image (the `media` cache tag).
+- **In the Markdown, the library's images only.** A text names an image `![text](media:<id>)`, a title after it becoming its visible caption (`<figure>` and `<figcaption>`); the editor inserts one at the caret, its text taken from the library in the field's language, and the preview shows it. The page loads the images its text names (30 at most, cached under the `media` tag) and draws them at their stored widths; the text's own description comes first, the library's when it gives none. An image from elsewhere, or one the library no longer has, shows its description: no third party is fetched, and the CSP stays as it is (decided on 2026-10-29).
+- **Kept while shown.** Projects have a cover, experiences and education a logo, certifications a badge (included on 2026-10-28; the education logo waits for the CV and the About page). A foreign key keeps an image while an entry shows it as its cover, logo or badge; a reference in a project's or an experience's technical text, or in the about text, keeps it too, found by its `media:<id>` in any language. Its page lists those entries, the texts said as such, and offers no deletion meanwhile. Deleted, its record goes with a snapshot in the audit log, then its files; files a failure leaves behind are logged (`media.cleanup_failed`). An alternative text edited expires every read showing an image (the `media` cache tag).
 
 ### Renamed slugs lead to the new ones
 

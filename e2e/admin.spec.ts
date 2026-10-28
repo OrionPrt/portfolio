@@ -645,6 +645,104 @@ test("adds an image to the library, shows it as a cover, and deletes it once not
   }
 });
 
+test("inserts an image of the library in a project's text, with a caption the page shows", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  const stamp = String(Date.now());
+  const alt = `Schéma E2E ${stamp}`;
+  const title = `Projet documenté ${stamp}`;
+  const slug = `projet-documente-${stamp}`;
+  const picture = {
+    name: "schema.png",
+    mimeType: "image/png",
+    buffer: await sharp({
+      create: {
+        width: 900 + (Number(stamp) % 300),
+        height: 500,
+        channels: 3,
+        background: { r: 30, g: Number(stamp) % 256, b: 120 },
+      },
+    })
+      .png()
+      .toBuffer(),
+  };
+  const french = (field: string) =>
+    page.getByRole("group", { name: field }).getByLabel(/^Français/);
+  await signIn(page);
+
+  await page.goto("/admin/media");
+  await page.getByLabel("Image", { exact: true }).setInputFiles(picture);
+  const altTexts = page.getByRole("group", { name: "Texte alternatif" });
+  await altTexts.getByLabel("Français").fill(alt);
+  await altTexts.getByLabel("Anglais").fill(`E2E diagram ${stamp}`);
+  await page.getByRole("button", { name: "Ajouter", exact: true }).click();
+  await expect(
+    page.getByRole("link", { name: `Modifier ${alt}` }),
+  ).toBeVisible();
+
+  await page.goto("/admin/projects/new");
+  await page.getByLabel("Statut").selectOption("published");
+  await page.getByRole("textbox", { name: "Slug" }).fill(slug);
+  await french("Titre").fill(title);
+  await french("Accroche").fill("Une accroche");
+  await french("Contexte").fill("Le contexte");
+  await french("Ce que j'ai fait").fill("Ce qui a été fait");
+  await french("Résultat").fill("Le résultat");
+  const technical = french("Partie technique");
+  await technical.fill("Le schéma d'ensemble :");
+  await page
+    .getByRole("button", { name: "Insérer une image français" })
+    .click();
+  await expectNoAxeViolation(page);
+  await page
+    .getByLabel("Image à insérer français")
+    .selectOption({ label: alt });
+  await page.getByRole("button", { name: "Insérer français" }).click();
+  await expect(technical).toBeFocused();
+  // A caption: the Markdown title, after the reference.
+  const written = await technical.inputValue();
+  expect(written).toMatch(/!\[Schéma E2E \d+\]\(media:[0-9a-f-]{36}\)/);
+  await technical.fill(written.replace(/\)\n?$/, ' "Vue d\'ensemble")\n'));
+  await page.getByRole("button", { name: "Enregistrer" }).click();
+  await expect(page).toHaveTitle(/^Modifier un projet/);
+
+  await expect(async () => {
+    await page.goto(`/fr/projets/${slug}`);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(title);
+  }).toPass({ timeout: 15_000 });
+  await page.getByText("Détails techniques").click();
+  const figure = page.getByRole("figure");
+  await expect(figure.getByRole("img", { name: alt })).toBeVisible();
+  await expect(figure).toContainText("Vue d'ensemble");
+
+  // Named in the text only, the image is in use: no deletion offered.
+  await page.goto("/admin/media");
+  await page.getByRole("link", { name: `Modifier ${alt}` }).click();
+  await expect(
+    page.getByRole("link", { name: `Projet ${title}, dans le texte` }),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Supprimer/ })).toHaveCount(0);
+  const imagePage = page.url();
+
+  await page.goto("/admin/projects");
+  await page.getByRole("button", { name: `Supprimer ${title}` }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Supprimer définitivement" })
+    .click();
+  await expect(
+    page.getByRole("link", { name: `Modifier ${title}` }),
+  ).toHaveCount(0);
+  await page.goto(imagePage);
+  await page.getByRole("button", { name: `Supprimer ${alt}` }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Supprimer définitivement" })
+    .click();
+  await expect(page).toHaveURL(/\/admin\/media$/);
+});
+
 test("revokes the other sessions, renews the recovery codes, and signs out", async ({
   page,
 }) => {

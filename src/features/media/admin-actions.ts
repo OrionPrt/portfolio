@@ -54,8 +54,9 @@ type Deletion =
 
 /**
  * An image no entry shows any more: its record, with a snapshot in the audit
- * log, then its files. While an entry shows it, it stays (the database
- * refuses it too); files left behind by a failure are logged.
+ * log, then its files. While an entry shows it, it stays: the database
+ * refuses it too for a cover, a logo or a badge; a text saved meanwhile that
+ * names it shows its description instead. Files a failure leaves are logged.
  */
 export async function deleteMediaAction(
   _previous: ListActionState,

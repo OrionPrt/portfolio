@@ -8,6 +8,7 @@ import { DataUnavailable } from "@/components/content/data-unavailable";
 import { ViewShell } from "@/components/content/view-shell";
 import { getProfile } from "@/features/profile/queries";
 import { localizedAlternates } from "@/features/seo/alternates";
+import { getMarkdownImages } from "@/features/media/queries";
 import { routing } from "@/i18n/routing";
 
 export async function generateMetadata({
@@ -37,7 +38,12 @@ export default async function AboutPage({
   }
   const profile = await getProfile(locale);
   if (profile.ok && profile.data !== undefined) {
-    return <AboutView profile={profile.data} />;
+    return (
+      <AboutView
+        profile={profile.data}
+        images={await getMarkdownImages(profile.data.aboutMd, locale)}
+      />
+    );
   }
   // No profile stored yet, or the database is down: the page still stands.
   const t = await getTranslations({ locale, namespace: "About" });

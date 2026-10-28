@@ -153,7 +153,17 @@ describe("media actions", () => {
     });
     expect(await files()).toHaveLength(1);
 
-    await testDb.exec("update projects set cover_media_id = null");
+    // Named in a text only, it is still in use.
+    await testDb.exec(
+      `update projects set cover_media_id = null;
+       insert into project_translations (project_id, locale, title, tagline, summary_context, summary_action, summary_result, technical_md)
+       select id, 'fr', 'Démo', 't', 'c', 'a', 'r', '![x](media:${ID})' from projects`,
+    );
+    expect(await deleteMediaAction(LIST_IDLE, form({ id: ID }))).toEqual({
+      status: "in_use",
+    });
+
+    await testDb.exec("update project_translations set technical_md = ''");
     expect(await deleteMediaAction(LIST_IDLE, form({ id: ID }))).toEqual({
       status: "done",
     });
