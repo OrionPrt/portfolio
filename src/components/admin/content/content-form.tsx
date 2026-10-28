@@ -4,6 +4,7 @@ import {
   createContext,
   useActionState,
   useContext,
+  useId,
   useLayoutEffect,
   useRef,
   useState,
@@ -109,6 +110,8 @@ interface ContentFormProps {
   readonly hidden?: Readonly<Record<string, string>>;
   /** Tells several forms' buttons apart: "Enregistrer GitHub". */
   readonly context?: string;
+  /** What saving does beyond saving, shown above the button and read with it. */
+  readonly saveNote?: string;
 }
 
 /**
@@ -122,6 +125,7 @@ export function ContentForm({
   children,
   hidden = {},
   context,
+  saveNote,
 }: ContentFormProps) {
   const [state, formAction] = useActionState(
     async (previous: FormOutcome, formData: FormData): Promise<FormOutcome> => {
@@ -139,6 +143,7 @@ export function ContentForm({
   const isDirty =
     editedAt !== undefined && !(state.status === "saved" && state !== editedAt);
   const formRef = useRef<HTMLFormElement>(null);
+  const noteId = useId();
   const focusedRevision = useRef(0);
   useUnsavedGuard(isDirty);
 
@@ -181,7 +186,15 @@ export function ContentForm({
           {children}
         </div>
         <div className="flex flex-col gap-3">
-          <SubmitButton pendingLabel={COPY.saving}>
+          {saveNote !== undefined && (
+            <p id={noteId} className="text-fg-muted text-sm">
+              {saveNote}
+            </p>
+          )}
+          <SubmitButton
+            pendingLabel={COPY.saving}
+            describedBy={saveNote === undefined ? undefined : noteId}
+          >
             {COPY.save}
             {/* The space outside the span: name computation trims inside it. */}
             {context !== undefined && (

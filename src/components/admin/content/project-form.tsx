@@ -104,10 +104,11 @@ export function ProjectForm({ action, project, skills }: ProjectFormProps) {
           />
         </div>
         <DateFields
-          startedOn={project?.startedOn ?? null}
-          endedOn={project?.endedOn ?? null}
-          isStartRequired={false}
-          endInvalid={COPY.endedOnInvalid}
+          start={{ initial: project?.startedOn ?? null, isRequired: false }}
+          end={{
+            initial: project?.endedOn ?? null,
+            invalid: COPY.endedOnInvalid,
+          }}
         />
       </FormSection>
       <SkillPicker

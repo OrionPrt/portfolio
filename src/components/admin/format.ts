@@ -1,5 +1,7 @@
 import { MONTH_YEAR, utcDate } from "@/lib/dates";
 
+import { ADMIN_COPY } from "./copy";
+
 const PARIS = new Intl.DateTimeFormat("fr-FR", {
   dateStyle: "medium",
   timeStyle: "short",
@@ -15,6 +17,14 @@ const MONTH = new Intl.DateTimeFormat("fr-FR", MONTH_YEAR);
 /** "janvier 2024", for a stored calendar day. */
 export function formatMonthYear(isoDate: string): string {
   return MONTH.format(utcDate(isoDate));
+}
+
+/** "janvier 2024 – aujourd'hui" while under way (no end). */
+export function formatPeriod(start: string, end: string | null): string {
+  return ADMIN_COPY.entries.period(
+    formatMonthYear(start),
+    end === null ? undefined : formatMonthYear(end),
+  );
 }
 
 // Order matters: Edge and Chrome both say "Safari", Edge also says "Chrome".

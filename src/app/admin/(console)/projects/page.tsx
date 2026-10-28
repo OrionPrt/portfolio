@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { ProjectList } from "@/components/admin/content/project-list";
+import { ListIntro } from "@/components/admin/content/entry-pages";
 import { ADMIN_COPY } from "@/components/admin/copy";
-import { BUTTON_CLASSES } from "@/components/ui/button-classes";
 import { withDatabase } from "@/db/client";
 import { ADMIN_PATHS } from "@/features/auth/admin-paths";
 import { requireAdmin } from "@/features/auth/dal";
@@ -26,12 +25,11 @@ export default async function ProjectsPage() {
   return (
     <>
       <AdminPageHeader title={COPY.title} />
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <p className="text-fg-muted max-w-prose">{COPY.lead}</p>
-        <Link href={ADMIN_PATHS.newProject} className={BUTTON_CLASSES.primary}>
-          {COPY.add}
-        </Link>
-      </div>
+      <ListIntro
+        lead={COPY.lead}
+        addHref={ADMIN_PATHS.newProject}
+        addLabel={COPY.add}
+      />
       {loaded.ok ? (
         <ProjectList projects={loaded.data} />
       ) : (

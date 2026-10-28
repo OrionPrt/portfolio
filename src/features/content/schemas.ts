@@ -64,7 +64,13 @@ export const mailtoUrlSchema = z
 /** Social links may also open the mail client. */
 export const socialUrlSchema = z.union([httpsUrlSchema, mailtoUrlSchema]);
 
-export const isoDateSchema = z.iso.date();
+/** A calendar day; Postgres has no year 0, and nothing here predates 1900. */
+export const isoDateSchema = z.iso
+  .date()
+  .refine(
+    (day) => day >= "1900-01-01" && day <= "2999-12-31",
+    "a year from 1900 to 2999",
+  );
 
 const sortOrderSchema = z.int().min(0).max(MAX_SORT_ORDER).default(0);
 
@@ -197,46 +203,66 @@ export const experienceInputSchema = z
     datesOutOfOrder("endedOn"),
   );
 
+const educationFields = {
+  school: text(TEXT_LIMITS.name),
+  location: optionalText(TEXT_LIMITS.name),
+  startedOn: isoDateSchema,
+  endedOn: isoDateSchema.nullable().default(null),
+  sortOrder: sortOrderSchema,
+  translations: translationsSchema(
+    z.object({
+      degree: text(TEXT_LIMITS.title),
+      description: z.string().trim().max(TEXT_LIMITS.summary).default(""),
+    }),
+  ),
+};
+
+function educationDatesInOrder(e: {
+  startedOn: string;
+  endedOn: string | null;
+}): boolean {
+  return endsAfterStart(e.startedOn, e.endedOn);
+}
+
+/** What the admin edits: not routed, the slug is drawn from the entry once, at creation. */
+export const educationContentSchema = z
+  .object(educationFields)
+  .refine(educationDatesInOrder, datesOutOfOrder("endedOn"));
+
 export const educationInputSchema = z
-  .object({
-    slug: slugSchema,
-    school: text(TEXT_LIMITS.name),
-    location: optionalText(TEXT_LIMITS.name),
-    startedOn: isoDateSchema,
-    endedOn: isoDateSchema.nullable().default(null),
-    sortOrder: sortOrderSchema,
-    translations: translationsSchema(
-      z.object({
-        degree: text(TEXT_LIMITS.title),
-        description: z.string().trim().max(TEXT_LIMITS.summary).default(""),
-      }),
-    ),
-  })
-  .refine(
-    (e) => endsAfterStart(e.startedOn, e.endedOn),
-    datesOutOfOrder("endedOn"),
-  );
+  .object({ slug: slugSchema, ...educationFields })
+  .refine(educationDatesInOrder, datesOutOfOrder("endedOn"));
+
+const certificationFields = {
+  name: text(TEXT_LIMITS.name),
+  issuer: text(TEXT_LIMITS.name),
+  issuedOn: isoDateSchema,
+  expiresOn: isoDateSchema.nullable().default(null),
+  credentialId: optionalText(TEXT_LIMITS.name),
+  verifyUrl: httpsUrlSchema.nullable().default(null),
+  sortOrder: sortOrderSchema,
+  translations: translationsSchema(
+    z.object({
+      description: z.string().trim().max(TEXT_LIMITS.summary).default(""),
+    }),
+  ),
+};
+
+function certificationDatesInOrder(c: {
+  issuedOn: string;
+  expiresOn: string | null;
+}): boolean {
+  return endsAfterStart(c.issuedOn, c.expiresOn);
+}
+
+/** What the admin edits: as for education, the slug is drawn once, at creation. */
+export const certificationContentSchema = z
+  .object(certificationFields)
+  .refine(certificationDatesInOrder, datesOutOfOrder("expiresOn"));
 
 export const certificationInputSchema = z
-  .object({
-    slug: slugSchema,
-    name: text(TEXT_LIMITS.name),
-    issuer: text(TEXT_LIMITS.name),
-    issuedOn: isoDateSchema,
-    expiresOn: isoDateSchema.nullable().default(null),
-    credentialId: optionalText(TEXT_LIMITS.name),
-    verifyUrl: httpsUrlSchema.nullable().default(null),
-    sortOrder: sortOrderSchema,
-    translations: translationsSchema(
-      z.object({
-        description: z.string().trim().max(TEXT_LIMITS.summary).default(""),
-      }),
-    ),
-  })
-  .refine(
-    (c) => endsAfterStart(c.issuedOn, c.expiresOn),
-    datesOutOfOrder("expiresOn"),
-  );
+  .object({ slug: slugSchema, ...certificationFields })
+  .refine(certificationDatesInOrder, datesOutOfOrder("expiresOn"));
 
 export const tileInputSchema = z.object({
   kind: z.enum(TILE_KINDS),
@@ -251,5 +277,7 @@ export type SkillInput = z.output<typeof skillInputSchema>;
 export type ProjectInput = z.output<typeof projectInputSchema>;
 export type ExperienceInput = z.output<typeof experienceInputSchema>;
 export type EducationInput = z.output<typeof educationInputSchema>;
+export type EducationContent = z.output<typeof educationContentSchema>;
 export type CertificationInput = z.output<typeof certificationInputSchema>;
+export type CertificationContent = z.output<typeof certificationContentSchema>;
 export type TileInput = z.output<typeof tileInputSchema>;

@@ -4,6 +4,7 @@ import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { BackLink } from "@/components/admin/content/back-link";
 import { DeleteEntry } from "@/components/admin/content/list-actions";
 import { ExperienceForm } from "@/components/admin/content/experience-form";
+import { EntryMissing } from "@/components/admin/content/entry-pages";
 import { ADMIN_COPY } from "@/components/admin/copy";
 import { withDatabase } from "@/db/client";
 import { ADMIN_PATHS } from "@/features/auth/admin-paths";
@@ -36,7 +37,10 @@ export default async function EditExperiencePage({
   const label =
     experience === undefined
       ? ""
-      : COPY.label(experience.translations.fr?.role, experience.company);
+      : ADMIN_COPY.entries.label(
+          experience.translations.fr?.role,
+          experience.company,
+        );
 
   return (
     <>
@@ -63,9 +67,7 @@ export default async function EditExperiencePage({
           </div>
         </>
       ) : (
-        <p className={isAvailable ? undefined : "text-danger"}>
-          {isAvailable ? COPY.notFound : ADMIN_COPY.unavailable}
-        </p>
+        <EntryMissing isAvailable={isAvailable} notFound={COPY.notFound} />
       )}
     </>
   );

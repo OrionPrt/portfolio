@@ -60,14 +60,34 @@ describe("ADMIN_COPY's computed wording", () => {
       ADMIN_COPY.experiences.deleteTitle("Acme"),
       `Supprimer l'expérience «${NB}Acme${NB}»${NB}?`,
     ],
-    [ADMIN_COPY.experiences.label("Développeur", "Acme"), "Développeur, Acme"],
-    [ADMIN_COPY.experiences.label(undefined, "Acme"), "Acme"],
+    [ADMIN_COPY.entries.label("Développeur", "Acme"), "Développeur, Acme"],
+    [ADMIN_COPY.entries.label(undefined, "Acme"), "Acme"],
+    [ADMIN_COPY.entries.label("Master", "INSA"), "Master, INSA"],
+    [ADMIN_COPY.entries.label("", "INSA"), "INSA"],
     [
-      ADMIN_COPY.experiences.period("janvier 2024", undefined),
+      ADMIN_COPY.education.deleteTitle("Master, INSA"),
+      `Supprimer la formation «${NB}Master, INSA${NB}»${NB}?`,
+    ],
+    [
+      ADMIN_COPY.certifications.deleteTitle("OSCP"),
+      `Supprimer la certification «${NB}OSCP${NB}»${NB}?`,
+    ],
+    [ADMIN_COPY.certifications.label("OSCP", "2024-03-01"), "OSCP (2024)"],
+    [ADMIN_COPY.certifications.issued("mars 2024"), "obtenue en mars 2024"],
+    [
+      ADMIN_COPY.certifications.expires("mai 2022", true),
+      "a expiré en mai 2022",
+    ],
+    [
+      ADMIN_COPY.certifications.expires("mai 2027", false),
+      "expire en mai 2027",
+    ],
+    [
+      ADMIN_COPY.entries.period("janvier 2024", undefined),
       "janvier 2024 – aujourd'hui",
     ],
     [
-      ADMIN_COPY.experiences.period("janvier 2024", "mars 2025"),
+      ADMIN_COPY.entries.period("janvier 2024", "mars 2025"),
       "janvier 2024 – mars 2025",
     ],
   ])("reads %j", (text, expected) => {

@@ -79,11 +79,12 @@ function PositionFields({
         />
       </div>
       <DateFields
-        startedOn={experience?.startedOn ?? null}
-        endedOn={experience?.endedOn ?? null}
-        isStartRequired
-        endHint={COPY.endedOnHint}
-        endInvalid={COPY.endedOnInvalid}
+        start={{ initial: experience?.startedOn ?? null, isRequired: true }}
+        end={{
+          initial: experience?.endedOn ?? null,
+          hint: COPY.endedOnHint,
+          invalid: COPY.endedOnInvalid,
+        }}
       />
     </FormSection>
   );

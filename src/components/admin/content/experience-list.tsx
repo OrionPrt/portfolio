@@ -3,7 +3,7 @@ import { deleteExperienceAction } from "@/features/experiences/admin-actions";
 import type { ExperienceListEntry } from "@/features/experiences/admin-repository";
 
 import { ADMIN_COPY } from "../copy";
-import { formatMonthYear } from "../format";
+import { formatPeriod } from "../format";
 import { EntryList, EntryRow, entryBadges } from "./entry-list";
 
 const COPY = ADMIN_COPY.experiences;
@@ -19,7 +19,10 @@ export function ExperienceList({ experiences }: ExperienceListProps) {
       entries={experiences}
       empty={COPY.empty}
       row={(experience) => {
-        const label = COPY.label(experience.role, experience.company);
+        const label = ADMIN_COPY.entries.label(
+          experience.role,
+          experience.company,
+        );
         return (
           <EntryRow
             id={experience.id}
@@ -27,13 +30,8 @@ export function ExperienceList({ experiences }: ExperienceListProps) {
             badges={entryBadges(experience.status, experience.english)}
             details={
               <>
-                {COPY.period(
-                  formatMonthYear(experience.startedOn),
-                  experience.endedOn === null
-                    ? undefined
-                    : formatMonthYear(experience.endedOn),
-                )}{" "}
-                · <span className="font-mono">{experience.slug}</span>
+                {formatPeriod(experience.startedOn, experience.endedOn)} ·{" "}
+                <span className="font-mono">{experience.slug}</span>
               </>
             }
             editHref={experiencePath(experience.id)}

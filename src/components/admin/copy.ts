@@ -22,6 +22,8 @@ export const ADMIN_COPY = {
     skills: "Compétences",
     projects: "Projets",
     experiences: "Expériences",
+    education: "Formation",
+    certifications: "Certifications",
     unreadWord: (count: number) => (count > 1 ? "non lus" : "non lu"),
     security: "Sécurité",
     groups: {
@@ -295,6 +297,13 @@ export const ADMIN_COPY = {
     technicalHint: `Pour les ingénieurs, sous le résumé. Markdown${NB}: titres, listes, liens, code, tableaux.`,
     deleteConsequence:
       "Ses traductions et ses liens aux compétences disparaissent aussi, et son adresse ne mènera plus nulle part.",
+    /** "janvier 2024 – aujourd'hui" while under way. */
+    period: (start: string, end: string | undefined) =>
+      `${start} – ${end ?? "aujourd'hui"}`,
+    /** "Développeur, Acme": two entries at one place stay apart. */
+    label: (title: string | undefined, place: string) =>
+      title === undefined || title === "" ? place : `${title}, ${place}`,
+    publicOnSave: "Enregistrée, l'entrée est aussitôt visible sur le site.",
   },
   projects: {
     title: "Projets",
@@ -350,14 +359,62 @@ export const ADMIN_COPY = {
     role: "Intitulé du poste",
     endedOnHint: "Vide tant que le poste est le vôtre.",
     endedOnInvalid: "La fin ne peut précéder le début.",
-    /** "Développeur, Acme": two positions at one company stay apart. */
-    label: (role: string | undefined, company: string) =>
-      role === undefined || role === "" ? company : `${role}, ${company}`,
-    period: (start: string, end: string | undefined) =>
-      `${start} – ${end ?? "aujourd'hui"}`,
     deleteTitle: (label: string) =>
       `Supprimer l'expérience «${NB}${label}${NB}»${NB}?`,
     notFound: "Cette expérience n'existe pas, ou a été supprimée.",
+  },
+  education: {
+    title: "Formation",
+    lead: `Les diplômes et formations, rangés par dates comme sur le site${NB}: le plus récent d'abord. Une entrée enregistrée est aussitôt publique. Le français est obligatoire${NB}; laissé vide, l'anglais reprend le texte français.`,
+    add: "Nouvelle formation",
+    newTitle: "Nouvelle formation",
+    editTitle: "Modifier une formation",
+    back: "Retour à la formation",
+    empty: "Aucune formation pour l'instant.",
+    school: "Établissement",
+    location: "Lieu",
+    studies: "Les études",
+    degree: "Diplôme",
+    degreeHint: "Son intitulé, tel qu'il figure sur le diplôme.",
+    description: "Description",
+    descriptionHint: "Facultatif. Spécialité, mention, projets marquants.",
+    endedOnHint: "Vide tant que la formation est en cours.",
+    endedOnInvalid: "La fin ne peut précéder le début.",
+    deleteTitle: (label: string) =>
+      `Supprimer la formation «${NB}${label}${NB}»${NB}?`,
+    deleteConsequence: "Ses traductions disparaissent aussi.",
+    notFound: "Cette formation n'existe pas, ou a été supprimée.",
+  },
+  certifications: {
+    title: "Certifications",
+    lead: "Les certifications, la plus récente d'abord, comme sur la tuile de l'accueil. Une certification enregistrée est aussitôt publique.",
+    add: "Nouvelle certification",
+    newTitle: "Nouvelle certification",
+    editTitle: "Modifier une certification",
+    back: "Retour aux certifications",
+    empty: "Aucune certification pour l'instant.",
+    credential: "La certification",
+    name: "Nom",
+    issuer: "Organisme",
+    issuedOn: "Obtenue le",
+    expiresOn: "Expire le",
+    expiresOnHint: "Vide si elle n'expire pas.",
+    expiresOnInvalid: "L'expiration ne peut précéder l'obtention.",
+    credentialId: "Identifiant du certificat",
+    verifyUrl: "Lien de vérification",
+    description: "Description",
+    descriptionHint: "Facultatif. Ce qu'elle atteste, en une ou deux phrases.",
+    expiredBadge: "Expirée",
+    /** "OSCP (2024)": a renewal stays apart from the first. */
+    label: (name: string, issuedOn: string) =>
+      `${name} (${issuedOn.slice(0, 4)})`,
+    issued: (date: string) => `obtenue en ${date}`,
+    expires: (date: string, isExpired: boolean) =>
+      isExpired ? `a expiré en ${date}` : `expire en ${date}`,
+    deleteTitle: (name: string) =>
+      `Supprimer la certification «${NB}${name}${NB}»${NB}?`,
+    deleteConsequence: "Ses traductions disparaissent aussi.",
+    notFound: "Cette certification n'existe pas, ou a été supprimée.",
   },
   cancel: "Annuler",
   security: {

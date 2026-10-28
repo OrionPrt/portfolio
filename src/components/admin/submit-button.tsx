@@ -12,6 +12,8 @@ interface SubmitButtonProps {
   /** Sent with the form when this button submits it, to tell two buttons apart. */
   readonly name?: string;
   readonly value?: string;
+  /** The id of what it should be read with: "the entry is public once saved". */
+  readonly describedBy?: string;
 }
 
 /**
@@ -25,6 +27,7 @@ export function SubmitButton({
   look = "primary",
   name,
   value,
+  describedBy,
 }: SubmitButtonProps) {
   const { pending, data } = useFormStatus();
   const isSender =
@@ -35,6 +38,7 @@ export function SubmitButton({
       type="submit"
       name={name}
       value={value}
+      aria-describedby={describedBy}
       aria-disabled={pending ? true : undefined}
       onClick={(event) => {
         if (pending) {

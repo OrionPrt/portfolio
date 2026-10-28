@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  certificationContentSchema,
   certificationInputSchema,
+  educationContentSchema,
   educationInputSchema,
   experienceInputSchema,
   httpsUrlSchema,
@@ -106,12 +108,21 @@ describe("socialLinkInputSchema", () => {
 });
 
 describe("isoDateSchema", () => {
-  it.each(["2024-13-01", "01/02/2024", "2024-02-30T00:00:00Z"])(
-    "rejects %j",
-    (value) => {
-      expect(isoDateSchema.safeParse(value).success).toBe(false);
-    },
-  );
+  it.each(["1900-01-01", "2024-02-29", "2999-12-31"])("accepts %j", (value) => {
+    expect(isoDateSchema.safeParse(value).success).toBe(true);
+  });
+
+  it.each([
+    "2024-13-01",
+    "01/02/2024",
+    "2024-02-30T00:00:00Z",
+    // Postgres has no year 0; nothing here predates 1900 or follows 2999.
+    "0000-01-01",
+    "1899-12-31",
+    "3000-01-01",
+  ])("rejects %j", (value) => {
+    expect(isoDateSchema.safeParse(value).success).toBe(false);
+  });
 });
 
 describe("projectInputSchema", () => {
@@ -212,6 +223,41 @@ describe("experienceInputSchema", () => {
       experienceInputSchema.safeParse({ ...experience, endedOn: "2023-12-31" })
         .success,
     ).toBe(false);
+  });
+});
+
+describe("the admin's education and certification content", () => {
+  const EDUCATION = {
+    school: "INSA",
+    startedOn: "2020-09-01",
+    translations: { fr: { degree: "Ingénieur" } },
+  };
+  const CERTIFICATION = {
+    name: "OSCP",
+    issuer: "OffSec",
+    issuedOn: "2024-03-01",
+    translations: { fr: {} },
+  };
+
+  it("needs no slug: one is drawn from the name at creation", () => {
+    expect(educationContentSchema.safeParse(EDUCATION).success).toBe(true);
+    expect(certificationContentSchema.safeParse(CERTIFICATION).success).toBe(
+      true,
+    );
+    expect(educationInputSchema.safeParse(EDUCATION).success).toBe(false);
+  });
+
+  it("keeps the date rules, on the end date", () => {
+    expect(
+      educationContentSchema.safeParse({ ...EDUCATION, endedOn: "2019-01-01" })
+        .error?.issues[0]?.path,
+    ).toEqual(["endedOn"]);
+    expect(
+      certificationContentSchema.safeParse({
+        ...CERTIFICATION,
+        expiresOn: "2024-01-01",
+      }).error?.issues[0]?.path,
+    ).toEqual(["expiresOn"]);
   });
 });
 

@@ -22,6 +22,13 @@ export interface Badge {
   readonly tone: BadgeTone;
 }
 
+/** How far the English goes, when not all the way. */
+export function englishBadges(english: TranslationState): readonly Badge[] {
+  return english === "complete"
+    ? []
+    : [{ label: ADMIN_COPY.entries.english[english], tone: "signal" }];
+}
+
 /** What an entry still lacks to show as it should: published, translated. */
 export function entryBadges(
   status: ContentStatus,
@@ -31,14 +38,7 @@ export function entryBadges(
     ...(status === "draft"
       ? [{ label: ADMIN_COPY.entries.statuses.draft, tone: "muted" } as const]
       : []),
-    ...(english === "complete"
-      ? []
-      : [
-          {
-            label: ADMIN_COPY.entries.english[english],
-            tone: "signal",
-          } as const,
-        ]),
+    ...englishBadges(english),
   ];
 }
 

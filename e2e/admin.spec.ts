@@ -436,6 +436,83 @@ test("adds an experience as the current position, which the site dates up to tod
   await expect(row).toHaveCount(0);
 });
 
+test("adds a certification, which the home tile shows until it is deleted", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  const stamp = String(Date.now());
+  const name = `Certification E2E ${stamp}`;
+  await signIn(page);
+
+  await page.goto("/admin/certifications/new");
+  await expect(page).toHaveTitle(/^Nouvelle certification/);
+  await expectNoAxeViolation(page);
+  await page.getByRole("textbox", { name: "Nom", exact: true }).fill(name);
+  await page.getByRole("textbox", { name: "Organisme" }).fill("E2E Academy");
+  await page.getByLabel("Obtenue le").fill("2026-10-01");
+  // An expiry before the issue: refused on its field, which takes the focus.
+  await page.getByLabel("Expire le").fill("2026-01-01");
+  await page.getByRole("button", { name: "Enregistrer" }).click();
+  await expect(page.getByLabel("Expire le")).toBeFocused();
+  await page.getByLabel("Expire le").fill("");
+  await page.getByRole("button", { name: "Enregistrer" }).click();
+  await expect(page).toHaveURL(/\/admin\/certifications\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveTitle(/^Modifier une certification/);
+
+  await page.goto("/fr");
+  await expect(page.getByText(name)).toBeVisible();
+
+  await page.goto("/admin/certifications");
+  await expect(page).toHaveTitle(/^Certifications/);
+  await expectNoAxeViolation(page);
+  await page.getByRole("button", { name: `Supprimer ${name}` }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Supprimer définitivement" })
+    .click();
+  await expect(
+    page.getByRole("link", { name: `Modifier ${name}` }),
+  ).toHaveCount(0);
+  await page.goto("/fr");
+  await expect(page.getByText(name)).toHaveCount(0);
+});
+
+test("adds an education entry still under way, then deletes it", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  const stamp = String(Date.now());
+  const school = `Université E2E ${stamp}`;
+  await signIn(page);
+
+  await page.goto("/admin/education/new");
+  await expect(page).toHaveTitle(/^Nouvelle formation/);
+  await expectNoAxeViolation(page);
+  await page.getByRole("textbox", { name: "Établissement" }).fill(school);
+  await page.getByLabel("Début", { exact: true }).fill("2025-09-01");
+  await page
+    .getByRole("group", { name: "Diplôme" })
+    .getByLabel("Français")
+    .fill("Master");
+  await page.getByRole("button", { name: "Enregistrer" }).click();
+  await expect(page).toHaveTitle(/^Modifier une formation/);
+
+  await page.goto("/admin/education");
+  await expect(page).toHaveTitle(/^Formation/);
+  await expectNoAxeViolation(page);
+  const row = page
+    .getByRole("listitem")
+    .filter({ hasText: `Master, ${school}` });
+  await expect(row).toContainText("septembre 2025 – aujourd'hui");
+  await expect(row).toContainText("Anglais à traduire");
+  await row.getByRole("button", { name: "Supprimer" }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Supprimer définitivement" })
+    .click();
+  await expect(row).toHaveCount(0);
+});
+
 test("revokes the other sessions, renews the recovery codes, and signs out", async ({
   page,
 }) => {

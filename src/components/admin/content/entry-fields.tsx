@@ -13,8 +13,9 @@ import { BilingualField, type BilingualKind } from "./bilingual-field";
 import { SelectField } from "./choice-fields";
 import { TextField } from "./text-field";
 
-// The parts the project and experience forms share: entries with a page of
-// their own, a status, dates, and a summary in two languages.
+// The parts the entry forms share (projects, experiences, education,
+// certifications): sections, a status and a slug, dates, links, and fields
+// written in both languages.
 
 const COPY = ADMIN_COPY.entries;
 
@@ -81,38 +82,42 @@ export function PublicationFields({
 }
 
 interface DateFieldsProps {
-  readonly startedOn: string | null;
-  readonly endedOn: string | null;
-  readonly isStartRequired: boolean;
-  readonly endHint?: string;
-  /** Why the end was refused: it precedes the start (or comes without one). */
-  readonly endInvalid: string;
+  readonly start: {
+    /** "startedOn" unless named otherwise ("issuedOn"). */
+    readonly name?: string;
+    readonly label?: string;
+    readonly initial: string | null;
+    readonly isRequired: boolean;
+  };
+  readonly end: {
+    readonly name?: string;
+    readonly label?: string;
+    readonly initial: string | null;
+    readonly hint?: string;
+    /** Why the end was refused: it precedes the start (or comes without one). */
+    readonly invalid: string;
+  };
 }
 
-export function DateFields({
-  startedOn,
-  endedOn,
-  isStartRequired,
-  endHint = COPY.optional,
-  endInvalid,
-}: DateFieldsProps) {
+/** A start and an end, side by side. */
+export function DateFields({ start, end }: DateFieldsProps) {
   return (
     <div className="grid gap-6 md:grid-cols-2">
       <TextField
-        name="startedOn"
+        name={start.name ?? "startedOn"}
         type="date"
-        label={COPY.startedOn}
-        hint={isStartRequired ? undefined : COPY.optional}
-        initial={startedOn ?? ""}
-        isRequired={isStartRequired}
+        label={start.label ?? COPY.startedOn}
+        hint={start.isRequired ? undefined : COPY.optional}
+        initial={start.initial ?? ""}
+        isRequired={start.isRequired}
       />
       <TextField
-        name="endedOn"
+        name={end.name ?? "endedOn"}
         type="date"
-        label={COPY.endedOn}
-        hint={endHint}
-        invalidMessage={endInvalid}
-        initial={endedOn ?? ""}
+        label={end.label ?? COPY.endedOn}
+        hint={end.hint ?? COPY.optional}
+        invalidMessage={end.invalid}
+        initial={end.initial ?? ""}
       />
     </div>
   );

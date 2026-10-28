@@ -4,6 +4,7 @@ import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { BackLink } from "@/components/admin/content/back-link";
 import { DeleteEntry } from "@/components/admin/content/list-actions";
 import { SkillForm } from "@/components/admin/content/skill-form";
+import { EntryMissing } from "@/components/admin/content/entry-pages";
 import { ADMIN_COPY } from "@/components/admin/copy";
 import { withDatabase } from "@/db/client";
 import { ADMIN_PATHS } from "@/features/auth/admin-paths";
@@ -57,9 +58,7 @@ export default async function EditSkillPage({
           </div>
         </>
       ) : (
-        <p className={found.ok ? undefined : "text-danger"}>
-          {found.ok ? COPY.notFound : ADMIN_COPY.unavailable}
-        </p>
+        <EntryMissing isAvailable={found.ok} notFound={COPY.notFound} />
       )}
     </>
   );
