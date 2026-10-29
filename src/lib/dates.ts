@@ -12,3 +12,9 @@ export const MONTH_YEAR = {
   month: "long",
   timeZone: "UTC",
 } as const satisfies Intl.DateTimeFormatOptions;
+
+/** The year alone: where a month would not fit (a tile). */
+export const YEAR = {
+  year: "numeric",
+  timeZone: "UTC",
+} as const satisfies Intl.DateTimeFormatOptions;

@@ -549,7 +549,7 @@ test("adds a certification, which the home tile shows until it is deleted", asyn
   await expect(page.getByText(name)).toHaveCount(0);
 });
 
-test("adds an education entry still under way, then deletes it", async ({
+test("adds an education entry still under way, which the journey tile shows until it is deleted", async ({
   page,
 }) => {
   test.setTimeout(90_000);
@@ -569,6 +569,12 @@ test("adds an education entry still under way, then deletes it", async ({
   await page.getByRole("button", { name: "Enregistrer" }).click();
   await expect(page).toHaveTitle(/^Modifier une formation/);
 
+  // The most recent education leads the home's journey tile (the seed has none).
+  await page.goto("/fr");
+  await expect(page.getByRole("region", { name: "parcours" })).toContainText(
+    `Master ${school} · 2025 — aujourd'hui`,
+  );
+
   await page.goto("/admin/education");
   await expect(page).toHaveTitle(/^Formation/);
   await expectNoAxeViolation(page);
@@ -583,6 +589,8 @@ test("adds an education entry still under way, then deletes it", async ({
     .getByRole("button", { name: "Supprimer définitivement" })
     .click();
   await expect(row).toHaveCount(0);
+  await page.goto("/fr");
+  await expect(page.getByText(school)).toHaveCount(0);
 });
 
 test("adds an image to the library, shows it as a cover, and deletes it once nothing does", async ({

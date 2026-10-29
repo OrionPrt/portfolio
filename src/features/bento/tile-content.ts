@@ -1,5 +1,6 @@
 import type {
   CertificationView,
+  EducationView,
   SkillView,
 } from "@/features/catalog/repository";
 import type { SocialKind, TileKind } from "@/features/content/vocabulary";
@@ -18,6 +19,7 @@ export interface HubContent {
   readonly featuredProject: ProjectView | undefined;
   readonly currentExperience: ExperienceView | undefined;
   readonly skills: readonly SkillView[];
+  readonly education: readonly EducationView[];
   readonly certifications: readonly CertificationView[];
 }
 
@@ -35,7 +37,10 @@ export type TileContent =
       readonly links: readonly SocialLinkView[];
     }
   | {
+      // Stored as "certifications": the tile has shown education too since
+      // 2026-10-29, as "Parcours" (journey).
       readonly kind: "certifications";
+      readonly education: readonly EducationView[];
       readonly certifications: readonly CertificationView[];
     }
   | { readonly kind: "contact"; readonly links: readonly SocialLinkView[] };
@@ -86,8 +91,12 @@ export function tileContent(
       return links.length > 0 ? { kind, links } : undefined;
     }
     case "certifications":
-      return content.certifications.length > 0
-        ? { kind, certifications: content.certifications }
+      return content.education.length > 0 || content.certifications.length > 0
+        ? {
+            kind,
+            education: content.education,
+            certifications: content.certifications,
+          }
         : undefined;
     case "contact":
       // Always shown: the contact form needs no published link.

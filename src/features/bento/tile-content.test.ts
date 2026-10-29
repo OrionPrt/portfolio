@@ -8,6 +8,7 @@ const NOTHING = {
   featuredProject: undefined,
   currentExperience: undefined,
   skills: [],
+  education: [],
   certifications: [],
 };
 
@@ -20,6 +21,33 @@ describe("tilesWithoutContent", () => {
       "cyber_stats",
       "certifications",
     ]);
+  });
+
+  it("shows the journey tile for an education alone, as for a certification", () => {
+    const content = {
+      ...NOTHING,
+      education: [
+        {
+          slug: "epitech",
+          school: "Epitech",
+          location: null,
+          startedOn: "2021-09-01",
+          endedOn: null,
+          degree: "Expert en technologies de l'information",
+          description: "",
+          logo: undefined,
+          isFallback: false,
+          contentLocale: "fr" as const,
+        },
+      ],
+    };
+
+    expect(tilesWithoutContent(content)).not.toContain("certifications");
+    expect(tileContent("certifications", content)).toEqual({
+      kind: "certifications",
+      education: content.education,
+      certifications: [],
+    });
   });
 
   it("keeps a tile once it has something to show", () => {

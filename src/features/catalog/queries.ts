@@ -36,7 +36,8 @@ export async function getEducation(
   locale: Locale,
 ): Promise<Result<readonly EducationView[]>> {
   "use cache";
-  cacheTag(CACHE_TAGS.education);
+  // The logos too: an image replaced or removed shows at once.
+  cacheTag(CACHE_TAGS.education, CACHE_TAGS.media);
   const result = await withDatabase((db) =>
     createCatalogRepository(db).listEducation(locale),
   );

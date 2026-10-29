@@ -1,17 +1,17 @@
-import type { TileView } from "@/features/catalog/repository";
 import {
   tileContent,
   type HubContent,
   type TileContent,
 } from "@/features/bento/tile-content";
+import type { TileView } from "@/features/catalog/repository";
 import type { TileSize } from "@/features/content/vocabulary";
 
 import { BentoGrid } from "./bento-grid";
-import { CertificationsTile } from "./tiles/certifications-tile";
 import { ContactTile } from "./tiles/contact-tile";
 import { ExperienceTile } from "./tiles/experience-tile";
 import { FeaturedProjectTile } from "./tiles/featured-project-tile";
 import { IdentityTile } from "./tiles/identity-tile";
+import { JourneyTile } from "./tiles/journey-tile";
 import { LinksTile } from "./tiles/links-tile";
 import { StackTile } from "./tiles/stack-tile";
 
@@ -47,8 +47,9 @@ function ShownTile({ size, content }: ShownTileProps) {
       return <LinksTile size={size} kind="platforms" links={content.links} />;
     case "certifications":
       return (
-        <CertificationsTile
+        <JourneyTile
           size={size}
+          education={content.education}
           certifications={content.certifications}
         />
       );

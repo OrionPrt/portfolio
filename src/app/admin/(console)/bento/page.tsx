@@ -7,11 +7,16 @@ import { withDatabase } from "@/db/client";
 import { requireAdmin } from "@/features/auth/dal";
 import { createBentoAdminRepository } from "@/features/bento/admin-repository";
 import { tilesWithoutContent } from "@/features/bento/tile-content";
-import { getCertifications, getSkills } from "@/features/catalog/queries";
+import {
+  getCertifications,
+  getEducation,
+  getSkills,
+} from "@/features/catalog/queries";
 import { getCurrentExperience } from "@/features/experiences/queries";
 import { getProfile } from "@/features/profile/queries";
 import { getFeaturedProject } from "@/features/projects/queries";
 import { DEFAULT_LOCALE } from "@/i18n/locales";
+import { all } from "@/lib/result";
 
 export const metadata: Metadata = { title: ADMIN_COPY.bento.title };
 
@@ -26,29 +31,33 @@ const COPY = ADMIN_COPY.bento;
  * every tile left visible rather than hide one wrongly.
  */
 async function loadEmptyKinds() {
-  const [profile, featuredProject, currentExperience, skills, certifications] =
-    await Promise.all([
-      getProfile(DEFAULT_LOCALE),
-      getFeaturedProject(DEFAULT_LOCALE),
-      getCurrentExperience(DEFAULT_LOCALE),
-      getSkills(),
-      getCertifications(DEFAULT_LOCALE),
-    ]);
-  if (
-    !profile.ok ||
-    !featuredProject.ok ||
-    !currentExperience.ok ||
-    !skills.ok ||
-    !certifications.ok
-  ) {
+  const reads = await Promise.all([
+    getProfile(DEFAULT_LOCALE),
+    getFeaturedProject(DEFAULT_LOCALE),
+    getCurrentExperience(DEFAULT_LOCALE),
+    getSkills(),
+    getEducation(DEFAULT_LOCALE),
+    getCertifications(DEFAULT_LOCALE),
+  ]);
+  const content = all(reads);
+  if (!content.ok) {
     return [];
   }
+  const [
+    profile,
+    featuredProject,
+    currentExperience,
+    skills,
+    education,
+    certifications,
+  ] = content.data;
   return tilesWithoutContent({
-    profile: profile.data,
-    featuredProject: featuredProject.data,
-    currentExperience: currentExperience.data,
-    skills: skills.data,
-    certifications: certifications.data,
+    profile,
+    featuredProject,
+    currentExperience,
+    skills,
+    education,
+    certifications,
   });
 }
 

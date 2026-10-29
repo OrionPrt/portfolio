@@ -8,6 +8,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import {
   getBentoTiles,
   getCertifications,
+  getEducation,
   getSkills,
 } from "@/features/catalog/queries";
 import { getCurrentExperience } from "@/features/experiences/queries";
@@ -46,6 +47,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     getFeaturedProject(locale),
     getCurrentExperience(locale),
     getSkills(),
+    getEducation(locale),
     getCertifications(locale),
   ]);
   const [
@@ -54,6 +56,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     featuredProject,
     currentExperience,
     skills,
+    education,
     certifications,
   ] = reads;
 
@@ -80,6 +83,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           featuredProject: unwrapOr(featuredProject, undefined),
           currentExperience: unwrapOr(currentExperience, undefined),
           skills: unwrapOr(skills, []),
+          education: unwrapOr(education, []),
           certifications: unwrapOr(certifications, []),
         }}
       />

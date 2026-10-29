@@ -88,7 +88,7 @@ const READS: readonly [string, CachedRead, readonly string[]][] = [
     ["experiences"],
   ],
   ["getSkills", () => catalog.getSkills(), ["skills"]],
-  ["getEducation", () => catalog.getEducation("fr"), ["education"]],
+  ["getEducation", () => catalog.getEducation("fr"), ["education", "media"]],
   [
     "getCertifications",
     () => catalog.getCertifications("fr"),
@@ -106,7 +106,7 @@ describe.each(READS)("%s", (_name, read, tags) => {
     expect(cacheLife).toHaveBeenCalledExactlyOnceWith("hours");
   });
 
-  it("keeps no failed read, so an outage is not cached", async () => {
+  it("keeps a failed read a second at most, so an outage is not cached", async () => {
     vi.mocked(withDatabase).mockResolvedValueOnce(
       err({ code: "DB_UNAVAILABLE", message: "down" }),
     );
@@ -164,7 +164,7 @@ describe.each(SLUG_READS)("reading one $kind", (entity) => {
     expect(vi.mocked(cacheTag).mock.calls).toEqual([[entity.listTag]]);
   });
 
-  it("passes on a failed slug list, kept by no cache", async () => {
+  it("passes on a failed slug list, kept a second at most", async () => {
     vi.mocked(withDatabase).mockResolvedValueOnce(
       err({ code: "DB_UNAVAILABLE", message: "down" }),
     );
@@ -175,7 +175,7 @@ describe.each(SLUG_READS)("reading one $kind", (entity) => {
     expect(cacheLife).toHaveBeenCalledExactlyOnceWith(failedReadLife());
   });
 
-  it("keeps no failed entry read, after a good slug list", async () => {
+  it("keeps a failed entry read a second at most, after a good slug list", async () => {
     await entity.insert("demo");
     vi.mocked(withDatabase)
       .mockImplementationOnce((read) => read(testDb.db))

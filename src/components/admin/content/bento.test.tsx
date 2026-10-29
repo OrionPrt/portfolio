@@ -82,7 +82,7 @@ describe("BentoForm", () => {
       "Expérience en cours",
       "Compétences",
       "Plateformes cyber",
-      "Certifications",
+      "Parcours",
       "Contact",
     ]);
     const contactSize = screen.getByRole("combobox", {
@@ -193,7 +193,7 @@ describe("BentoForm", () => {
     // Dense packing still fits it in four rows.
     expect(rowsStatus()).toHaveTextContent("4 rangées sur 4");
     await user.selectOptions(
-      screen.getByRole("combobox", { name: "Taille (Certifications)" }),
+      screen.getByRole("combobox", { name: "Taille (Parcours)" }),
       "md",
     );
 
@@ -213,14 +213,14 @@ describe("BentoForm", () => {
     render(<Editor emptyKinds={["certifications", "current_experience"]} />);
 
     expect(
-      screen.getByRole("checkbox", { name: "Affichée (Certifications)" }),
+      screen.getByRole("checkbox", { name: "Affichée (Parcours)" }),
     ).toHaveAccessibleDescription(
-      `Aucune certification${NB}: la tuile n'apparaît pas sur le site.`,
+      `Aucune formation ni certification${NB}: la tuile n'apparaît pas sur le site.`,
     );
     const preview = screen.getByRole("figure", {
       name: "Aperçu sur grand écran",
     });
-    expect(preview).not.toHaveTextContent("Certifications");
+    expect(preview).not.toHaveTextContent("Parcours");
     expect(preview).toHaveTextContent("Contact");
   });
 

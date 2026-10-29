@@ -1,7 +1,7 @@
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import type { TileView } from "@/features/catalog/repository";
+import type { EducationView, TileView } from "@/features/catalog/repository";
 import type { TileKind } from "@/features/content/vocabulary";
 
 import {
@@ -35,6 +35,19 @@ const SKILLS = [
   { slug: "c", name: "C", domain: "low_level", featured: true },
 ] as const;
 
+const EPITECH: EducationView = {
+  slug: "epitech",
+  school: "Epitech",
+  location: "Paris",
+  startedOn: "2021-09-01",
+  endedOn: null,
+  degree: "Expert en technologies de l'information",
+  description: "",
+  logo: undefined,
+  isFallback: false,
+  contentLocale: "fr",
+};
+
 function hub(overrides: Partial<HubData> = {}): HubData {
   return {
     tiles: ALL_TILES,
@@ -53,6 +66,7 @@ function hub(overrides: Partial<HubData> = {}): HubData {
     }),
     currentExperience: experienceView(),
     skills: SKILLS,
+    education: [EPITECH],
     certifications: [
       {
         slug: "oscp",
@@ -86,7 +100,7 @@ describe("BentoHub", () => {
       "experience-acme-title-fr",
       "stack-title-fr",
       "platforms-title-fr",
-      "certifications-title-fr",
+      "journey-title-fr",
       "contact-title-fr",
     ]);
   });
@@ -99,6 +113,7 @@ describe("BentoHub", () => {
           featuredProject: undefined,
           currentExperience: undefined,
           skills: [],
+          education: [],
           certifications: [],
         })}
       />,
@@ -202,20 +217,62 @@ describe("BentoHub", () => {
     ).toHaveAttribute("href", "/fr/contact");
   });
 
-  it("lists the latest certifications, a badge beside the name it adorns", () => {
+  it("sums up the journey: the latest education, then the certifications, each image beside its name", () => {
     const data = hub();
     const [oscp] = data.certifications;
     renderWithIntl(
       <BentoHub
         data={{
           ...data,
+          education: [{ ...EPITECH, logo: COVER }],
           certifications: oscp === undefined ? [] : [{ ...oscp, badge: COVER }],
         }}
       />,
     );
 
-    const tile = screen.getByRole("region", { name: "certifications" });
-    expect(within(tile).getByText("OSCP")).toBeVisible();
-    expect(tile.querySelector("img")).toHaveAttribute("alt", "");
+    const tile = screen.getByRole("region", { name: "parcours" });
+    const [school, certification] = within(tile).getAllByRole("listitem");
+    expect(school).toHaveTextContent(
+      "formation Expert en technologies de l'information Epitech · 2021 — aujourd'hui",
+    );
+    expect(certification).toHaveTextContent("certification OSCP OffSec");
+    for (const image of tile.querySelectorAll("img")) {
+      expect(image).toHaveAttribute("alt", "");
+    }
+  });
+
+  it("keeps room for two certifications beside an education, and marks a degree shown in another language", () => {
+    const data = hub();
+    const [oscp] = data.certifications;
+    const certifications =
+      oscp === undefined
+        ? []
+        : ["a", "b", "c"].map((slug) => ({ ...oscp, slug, name: slug }));
+    renderWithIntl(
+      <BentoHub
+        data={{
+          ...data,
+          education: [{ ...EPITECH, isFallback: true, contentLocale: "en" }],
+          certifications,
+        }}
+      />,
+    );
+
+    const tile = screen.getByRole("region", { name: "parcours" });
+    expect(within(tile).getAllByRole("listitem")).toHaveLength(3);
+    expect(within(tile).getByText(EPITECH.degree)).toHaveAttribute(
+      "lang",
+      "en",
+    );
+  });
+
+  it("shows the journey with an education alone", () => {
+    renderWithIntl(<BentoHub data={hub({ certifications: [] })} />);
+
+    expect(
+      within(screen.getByRole("region", { name: "parcours" })).getAllByRole(
+        "listitem",
+      ),
+    ).toHaveLength(1);
   });
 });

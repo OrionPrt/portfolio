@@ -37,12 +37,15 @@ export interface SkillView {
 }
 
 export interface EducationView {
+  readonly slug: string;
   readonly school: string;
   readonly location: string | null;
   readonly startedOn: string;
   readonly endedOn: string | null;
   readonly degree: string;
   readonly description: string;
+  /** The school's logo, its text in the page's language. */
+  readonly logo: MediaView | undefined;
   readonly isFallback: boolean;
   readonly contentLocale: Locale;
 }
@@ -77,6 +80,7 @@ export interface CatalogRepository {
 
 type EducationRow = typeof education.$inferSelect & {
   readonly translations: readonly (typeof educationTranslations.$inferSelect)[];
+  readonly logo: MediaRow | null;
 };
 
 type CertificationRow = typeof certifications.$inferSelect & {
@@ -95,12 +99,14 @@ function toEducationView(
     return undefined;
   }
   return {
+    slug: row.slug,
     school: row.school,
     location: row.location,
     startedOn: row.startedOn,
     endedOn: row.endedOn,
     degree: translation.value.degree,
     description: translation.value.description,
+    logo: toMediaView(row.logo, locale),
     isFallback: translation.isFallback,
     contentLocale: translation.value.locale,
   };
@@ -149,7 +155,7 @@ export function createCatalogRepository(db: Database): CatalogRepository {
             asc(education.slug),
           ],
           limit: MAX_PAGE_SIZE,
-          with: WITH_TRANSLATIONS,
+          with: { ...WITH_TRANSLATIONS, logo: WITH_MEDIA },
         });
         return rows.flatMap((row) => toEducationView(row, locale) ?? []);
       }),
