@@ -128,6 +128,26 @@ describe("AuditList", () => {
     expect(unknown).toHaveTextContent("auth.unknown_event");
   });
 
+  it("names what a content event changed", () => {
+    render(
+      <AuditList
+        entries={[
+          entry(3, {
+            action: "content.updated",
+            entity: "bento_tile",
+            entityId: "layout",
+          }),
+          entry(4, { action: "contact.message_deleted", entity: "message" }),
+        ]}
+      />,
+    );
+    const [updated, deleted] = screen.getAllByRole("listitem");
+
+    expect(updated).toHaveTextContent("Contenu modifié · grille d'accueil");
+    expect(deleted).toHaveTextContent("Message supprimé");
+    expect(deleted).not.toHaveTextContent("·");
+  });
+
   it("says when nothing was recorded", () => {
     render(<AuditList entries={[]} />);
 

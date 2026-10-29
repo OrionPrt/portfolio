@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { err, map, ok, unwrapOr } from "./result";
+import { all, err, map, ok, unwrapOr } from "./result";
 
 describe("result", () => {
   it("wraps a success value", () => {
@@ -39,5 +39,19 @@ describe("unwrapOr", () => {
     expect(
       unwrapOr(err({ code: "DB_UNAVAILABLE", message: "down" }), []),
     ).toEqual([]);
+  });
+});
+
+describe("all", () => {
+  it("gives every read's data, in order", () => {
+    expect(all([ok(1), ok("two"), ok([3])])).toEqual(ok([1, "two", [3]]));
+  });
+
+  it("gives the first failure", () => {
+    const first = err({ code: "DB_UNAVAILABLE", message: "down" });
+
+    expect(all([ok(1), first, err({ code: "OTHER", message: "later" })])).toBe(
+      first,
+    );
   });
 });

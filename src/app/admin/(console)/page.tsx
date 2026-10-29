@@ -1,9 +1,16 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { ADMIN_COPY } from "@/components/admin/copy";
-import { ADMIN_PATHS } from "@/features/auth/admin-paths";
+import {
+  ActivitySection,
+  MediaPanel,
+  StatsPanel,
+  ToDoSection,
+} from "@/components/admin/dashboard-sections";
+import { withDatabase } from "@/db/client";
+import { createDashboardRepository } from "@/features/admin/dashboard-repository";
+import { createAuditRepository } from "@/features/auth/audit-repository";
 import { requireAdmin } from "@/features/auth/dal";
 import { getUnreadCount } from "@/features/contact/inbox-queries";
 
@@ -14,36 +21,20 @@ export const instant = false;
 
 const COPY = ADMIN_COPY.dashboard;
 
-interface CardProps {
-  readonly href: string;
-  readonly title: string;
-  readonly detail: string;
-  readonly isHighlighted?: boolean;
-}
+/** The latest events shown; the security page pages through the rest. */
+const ACTIVITY_SIZE = 8;
 
-function Card({ href, title, detail, isHighlighted = false }: CardProps) {
-  return (
-    <li>
-      <Link
-        href={href}
-        className="bg-surface border-line rounded-tile hover:border-fg-muted flex h-full flex-col gap-2 border p-5 transition-colors"
-      >
-        <span className="text-lg font-semibold tracking-tight">{title}</span>
-        <span
-          className={
-            isHighlighted ? "text-accent text-sm" : "text-fg-muted text-sm"
-          }
-        >
-          {detail}
-        </span>
-      </Link>
-    </li>
-  );
-}
-
+/** Each part reads on its own: one failing leaves the others shown. */
 export default async function AdminHomePage() {
   await requireAdmin();
-  const unread = await getUnreadCount();
+  const [unread, content, media, activity] = await Promise.all([
+    getUnreadCount(),
+    withDatabase((db) => createDashboardRepository(db).contentToDo()),
+    withDatabase((db) => createDashboardRepository(db).media()),
+    withDatabase((db) =>
+      createAuditRepository(db).list({ limit: ACTIVITY_SIZE, offset: 0 }),
+    ),
+  ]);
 
   return (
     <>
@@ -51,20 +42,14 @@ export default async function AdminHomePage() {
       <p className="text-fg-muted max-w-prose text-lg leading-relaxed">
         {COPY.lead}
       </p>
-      {/* role="list": Safari drops list semantics once list-style is none. */}
-      <ul role="list" className="grid gap-4 sm:grid-cols-2">
-        <Card
-          href={ADMIN_PATHS.messages}
-          title={ADMIN_COPY.nav.messages}
-          detail={COPY.messages(unread)}
-          isHighlighted={unread !== undefined && unread > 0}
-        />
-        <Card
-          href={ADMIN_PATHS.security}
-          title={ADMIN_COPY.nav.security}
-          detail={COPY.security}
-        />
-      </ul>
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start">
+        <ToDoSection unread={unread} content={content} />
+        <div className="flex flex-col gap-4">
+          <MediaPanel media={media} />
+          <StatsPanel />
+        </div>
+      </div>
+      <ActivitySection activity={activity} />
     </>
   );
 }

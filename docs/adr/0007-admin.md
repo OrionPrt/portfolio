@@ -72,10 +72,21 @@ Implemented in P6b2a (decided on 2026-10-26 and 2026-10-27).
 - **Flat chains.** A to B then B to C leaves A to C and B to C; renamed back, an entry takes its old slug again. A redirect counts only while its target is published, so it never reveals a draft. Deleting an entry drops the redirects to it, in the deletion's statement.
 - **Who answers.** The proxy answers 301 from its in-memory lists (published slugs and redirects, trusted a minute; a slug it does not know reloads them, or waits on the load their age just started, at most once a second, and never on a load that hangs; a slug published within a second of the last load answers 404 for that second). The 301 is kept an hour by the browser only (`Cache-Control: private`): a shared cache would go on answering it once the slug is taken again. Until the proxy's lists learn of a rename, the old address reaches the entry's page, which sends the browser on from the same lists, cached for the pages and expired by the save (`movedSlug`). The page is streamed, so Next.js can no longer set its status: the redirect is an instant meta refresh in a 200, which browsers follow at once and search engines read as permanent. A deleted entry's page likewise shows "not found" at once, the 404 status following once the lists reload.
 
+### The hub's layout, edited whole
+
+Implemented in P6d1 (decided on 2026-10-29).
+
+- **One form, previewed before saving.** The tiles are listed in reading order, each moved with up / down buttons (rather than dragged: decided on 2026-10-26), sized, and shown or hidden; a miniature of the four-column grid follows every change before anything is saved. It places the tiles as the browser does (`grid-auto-flow: row dense`, `src/features/bento/placement.ts`), counts the rows, and warns once the hub takes more than the four a 1280×720 screen holds. One save writes the whole layout in one statement.
+- **Rules the server enforces too.** Each tile offers the sizes its content fits (the featured project is never a single cell); the identity tile, which holds the page's h1, is always shown; the blog and CV tiles stay hidden and out of the editor until they exist (P7, P9). The same rules (`src/features/bento/rules.ts`) drive the editor and the action's Zod schema.
+- **The preview shows what the site shows.** A tile with nothing to show (no featured project, no certification…) is left out of the hub whatever its setting; the editor says so beside it and leaves it out of the miniature. Both read it from one function (`tileContent`), the editor through the same cached queries as the hub.
+
+### A dashboard of what is left to do
+
+Implemented in P6d1 (decided on 2026-10-29). The dashboard lists, entry by entry and each linked to its form: unread messages, English translations missing or partial (measured as the lists measure them), drafts, text still holding the seed's `[À COMPLÉTER]` marker (any column, any language, found by casting each row to text), and entries without their cover, logo or badge. Beside them: the image library against its ceiling and the images nothing shows, and the place of the platforms' statistics (their collection arrives in P8). Below: the latest audit events, content ones naming what they changed. Each part reads on its own, so one failing read leaves the others shown.
+
 ### Decided for the next slices
 
-- **Ordering** (bento, lists): move up / move down buttons, accessible as they are, rather than drag and drop (P6d).
-- **Database roles**: the site runs with a role limited to data changes (no DDL); the owner's URL only serves migrations and the seed (P6d).
+- **Database roles**: the site runs with a role limited to data changes (no DDL), which may only add to the audit log; the owner's URL only serves migrations and the seed. A script creates the role, tested on Postgres, and the CI's E2E suite runs with it (P6d2, decided on 2026-10-29).
 
 ## Alternatives considered
 

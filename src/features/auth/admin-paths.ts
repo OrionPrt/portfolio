@@ -18,6 +18,7 @@ export const ADMIN_PATHS = {
   certifications: "/admin/certifications",
   newCertification: "/admin/certifications/new",
   media: "/admin/media",
+  bento: "/admin/bento",
 } as const;
 
 /** Pages with a dynamic segment, spelled as their folders: `[id]` is a UUID. */

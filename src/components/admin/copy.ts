@@ -25,6 +25,7 @@ export const ADMIN_COPY = {
     education: "Formation",
     certifications: "Certifications",
     media: "Médiathèque",
+    bento: "Grille d'accueil",
     unreadWord: (count: number) => (count > 1 ? "non lus" : "non lu"),
     security: "Sécurité",
     groups: {
@@ -74,15 +75,63 @@ export const ADMIN_COPY = {
   },
   dashboard: {
     title: "Tableau de bord",
-    lead: "La gestion du contenu arrive avec la prochaine version du site.",
-    security:
-      "Sessions, codes de récupération, mot de passe et journal d'audit",
+    lead: "Ce qui attend une action, puis les derniers événements.",
+    toDo: "À traiter",
+    nothingToDo: `Rien en attente${NB}: tout est traduit, publié et complet.`,
     messages: (unread: number | undefined) =>
       unread === undefined
         ? "Le nombre de messages non lus n'a pas pu être chargé."
         : unread === 0
           ? "Aucun message non lu."
           : `${String(unread)} message${unread > 1 ? "s" : ""} non lu${unread > 1 ? "s" : ""}.`,
+    unreadWords: (count: number) =>
+      count > 1 ? "messages non lus" : "message non lu",
+    openInbox: "Ouvrir la boîte de réception",
+    groups: {
+      toTranslate: {
+        title: "À traduire",
+        hint: "Le site montre le français à la place de ce qui manque en anglais.",
+      },
+      drafts: {
+        title: "Brouillons",
+        hint: "Invisibles sur le site tant qu'ils ne sont pas publiés.",
+      },
+      placeholders: {
+        title: "Textes à compléter",
+        hint: `Ils contiennent encore «${NB}[À COMPLÉTER]${NB}», que le site affiche tel quel.`,
+      },
+      withoutImage: {
+        title: "Sans image",
+        hint: "Projets sans couverture, expériences et formations sans logo, certifications sans badge.",
+      },
+    },
+    english: { missing: "anglais absent", partial: "anglais incomplet" },
+    more: (count: number) => `Et ${String(count)} autre${count > 1 ? "s" : ""}`,
+    contentUnavailable: "Le contenu n'a pas pu être chargé.",
+    media: {
+      title: "Médiathèque",
+      count: (total: number, max: number) =>
+        `${String(total)} image${total > 1 ? "s" : ""} sur ${String(max)}`,
+      unused: (count: number) =>
+        count === 0
+          ? "Toutes servent."
+          : `${String(count)} inutilisée${count > 1 ? "s" : ""}${NB}: ${count > 1 ? "elles peuvent" : "elle peut"} être supprimée${count > 1 ? "s" : ""}.`,
+      empty: "Aucune image pour l'instant.",
+      full: `La médiathèque est pleine${NB}: supprimez une image pour en ajouter une.`,
+      open: "Ouvrir la médiathèque",
+      unavailable: "La médiathèque n'a pas pu être chargée.",
+    },
+    stats: {
+      title: "Statistiques des plateformes",
+      pending:
+        "Leur collecte automatique (Hack The Box, Root Me, TryHackMe) n'est pas encore en place. Son dernier passage, réussi ou non, s'affichera ici.",
+      never: "Aucune collecte",
+    },
+    activity: {
+      title: "Activité récente",
+      all: "Tout le journal d'audit",
+      unavailable: "Le journal d'audit n'a pas pu être chargé.",
+    },
   },
   inbox: {
     title: "Messages",
@@ -475,6 +524,64 @@ export const ADMIN_COPY = {
       "Ses fichiers sont effacés du stockage, et ses textes alternatifs avec elle.",
     notFound: "Cette image n'existe pas, ou a été supprimée.",
   },
+  bento: {
+    title: "Grille d'accueil",
+    lead: `Les tuiles de la page d'accueil${NB}: leur ordre, leur taille, celles qui s'affichent. L'aperçu les place comme le site sur grand écran, sur quatre colonnes${NB}; sur mobile, elles s'empilent dans le même ordre.`,
+    tiles: "Les tuiles",
+    hint: `Dans l'ordre de lecture${NB}: une tuile plus loin dans la liste remonte combler un trou laissé plus haut.`,
+    names: {
+      identity: "Identité",
+      featured_project: "Projet phare",
+      current_experience: "Expérience en cours",
+      stack: "Compétences",
+      cyber_stats: "Plateformes cyber",
+      latest_post: "Dernier article",
+      certifications: "Certifications",
+      cv: "CV",
+      contact: "Contact",
+    },
+    /** In the preview's cells, a quarter of its width each. */
+    shortNames: {
+      identity: "Identité",
+      featured_project: "Projet phare",
+      current_experience: "Expérience",
+      stack: "Compétences",
+      cyber_stats: "Plateformes",
+      latest_post: "Article",
+      certifications: "Certifications",
+      cv: "CV",
+      contact: "Contact",
+    },
+    tile: (name: string) => `la tuile ${name}`,
+    size: "Taille",
+    sizes: {
+      sm: `Petite, 1${NB}×${NB}1`,
+      md: `Large, 2${NB}×${NB}1`,
+      lg: `Haute, 1${NB}×${NB}2`,
+      xl: `Grande, 2${NB}×${NB}2`,
+    },
+    visible: "Affichée",
+    alwaysVisible: `Toujours affichée${NB}: elle porte le titre de la page.`,
+    empty: {
+      featured_project: "Aucun projet publié n'est mis en avant",
+      current_experience: "Aucune expérience en cours n'est publiée",
+      stack: "Aucune compétence",
+      cyber_stats: "Aucun lien vers Hack The Box, Root Me ou TryHackMe",
+      certifications: "Aucune certification",
+    },
+    emptyEffect: `${NB}: la tuile n'apparaît pas sur le site.`,
+    coming:
+      "Le dernier article arrivera avec le blog, et le CV avec sa génération.",
+    moved: (name: string, position: number, total: number) =>
+      `Tuile ${name} déplacée en position ${String(position)} sur ${String(total)}.`,
+    preview: "Aperçu sur grand écran",
+    screenEdge: "Bas de l'écran",
+    rows: (count: number, screen: number) =>
+      count <= screen
+        ? `${String(count)} rangée${count > 1 ? "s" : ""} sur ${String(screen)}${NB}: l'accueil tient sur un écran, si le texte des tuiles y tient aussi.`
+        : `${String(count)} rangées${NB}: l'accueil dépasse un écran de 1280${NB}×${NB}720 (${String(screen)} rangées) et défile.`,
+    saveNote: "Le site affiche la nouvelle disposition dès l'enregistrement.",
+  },
   cancel: "Annuler",
   security: {
     title: "Sécurité",
@@ -551,6 +658,18 @@ export const ADMIN_COPY = {
         "content.deleted": "Contenu supprimé",
         "content.reordered": "Ordre modifié",
       },
+      /** What a content event changed; other entities are not named. */
+      entities: {
+        profile: "profil",
+        social_link: "lien",
+        skill: "compétence",
+        project: "projet",
+        experience: "expérience",
+        education: "formation",
+        certification: "certification",
+        bento_tile: "grille d'accueil",
+        media: "image",
+      } as Readonly<Record<string, string>>,
       /** The diff's keys and values, in words; anything else is shown as stored. */
       details: {
         method: "méthode",
@@ -563,6 +682,7 @@ export const ADMIN_COPY = {
         cli: "CLI",
         others: "toutes les autres",
         selected: "sélection",
+        tiles: "tuiles",
       } as Readonly<Record<string, string>>,
     },
   },

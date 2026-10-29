@@ -63,6 +63,14 @@ export function useField(name: string, initial: string) {
   };
 }
 
+/**
+ * Everything a refused form sent, for a widget that holds several fields in
+ * one state (the bento editor); undefined until a refusal.
+ */
+export function useSentValues(): SentValues | undefined {
+  return useContext(ContentFormContext).sent;
+}
+
 /** Counts a change as unsaved, as typing does. */
 export function useMarkEdited(): () => void {
   return useContext(ContentFormContext).markEdited;

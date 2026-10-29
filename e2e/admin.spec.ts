@@ -134,6 +134,77 @@ test("keeps every admin page behind a full session", async ({ page }) => {
   }
 });
 
+test("shows on the dashboard what is left to do, and what just happened", async ({
+  page,
+}) => {
+  await signIn(page);
+  await expectNoAxeViolation(page);
+
+  // The seeded profile still holds text to complete.
+  const placeholders = page.getByRole("group", {
+    name: /^Textes à compléter/,
+  });
+  await placeholders.getByRole("link").first().click();
+  await expect(page).toHaveURL(/\/admin\/profile$/);
+  await page.goBack();
+  await expect(
+    page
+      .getByRole("region", { name: "Activité récente" })
+      .getByRole("listitem")
+      .first(),
+  ).toContainText("Connexion réussie");
+  await expect(page.getByRole("region", { name: "Médiathèque" })).toContainText(
+    "/200",
+  );
+});
+
+test("arranges the home hub: the site follows the saved layout", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  await signIn(page);
+  await page.goto("/admin/bento");
+  await expectNoAxeViolation(page);
+  const contactSize = page.getByLabel("Taille (Contact)");
+  const saved = page
+    .getByRole("main")
+    .getByRole("status")
+    .filter({ hasText: "Modifications enregistrées." });
+  const contact = page.getByRole("region", { name: "Contact" });
+  const identity = page.getByRole("region", { name: /^Orion/ });
+
+  const save = async (size: "sm" | "md") => {
+    await contactSize.selectOption(size);
+    await page.getByRole("button", { name: "Enregistrer" }).click();
+    await expect(saved).toBeVisible();
+    // The editor starts again from what was stored.
+    await expect(contactSize).toHaveValue(size);
+  };
+
+  try {
+    // Contact made wide (2 × 1): as wide as the identity tile on the site.
+    await contactSize.selectOption("md");
+    await expect(
+      page.getByRole("figure", { name: "Aperçu sur grand écran" }),
+    ).toContainText(/rangées? sur 4/);
+    await save("md");
+    await page.goto("/fr");
+    const wide = await contact.boundingBox();
+    const reference = await identity.boundingBox();
+    expect(Math.abs((wide?.width ?? 0) - (reference?.width ?? 1))).toBeLessThan(
+      2,
+    );
+  } finally {
+    // And back, whatever happened: other suites read the seeded hub.
+    await page.goto("/admin/bento");
+    await save("sm");
+  }
+  await page.goto("/fr");
+  expect((await contact.boundingBox())?.width ?? 0).toBeLessThan(
+    ((await identity.boundingBox())?.width ?? 0) * 0.6,
+  );
+});
+
 test("reads, archives and deletes a message from the inbox", async ({
   page,
 }) => {

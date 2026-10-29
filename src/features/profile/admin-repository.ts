@@ -8,7 +8,7 @@ import type { Locale } from "@/i18n/locales";
 import type { Result } from "@/lib/result";
 
 /** The single profile row (ADR-0004). */
-const PROFILE_ID = 1;
+export const PROFILE_ID = 1;
 
 /** The profile as the admin edits it: every language it has. */
 export type ProfileForEdit = ProfileInput;

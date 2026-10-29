@@ -13,6 +13,20 @@ function labelOf(action: string): string {
     : COPY.actions[known satisfies AuditAction];
 }
 
+/** What a content event changed: "projet"; undefined for other events. */
+function entityOf(entity: string | null): string | undefined {
+  return entity !== null && Object.hasOwn(COPY.entities, entity)
+    ? COPY.entities[entity]
+    : undefined;
+}
+
+/** A stored key or value in words; own entries only ("constructor" stays as is). */
+function wordFor(stored: string): string {
+  return Object.hasOwn(COPY.details, stored)
+    ? (COPY.details[stored] ?? stored)
+    : stored;
+}
+
 /** "méthode : totp" from a diff of plain values; anything else is left out. */
 function detailsOf(diff: unknown): string | undefined {
   if (typeof diff !== "object" || diff === null) {
@@ -24,7 +38,7 @@ function detailsOf(diff: unknown): string | undefined {
     )
     .map(([key, value]) => {
       const text = String(value);
-      return `${COPY.details[key] ?? key}\u00a0: ${COPY.details[text] ?? text}`;
+      return `${wordFor(key)}\u00a0: ${wordFor(text)}`;
     });
   return parts.length === 0 ? undefined : parts.join(", ");
 }
@@ -52,7 +66,14 @@ export function AuditList({ entries }: AuditListProps) {
           >
             {formatParisDateTime(entry.createdAt)}
           </time>
-          <span className="font-medium">{labelOf(entry.action)}</span>
+          <span className="font-medium">
+            {labelOf(entry.action)}
+            {entityOf(entry.entity) !== undefined && (
+              <span className="text-fg-muted font-normal">
+                {` · ${entityOf(entry.entity) ?? ""}`}
+              </span>
+            )}
+          </span>
           {detailsOf(entry.diff) !== undefined && (
             <span className="text-fg-muted">{detailsOf(entry.diff)}</span>
           )}

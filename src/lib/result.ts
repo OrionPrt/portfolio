@@ -39,3 +39,19 @@ export function map<T, U, E>(
 export function unwrapOr<T, E>(result: Result<T, E>, fallback: T): T {
   return result.ok ? result.data : fallback;
 }
+
+type DataOf<T extends readonly Result<unknown>[]> = {
+  readonly [K in keyof T]: T[K] extends Result<infer U> ? U : never;
+};
+
+/** Every read's data, in order, or the first failure: for a view built from several reads. */
+export function all<const T extends readonly Result<unknown>[]>(
+  results: T,
+): Result<DataOf<T>> {
+  const failed = results.find((result): result is Err<AppError> => !result.ok);
+  if (failed !== undefined) {
+    return failed;
+  }
+  // None failed: every one holds its data.
+  return ok(results.map((result) => (result as Ok<unknown>).data) as DataOf<T>);
+}

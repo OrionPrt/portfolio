@@ -39,6 +39,7 @@ const GROUPS: readonly {
       { href: ADMIN_PATHS.certifications, label: NAV.certifications },
       { href: ADMIN_PATHS.skills, label: NAV.skills },
       { href: ADMIN_PATHS.media, label: NAV.media },
+      { href: ADMIN_PATHS.bento, label: NAV.bento },
     ],
   },
   {
