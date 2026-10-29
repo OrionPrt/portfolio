@@ -217,6 +217,34 @@ describe("uploadMedia", () => {
     vi.restoreAllMocks();
   });
 
+  it("logs why the storage refused a width, and stores nothing", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    const remove = vi.fn();
+    storage = {
+      kind: "blob",
+      put: () =>
+        Promise.reject(
+          new Error("Vercel Blob: Cannot use public access on a private store"),
+        ),
+      remove,
+    };
+
+    expect((await upload(await png(1200, 600))).status).toBe("unavailable");
+
+    const logged = consoleError.mock.calls.map((call) => String(call[0]));
+    expect(
+      logged.find((line) => line.includes("media.store_failed")),
+    ).toContain("Cannot use public access on a private store");
+    expect(logged.some((line) => line.includes("media.cleanup_failed"))).toBe(
+      false,
+    );
+    expect(remove).not.toHaveBeenCalled();
+    expect(await testDb.query("select id from media")).toEqual([]);
+    consoleError.mockRestore();
+  });
+
   it("says when no storage is configured", async () => {
     const data = new FormData();
     data.append("file", await png(10, 10), "a.png");

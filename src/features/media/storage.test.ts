@@ -12,7 +12,9 @@ import {
   createDiskStorage,
   diskPathOf,
   mediaPathname,
+  removeQuietly,
   selectMediaStorage,
+  type MediaStorage,
 } from "./storage";
 
 const ID = "0f8fad5b-d9cb-469f-a165-70867728950e";
@@ -107,5 +109,37 @@ describe("selectMediaStorage", () => {
     [{ NODE_ENV: "production" }, undefined],
   ] as const)("picks for %j: %s", (overrides, kind) => {
     expect(selectMediaStorage({ ...BASE, ...overrides })?.kind).toBe(kind);
+  });
+});
+
+describe("removeQuietly", () => {
+  function storage(remove: MediaStorage["remove"]): MediaStorage {
+    return { kind: "blob", put: vi.fn(), remove };
+  }
+
+  it("asks nothing when nothing was stored (Blob refuses an empty list)", async () => {
+    const remove = vi.fn();
+
+    await removeQuietly(storage(remove), []);
+
+    expect(remove).not.toHaveBeenCalled();
+  });
+
+  it("logs a removal that fails, without throwing", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+
+    await expect(
+      removeQuietly(
+        storage(() => Promise.reject(new Error("store unreachable"))),
+        ["https://s.public.blob.vercel-storage.com/x"],
+      ),
+    ).resolves.toBeUndefined();
+
+    expect(String(consoleError.mock.calls[0]?.[0])).toContain(
+      "media.cleanup_failed",
+    );
+    consoleError.mockRestore();
   });
 });

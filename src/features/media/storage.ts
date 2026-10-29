@@ -108,11 +108,17 @@ export function selectMediaStorage(
     : undefined;
 }
 
-/** Files left behind are logged, not fatal: the library's record is what counts. */
+/**
+ * Files left behind are logged, not fatal: the library's record is what
+ * counts. Nothing to remove asks nothing (Blob refuses an empty list).
+ */
 export async function removeQuietly(
   storage: MediaStorage,
   urls: readonly string[],
 ): Promise<void> {
+  if (urls.length === 0) {
+    return;
+  }
   try {
     await storage.remove(urls);
   } catch (error) {

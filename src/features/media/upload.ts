@@ -81,10 +81,12 @@ async function storeVariants(
   const variants = stored.flatMap((result) =>
     result.status === "fulfilled" ? [result.value] : [],
   );
-  if (variants.length === stored.length) {
+  const failure = stored.find((result) => result.status === "rejected");
+  if (failure === undefined) {
     return ok(variants);
   }
-  logger.error("media.store_failed", { id });
+  // The storage's own words: a missing store, a refused token, a private store…
+  logger.error("media.store_failed", { id, error: failure.reason });
   await removeQuietly(
     storage,
     variants.map((variant) => variant.url),
