@@ -11,6 +11,7 @@ import {
 
 import { withDatabase } from "@/db/client";
 import type { Database } from "@/db/types";
+import { failedReadLife } from "@/lib/cache-life";
 import { err, type Result } from "@/lib/result";
 
 import { createTestDatabase, type TestDatabase } from "../../test/db";
@@ -105,7 +106,7 @@ describe.each(READS)("%s", (_name, read, tags) => {
     expect(cacheLife).toHaveBeenCalledExactlyOnceWith("hours");
   });
 
-  it("keeps a failed read for seconds only, so an outage is not cached", async () => {
+  it("keeps no failed read, so an outage is not cached", async () => {
     vi.mocked(withDatabase).mockResolvedValueOnce(
       err({ code: "DB_UNAVAILABLE", message: "down" }),
     );
@@ -113,7 +114,7 @@ describe.each(READS)("%s", (_name, read, tags) => {
     const result = await read();
 
     expect(result.ok).toBe(false);
-    expect(cacheLife).toHaveBeenCalledExactlyOnceWith("seconds");
+    expect(cacheLife).toHaveBeenCalledExactlyOnceWith(failedReadLife());
   });
 });
 
@@ -163,7 +164,7 @@ describe.each(SLUG_READS)("reading one $kind", (entity) => {
     expect(vi.mocked(cacheTag).mock.calls).toEqual([[entity.listTag]]);
   });
 
-  it("passes on a failed slug list, kept for seconds only", async () => {
+  it("passes on a failed slug list, kept by no cache", async () => {
     vi.mocked(withDatabase).mockResolvedValueOnce(
       err({ code: "DB_UNAVAILABLE", message: "down" }),
     );
@@ -171,10 +172,10 @@ describe.each(SLUG_READS)("reading one $kind", (entity) => {
     const result = await entity.read("demo");
 
     expect(result.ok).toBe(false);
-    expect(cacheLife).toHaveBeenCalledExactlyOnceWith("seconds");
+    expect(cacheLife).toHaveBeenCalledExactlyOnceWith(failedReadLife());
   });
 
-  it("keeps a failed entry read for seconds only, after a good slug list", async () => {
+  it("keeps no failed entry read, after a good slug list", async () => {
     await entity.insert("demo");
     vi.mocked(withDatabase)
       .mockImplementationOnce((read) => read(testDb.db))
@@ -183,7 +184,10 @@ describe.each(SLUG_READS)("reading one $kind", (entity) => {
     const result = await entity.read("demo");
 
     expect(result.ok).toBe(false);
-    expect(vi.mocked(cacheLife).mock.calls).toEqual([["hours"], ["seconds"]]);
+    expect(vi.mocked(cacheLife).mock.calls).toEqual([
+      ["hours"],
+      [failedReadLife()],
+    ]);
   });
 
   it.each(["../etc", "Demo", "a".repeat(81)])(

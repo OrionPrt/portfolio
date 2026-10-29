@@ -11,10 +11,8 @@ import { err, type Result } from "@/lib/result";
 import { isLocalDatabase } from "./local";
 import { DB_UNAVAILABLE } from "./query";
 import * as schema from "./schema";
+import { APP_ROLE, QUERY_TIMEOUT_MS } from "./settings";
 import type { Database } from "./types";
-
-/** Longest wait for one query: past it, the read fails like an outage instead of hanging. */
-const QUERY_TIMEOUT_MS = 8000;
 
 let connection: Promise<Database | undefined> | undefined;
 
@@ -42,6 +40,12 @@ async function open(): Promise<Database | undefined> {
     return undefined;
   }
   if (!isLocalDatabase(DATABASE_URL)) {
+    const user = decodeURIComponent(new URL(DATABASE_URL).username);
+    // The owner's string pasted by mistake: the site works, with every right.
+    const isDeployed = VERCEL_ENV === "production" || VERCEL_ENV === "preview";
+    if (isDeployed && user !== APP_ROLE) {
+      logger.warn("db.not_app_role", { user, expected: APP_ROLE });
+    }
     return connectToNeon(DATABASE_URL);
   }
   // On Vercel a local host can only be a configuration mistake.

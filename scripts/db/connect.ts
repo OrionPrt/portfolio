@@ -6,6 +6,12 @@ import { migrate as migratePostgres } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 
 import { isLocalDatabase } from "@/db/local";
+import {
+  describeTarget,
+  scriptDatabase,
+  type ScriptDatabase,
+  type ScriptRole,
+} from "@/db/script-url";
 import * as schema from "@/db/schema";
 import type { Database } from "@/db/types";
 import { parseServerEnv } from "@/lib/env";
@@ -47,33 +53,43 @@ function open(databaseUrl: string): ScriptConnection {
   };
 }
 
-function readDatabaseUrl(task: string): string | undefined {
+function readDatabase(
+  task: string,
+  role: ScriptRole,
+): ScriptDatabase | undefined {
   try {
-    const { DATABASE_URL } = parseServerEnv(process.env);
-    if (DATABASE_URL === undefined) {
-      fail(`${task}: DATABASE_URL is not set (add it to .env.local).`);
+    const database = scriptDatabase(parseServerEnv(process.env), role);
+    if (database === undefined) {
+      fail(
+        `${task}: ${role === "owner" ? "DATABASE_OWNER_URL nor DATABASE_URL is" : "DATABASE_URL is not"} set (add it to .env.local).`,
+      );
     }
-    return DATABASE_URL;
+    return database;
   } catch (error) {
     fail(`${task}: ${describeErrorChain(error)}`);
     return undefined;
   }
 }
 
-/** Runs one step against DATABASE_URL (read from .env.local by the package script). */
+/**
+ * Runs one step against the database (read from .env.local by the package
+ * script): as the owner (DATABASE_OWNER_URL, else DATABASE_URL) for the
+ * schema, the seed and the roles, as the site (DATABASE_URL) otherwise.
+ */
 export async function runWithDatabase(
   task: string,
-  step: (connection: ScriptConnection) => Promise<string>,
+  step: (connection: ScriptConnection, url: string) => Promise<string>,
+  role: ScriptRole = "app",
 ): Promise<void> {
-  const databaseUrl = readDatabaseUrl(task);
-  if (databaseUrl === undefined) {
+  const database = readDatabase(task, role);
+  if (database === undefined) {
     return;
   }
-  // The host only, never the credentials: shows which database a run targets.
-  const target = new URL(databaseUrl).host;
-  const connection = open(databaseUrl);
+  // The variable, user and host only, never the password: which database a run targets.
+  const target = describeTarget(database);
+  const connection = open(database.url);
   try {
-    const summary = await step(connection);
+    const summary = await step(connection, database.url);
     process.stdout.write(`${task} (${target}): ${summary}\n`);
   } catch (error) {
     fail(`${task} (${target}) failed: ${describeErrorChain(error)}`);

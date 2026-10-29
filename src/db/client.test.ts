@@ -125,4 +125,31 @@ describe("withDatabase", () => {
     expect(seen[0]).toBeDefined();
     expect(seen[1]).toBe(seen[0]);
   });
+
+  it.each([
+    ["the owner's", "postgresql://neondb_owner:secret@db.example.com/app", 1],
+    [
+      "the site's role's",
+      "postgresql://portfolio_app:secret@db.example.com/app",
+      0,
+    ],
+  ])(
+    "on Vercel, warns when the site connects with %s string",
+    async (_case, url, warnings) => {
+      vi.stubEnv("DATABASE_URL", url);
+      vi.stubEnv("VERCEL_ENV", "preview");
+      const sink = vi
+        .spyOn(console, "warn")
+        .mockImplementation(() => undefined);
+      const { withDatabase } = await loadClient();
+
+      await withDatabase(() => Promise.resolve(ok("read")));
+
+      const warned = sink.mock.calls.filter((call) =>
+        String(call[0]).includes("db.not_app_role"),
+      );
+      expect(warned).toHaveLength(warnings);
+      expect(String(warned[0]?.[0] ?? "")).not.toContain("secret");
+    },
+  );
 });

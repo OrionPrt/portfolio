@@ -2,6 +2,7 @@ import "server-only";
 
 import { cacheLife, cacheTag } from "next/cache";
 
+import { failedReadLife } from "@/lib/cache-life";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import type { Result } from "@/lib/result";
 import { isSlug } from "@/lib/slug";
@@ -18,7 +19,7 @@ async function getSlugLists(): Promise<Result<SlugLists>> {
   if (result.ok) {
     cacheLife("hours");
   } else {
-    cacheLife("seconds");
+    cacheLife(failedReadLife());
   }
   return result;
 }

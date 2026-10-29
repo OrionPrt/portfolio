@@ -7,10 +7,14 @@ const MIGRATIONS_FOLDER = path.resolve(process.cwd(), "drizzle");
 
 /** Applies the pending migrations of drizzle/ in one transaction. */
 async function main(): Promise<void> {
-  await runWithDatabase("db:migrate", async ({ migrate }) => {
-    await migrate(MIGRATIONS_FOLDER);
-    return "the database schema is up to date.";
-  });
+  await runWithDatabase(
+    "db:migrate",
+    async ({ migrate }) => {
+      await migrate(MIGRATIONS_FOLDER);
+      return "the database schema is up to date (run pnpm db:roles if a table was added).";
+    },
+    "owner",
+  );
 }
 
 void main();

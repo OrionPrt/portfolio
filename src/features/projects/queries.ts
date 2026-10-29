@@ -5,6 +5,7 @@ import { cacheLife, cacheTag } from "next/cache";
 import { withDatabase } from "@/db/client";
 import { MAX_PAGE_SIZE } from "@/db/limits";
 import type { Locale } from "@/i18n/locales";
+import { failedReadLife } from "@/lib/cache-life";
 import { CACHE_TAGS, projectTag } from "@/lib/cache-tags";
 import { ok, type Result } from "@/lib/result";
 import { isSlug } from "@/lib/slug";
@@ -27,7 +28,7 @@ export async function getPublishedProjects(
   if (result.ok) {
     cacheLife("hours");
   } else {
-    cacheLife("seconds");
+    cacheLife(failedReadLife());
   }
   return result;
 }
@@ -44,7 +45,7 @@ async function getCachedProject(
   if (result.ok) {
     cacheLife("hours");
   } else {
-    cacheLife("seconds");
+    cacheLife(failedReadLife());
   }
   return result;
 }
@@ -81,7 +82,7 @@ export async function getFeaturedProject(
   if (result.ok) {
     cacheLife("hours");
   } else {
-    cacheLife("seconds");
+    cacheLife(failedReadLife());
   }
   return result;
 }
@@ -97,7 +98,7 @@ export async function getPublishedProjectSlugs(): Promise<
   if (result.ok) {
     cacheLife("hours");
   } else {
-    cacheLife("seconds");
+    cacheLife(failedReadLife());
   }
   return result;
 }

@@ -28,67 +28,9 @@ function optionalText() {
   return z.preprocess(emptyAsUndefined, z.string().max(1000).optional());
 }
 
-function optionalHttpsUrl() {
+/** A Postgres connection string, optional; never quoted whole in an error. */
+function optionalDatabaseUrl() {
   return z.preprocess(
-    emptyAsUndefined,
-    z.url({ protocol: /^https$/ }).optional(),
-  );
-}
-
-const serverSchema = z.object({
-  NODE_ENV: z.preprocess(
-    emptyAsUndefined,
-    z.enum(["development", "test", "production"]).default("development"),
-  ),
-  VERCEL_ENV: z.preprocess(
-    emptyAsUndefined,
-    z.enum(["development", "preview", "production"]).optional(),
-  ),
-  LOG_LEVEL: z.preprocess(emptyAsUndefined, z.enum(LOG_LEVELS).default("info")),
-  /** "true" lets a production build run on development secrets: the E2E server only. */
-  ALLOW_DEVELOPMENT_SECRETS: z.preprocess(
-    emptyAsUndefined,
-    z.enum(["true", "false"]).optional(),
-  ),
-  // Contact form (P4). All optional: without them, development runs on
-  // Cloudflare's test keys and in-memory limits, and production disables the
-  // form (src/features/contact/config.ts).
-  TURNSTILE_SITE_KEY: optionalText(),
-  TURNSTILE_SECRET_KEY: optionalText(),
-  /** Keys the HMAC that replaces stored IP addresses. */
-  IP_HASH_SALT: z.preprocess(
-    emptyAsUndefined,
-    z.string().min(32, "must be at least 32 characters").optional(),
-  ),
-  UPSTASH_REDIS_REST_URL: optionalHttpsUrl(),
-  UPSTASH_REDIS_REST_TOKEN: optionalText(),
-  // The same, as named by Vercel's Upstash integration.
-  KV_REST_API_URL: optionalHttpsUrl(),
-  KV_REST_API_TOKEN: optionalText(),
-  RESEND_API_KEY: optionalText(),
-  CONTACT_TO_EMAIL: z.preprocess(emptyAsUndefined, z.email().optional()),
-  /** "Name <address>"; without a verified domain, Resend only sends from onboarding@resend.dev. */
-  CONTACT_FROM_EMAIL: optionalText(),
-  // Admin (P5): seals the TOTP secret (AES-256-GCM), 32 bytes in base64.
-  TOTP_ENCRYPTION_KEY: z.preprocess(
-    emptyAsUndefined,
-    z.string().refine(isBase64Key, "must be 32 bytes in base64").optional(),
-  ),
-  // Media (P6c): set by Vercel's Blob integration. Without it, development and
-  // E2E store images on the local disk, and production refuses uploads.
-  BLOB_READ_WRITE_TOKEN: optionalText(),
-  // Set by Vercel: the production domain, a bare host. Base of canonical URLs
-  // when NEXT_PUBLIC_SITE_URL is not set.
-  VERCEL_PROJECT_PRODUCTION_URL: z.preprocess(
-    emptyAsUndefined,
-    z
-      .string()
-      .regex(/^[a-z0-9.-]+(:\d+)?$/, "must be a bare host name")
-      .optional(),
-  ),
-  // Optional until the public pages read the database (P3); without it,
-  // withDatabase() logs the gap and reads fail as DB_UNAVAILABLE.
-  DATABASE_URL: z.preprocess(
     emptyAsUndefined,
     z
       .url({ protocol: /^postgres(ql)?$/ })
@@ -97,8 +39,89 @@ const serverSchema = z.object({
         "must be a connection string the Neon driver can read",
       )
       .optional(),
-  ),
-});
+  );
+}
+
+function optionalHttpsUrl() {
+  return z.preprocess(
+    emptyAsUndefined,
+    z.url({ protocol: /^https$/ }).optional(),
+  );
+}
+
+const serverSchema = z
+  .object({
+    NODE_ENV: z.preprocess(
+      emptyAsUndefined,
+      z.enum(["development", "test", "production"]).default("development"),
+    ),
+    VERCEL_ENV: z.preprocess(
+      emptyAsUndefined,
+      z.enum(["development", "preview", "production"]).optional(),
+    ),
+    LOG_LEVEL: z.preprocess(
+      emptyAsUndefined,
+      z.enum(LOG_LEVELS).default("info"),
+    ),
+    /** "true" lets a production build run on development secrets: the E2E server only. */
+    ALLOW_DEVELOPMENT_SECRETS: z.preprocess(
+      emptyAsUndefined,
+      z.enum(["true", "false"]).optional(),
+    ),
+    // Contact form (P4). All optional: without them, development runs on
+    // Cloudflare's test keys and in-memory limits, and production disables the
+    // form (src/features/contact/config.ts).
+    TURNSTILE_SITE_KEY: optionalText(),
+    TURNSTILE_SECRET_KEY: optionalText(),
+    /** Keys the HMAC that replaces stored IP addresses. */
+    IP_HASH_SALT: z.preprocess(
+      emptyAsUndefined,
+      z.string().min(32, "must be at least 32 characters").optional(),
+    ),
+    UPSTASH_REDIS_REST_URL: optionalHttpsUrl(),
+    UPSTASH_REDIS_REST_TOKEN: optionalText(),
+    // The same, as named by Vercel's Upstash integration.
+    KV_REST_API_URL: optionalHttpsUrl(),
+    KV_REST_API_TOKEN: optionalText(),
+    RESEND_API_KEY: optionalText(),
+    CONTACT_TO_EMAIL: z.preprocess(emptyAsUndefined, z.email().optional()),
+    /** "Name <address>"; without a verified domain, Resend only sends from onboarding@resend.dev. */
+    CONTACT_FROM_EMAIL: optionalText(),
+    // Admin (P5): seals the TOTP secret (AES-256-GCM), 32 bytes in base64.
+    TOTP_ENCRYPTION_KEY: z.preprocess(
+      emptyAsUndefined,
+      z.string().refine(isBase64Key, "must be 32 bytes in base64").optional(),
+    ),
+    // Media (P6c): set by Vercel's Blob integration. Without it, development and
+    // E2E store images on the local disk, and production refuses uploads.
+    BLOB_READ_WRITE_TOKEN: optionalText(),
+    // Set by Vercel: the production domain, a bare host. Base of canonical URLs
+    // when NEXT_PUBLIC_SITE_URL is not set.
+    VERCEL_PROJECT_PRODUCTION_URL: z.preprocess(
+      emptyAsUndefined,
+      z
+        .string()
+        .regex(/^[a-z0-9.-]+(:\d+)?$/, "must be a bare host name")
+        .optional(),
+    ),
+    // The site's role (data changes only, ADR-0004). Without it, withDatabase()
+    // logs the gap and reads fail as DB_UNAVAILABLE.
+    DATABASE_URL: optionalDatabaseUrl(),
+    // The owner's, for migrations, the seed and the roles script only; they fall
+    // back on DATABASE_URL (a local database with one user). Never on Vercel.
+    DATABASE_OWNER_URL: optionalDatabaseUrl(),
+  })
+  // Production and previews only: `vercel env pull` writes "development"
+  // into a developer's .env.local, where the owner's URL belongs.
+  .refine(
+    ({ VERCEL_ENV, DATABASE_OWNER_URL }) =>
+      (VERCEL_ENV !== "production" && VERCEL_ENV !== "preview") ||
+      DATABASE_OWNER_URL === undefined,
+    {
+      path: ["DATABASE_OWNER_URL"],
+      message: "must not be set on Vercel: the site connects as its own role",
+    },
+  );
 
 /** The value is inlined into the client bundle: scheme, host and port only, never credentials. */
 function isBareOrigin(value: string): boolean {

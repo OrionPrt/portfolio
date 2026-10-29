@@ -4,6 +4,7 @@ import { cacheLife, cacheTag } from "next/cache";
 
 import { withDatabase } from "@/db/client";
 import type { Locale } from "@/i18n/locales";
+import { failedReadLife } from "@/lib/cache-life";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import type { Result } from "@/lib/result";
 
@@ -26,7 +27,7 @@ export async function getSkills(): Promise<Result<readonly SkillView[]>> {
   if (result.ok) {
     cacheLife("hours");
   } else {
-    cacheLife("seconds");
+    cacheLife(failedReadLife());
   }
   return result;
 }
@@ -42,7 +43,7 @@ export async function getEducation(
   if (result.ok) {
     cacheLife("hours");
   } else {
-    cacheLife("seconds");
+    cacheLife(failedReadLife());
   }
   return result;
 }
@@ -58,7 +59,7 @@ export async function getCertifications(
   if (result.ok) {
     cacheLife("hours");
   } else {
-    cacheLife("seconds");
+    cacheLife(failedReadLife());
   }
   return result;
 }
@@ -72,7 +73,7 @@ export async function getBentoTiles(): Promise<Result<readonly TileView[]>> {
   if (result.ok) {
     cacheLife("hours");
   } else {
-    cacheLife("seconds");
+    cacheLife(failedReadLife());
   }
   return result;
 }

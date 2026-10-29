@@ -71,6 +71,8 @@ const VALUE_SCRUBBERS: readonly (readonly [
     /\b(access_token|api_?key|code|key|password|refresh_token|secret|sig|signature|token)=[^&\s"',;]{1,2048}/gi,
     `$1=${REDACTED}`,
   ],
+  // A password in SQL (`create role … password '…'`), as a failed statement quotes it.
+  [/\b(password)\s+'[^'\n]{0,1024}'/gi, `$1 '${REDACTED}'`],
   // Emails: keep the first character and the domain. The lookbehind only starts a match at
   // the beginning of a run, which keeps long runs without "@" linear.
   [

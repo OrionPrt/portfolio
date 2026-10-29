@@ -4,11 +4,12 @@ The site runs on Vercel (Hobby plan) and reads PostgreSQL on Neon. Every push to
 
 ## First deployment
 
-1. **Database.** Apply the migrations and the content to the Neon database, from a machine whose `.env.local` holds its `DATABASE_URL`:
+1. **Database.** Apply the migrations and the content to the Neon database, then create the site's role, from a machine whose `.env.local` holds the owner's connection string as `DATABASE_OWNER_URL` ([Database roles](#database-roles)):
 
    ```bash
    pnpm db:migrate
    pnpm db:seed   # warns about "[À COMPLÉTER]" text left in scripts/seed/content.ts
+   pnpm db:roles  # prints the site's DATABASE_URL, once
    ```
 
 2. **Project.** In Vercel, import the GitHub repository. Vercel detects Next.js and pnpm (pinned in `package.json`). In _Settings → Build and Deployment_, set the Node.js version to 24.x.
@@ -16,8 +17,8 @@ The site runs on Vercel (Hobby plan) and reads PostgreSQL on Neon. Every push to
 
    | Variable               | Environments          | Value                                                                                     |
    | ---------------------- | --------------------- | ----------------------------------------------------------------------------------------- |
-   | `DATABASE_URL`         | Production            | The Neon connection string (pooled) of the main branch                                    |
-   | `DATABASE_URL`         | Preview               | A Neon branch made for previews, so a preview never reads production                      |
+   | `DATABASE_URL`         | Production            | The site's role on the main branch, as `pnpm db:roles` printed it (never the owner's)     |
+   | `DATABASE_URL`         | Preview               | The same role on a Neon branch made for previews, so a preview never reads production     |
    | `NEXT_PUBLIC_SITE_URL` | Production (optional) | Only once the final domain is live (P12); until then canonical URLs use the Vercel domain |
 
    `NODE_ENV`, `VERCEL_ENV` and `VERCEL_PROJECT_PRODUCTION_URL` are set by Vercel. The build validates every variable and stops on an invalid one.
@@ -74,11 +75,24 @@ The image library (`/admin/media`, [ADR-0007](adr/0007-admin.md)) keeps its file
 
 Without the token, production builds and previews refuse uploads: the library says the service is unavailable, and the logs show `media.storage_not_configured`. Development and the E2E suite store images under `.media/` (gitignored), served by the app itself.
 
+## Database roles
+
+The site connects as `portfolio_app`, a role limited to data changes: it cannot change the schema, empty a table or rewrite the audit log ([ADR-0004](adr/0004-data-layer.md)). The owner's connection string (Neon's `neondb_owner`) only serves `db:migrate`, `db:seed` and `db:roles`, from your machine; it is never set on Vercel.
+
+1. **Owner.** In `.env.local`, set the owner's connection string as `DATABASE_OWNER_URL` (the one `DATABASE_URL` held until now).
+2. **Role.** Run `pnpm db:roles`. It creates the role with a generated password, gives it its rights, and prints the site's connection string once: copy it, then clear the terminal. Run again, it keeps the password and only resets the rights. Never create this role in Neon's console: Neon makes those roles members of `neon_superuser`, and the script refuses such a role (remove it with `DROP OWNED BY portfolio_app; DROP ROLE portfolio_app;` in Neon's SQL editor, then run the script again).
+3. **Vercel.** Set that string as `DATABASE_URL` for Production (_Sensitive_), then redeploy. Never add `DATABASE_OWNER_URL` there: the build refuses it. If the site still connects as another user, its logs show `db.not_app_role`.
+4. **Previews.** Neon keeps roles per branch, and a branch copies those of its parent, password included. Give the previews' branch a password of its own, so a preview's settings never hold production's: `DATABASE_OWNER_URL=<that branch's owner string> pnpm db:roles --rotate-password`, then set the string it prints as `DATABASE_URL` for Preview.
+5. **This machine.** Set the site's string as `DATABASE_URL` in `.env.local` too: the admin commands (`admin:create`, `admin:unlock`…) run as the site does.
+6. **Rotation.** `pnpm db:roles --rotate-password` prints a new string; the old password stops working at once, so update Vercel and redeploy straight away.
+
+After a migration, run `pnpm db:roles` again: the role already gets data rights on new tables, and the script restores the exceptions (the audit log stays append-only).
+
 ## After a deployment
 
 - `https://<project>.vercel.app/fr` shows the hub, and an unknown path such as `/fr/inconnu` answers `404`.
 - The response headers carry `Content-Security-Policy` (enforced) and `Reporting-Endpoints`.
-- The runtime logs show no `csp.violation` warnings, and no `db.not_configured` or `DB_UNAVAILABLE` errors.
+- The runtime logs show no `csp.violation` warnings, and no `db.not_configured`, `DB_UNAVAILABLE` or `permission denied` errors.
 - `/admin` redirects to `/admin/login`, whose response carries `X-Robots-Tag: noindex, nofollow`; the logs show no `auth.not_configured`.
 - `/admin/media` takes an image, and the project page whose cover it is shows it, served from `*.public.blob.vercel-storage.com`.
 - `/fr/contact` shows the form and the Turnstile widget. A test message appears in `contact_messages` and arrives by email, and the logs show no `contact.not_configured`, `contact.turnstile_*` or `contact.mail_*` entries.
@@ -89,4 +103,4 @@ Content is edited in the admin, and shows on the site at once. `scripts/seed/con
 
 ## Schema changes
 
-Run `pnpm db:generate`, commit the new migration, then `pnpm db:migrate` against Neon before deploying code that depends on it. A migration already applied is never edited ([ADR-0004](adr/0004-data-layer.md)).
+Run `pnpm db:generate`, commit the new migration, then `pnpm db:migrate` and `pnpm db:roles` against Neon before deploying code that depends on it. A migration already applied is never edited ([ADR-0004](adr/0004-data-layer.md)).

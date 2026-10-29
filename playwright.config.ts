@@ -11,12 +11,15 @@ const baseURL = deployedBaseURL ?? `http://localhost:${PORT}`;
 // The server below runs on development secrets, and the tests write to its
 // database (contact messages, the admin account): never the real one, which
 // `next start` would otherwise read from .env.local.
+// The suite's helpers write as the owner (DATABASE_OWNER_URL, else DATABASE_URL).
+const ownerUrl = process.env.DATABASE_OWNER_URL ?? "";
 if (
   deployedBaseURL === undefined &&
-  !isLocalDatabase(process.env.DATABASE_URL ?? "")
+  (!isLocalDatabase(process.env.DATABASE_URL ?? "") ||
+    (ownerUrl !== "" && !isLocalDatabase(ownerUrl)))
 ) {
   throw new Error(
-    "pnpm e2e needs DATABASE_URL set to a local database, migrated and seeded (see README).",
+    "pnpm e2e needs DATABASE_URL (and DATABASE_OWNER_URL, if set) on a local database, migrated and seeded (see README).",
   );
 }
 
@@ -47,6 +50,8 @@ export default defineConfig({
           TOTP_ENCRYPTION_KEY: "",
           IP_HASH_SALT: "",
           RESEND_API_KEY: "",
+          // The site connects as its own role (DATABASE_URL), never as the owner.
+          DATABASE_OWNER_URL: "",
         },
         url: baseURL,
         reuseExistingServer: false,

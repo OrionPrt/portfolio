@@ -3,7 +3,6 @@ import { randomUUID } from "node:crypto";
 import { hash } from "@node-rs/argon2";
 import postgres from "postgres";
 
-import { isLocalDatabase } from "../../src/db/local";
 import {
   generateRecoveryCodes,
   hashRecoveryCode,
@@ -16,20 +15,12 @@ import {
 } from "../../src/features/auth/totp";
 import { DEVELOPMENT_SEALING_KEY } from "../../src/lib/deployment";
 
+import { ownerDatabaseUrl } from "./owner-database";
+
 export const ADMIN_EMAIL = "admin@example.com";
 export const ADMIN_PASSWORD = "a long e2e passphrase, never a real one";
 /** The authenticator's secret, as admin:create would have shown it: 160 bits. */
 const TOTP_SECRET = new TextEncoder().encode("e2e-only-totp-secret");
-
-function localDatabaseUrl(): string {
-  const url = process.env.DATABASE_URL ?? "";
-  if (!isLocalDatabase(url)) {
-    throw new Error(
-      "The admin tests write accounts: run them with a local DATABASE_URL.",
-    );
-  }
-  return url;
-}
 
 /**
  * Starts from one enrolled admin account, as `pnpm admin:create` leaves it
@@ -37,7 +28,7 @@ function localDatabaseUrl(): string {
  * lock or audit event. Returns the recovery codes it printed.
  */
 export async function resetAdmin(): Promise<readonly string[]> {
-  const sql = postgres(localDatabaseUrl(), {
+  const sql = postgres(ownerDatabaseUrl(), {
     max: 1,
     onnotice: () => undefined,
   });
@@ -88,7 +79,7 @@ export function authenticator(): () => Promise<string> {
  * Its subject is unique: other suites store messages at the same time.
  */
 export async function insertContactMessage(subject: string): Promise<void> {
-  const sql = postgres(localDatabaseUrl(), {
+  const sql = postgres(ownerDatabaseUrl(), {
     max: 1,
     onnotice: () => undefined,
   });

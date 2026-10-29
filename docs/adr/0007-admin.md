@@ -84,9 +84,9 @@ Implemented in P6d1 (decided on 2026-10-29).
 
 Implemented in P6d1 (decided on 2026-10-29). The dashboard lists, entry by entry and each linked to its form: unread messages, English translations missing or partial (measured as the lists measure them), drafts, text still holding the seed's `[À COMPLÉTER]` marker (any column, any language, found by casting each row to text), and entries without their cover, logo or badge. Beside them: the image library against its ceiling and the images nothing shows, and the place of the platforms' statistics (their collection arrives in P8). Below: the latest audit events, content ones naming what they changed. Each part reads on its own, so one failing read leaves the others shown.
 
-### Decided for the next slices
+### The site writes as a role limited to data
 
-- **Database roles**: the site runs with a role limited to data changes (no DDL), which may only add to the audit log; the owner's URL only serves migrations and the seed. A script creates the role, tested on Postgres, and the CI's E2E suite runs with it (P6d2, decided on 2026-10-29).
+Implemented in P6d2 (decided on 2026-10-26 and 2026-10-29), described in [ADR-0004](0004-data-layer.md): the site and the admin commands connect as `portfolio_app`, which changes rows but not the schema, and only adds to the audit log; the owner's URL serves migrations, the seed and the roles script (`pnpm db:roles`) from a developer's machine.
 
 ## Alternatives considered
 

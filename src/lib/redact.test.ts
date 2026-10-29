@@ -115,6 +115,10 @@ describe("redact — secrets inside values", () => {
       "GET /callback?code=[REDACTED]&state=ok&token=[REDACTED]",
     ],
     ["login failed: password=hunter2", "login failed: password=[REDACTED]"],
+    [
+      `Failed query: create role "app" login password 'abc_DEF-123'`,
+      `Failed query: create role "app" login password '[REDACTED]'`,
+    ],
   ])("scrubs credentials from %j", (input, expected) => {
     expect(scrubSecrets(input)).toBe(expected);
   });

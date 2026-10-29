@@ -4,6 +4,7 @@ import { cacheLife, cacheTag } from "next/cache";
 
 import { withDatabase } from "@/db/client";
 import type { Locale } from "@/i18n/locales";
+import { failedReadLife } from "@/lib/cache-life";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import { unwrapOr, type Result } from "@/lib/result";
 
@@ -25,7 +26,7 @@ async function getCachedImages(
   if (result.ok) {
     cacheLife("hours");
   } else {
-    cacheLife("seconds");
+    cacheLife(failedReadLife());
   }
   return result;
 }

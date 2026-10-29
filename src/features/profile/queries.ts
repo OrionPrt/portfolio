@@ -4,14 +4,15 @@ import { cacheLife, cacheTag } from "next/cache";
 
 import { withDatabase } from "@/db/client";
 import type { Locale } from "@/i18n/locales";
+import { failedReadLife } from "@/lib/cache-life";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import type { Result } from "@/lib/result";
 
 import { createProfileRepository, type ProfileView } from "./repository";
 
-// Cached reads for the public pages. A failed read is kept for seconds only, so
-// pages recover as soon as the database does. Until the admin (P6) revalidates
-// these tags on save, seeded content refreshes within the hour.
+// Cached reads for the public pages. A failed read is kept a second at most
+// (failedReadLife), so pages recover as soon as the database does; the admin
+// expires these tags on save.
 
 export async function getProfile(
   locale: Locale,
@@ -24,7 +25,7 @@ export async function getProfile(
   if (result.ok) {
     cacheLife("hours");
   } else {
-    cacheLife("seconds");
+    cacheLife(failedReadLife());
   }
   return result;
 }

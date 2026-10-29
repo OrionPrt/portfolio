@@ -95,6 +95,40 @@ describe("parseServerEnv", () => {
     expect(error.message).not.toContain("s3cr3t-pw");
   });
 
+  it("refuses the owner's URL on Vercel, where only the site's role belongs", () => {
+    const error = captureEnvError(() =>
+      parseServerEnv({
+        VERCEL_ENV: "production",
+        DATABASE_OWNER_URL: "postgresql://owner:s3cr3t-pw@ep-x.neon.tech/db",
+      }),
+    );
+
+    expect(error.message).toContain("DATABASE_OWNER_URL");
+    expect(error.message).not.toContain("s3cr3t-pw");
+    // A developer's machine, after `vercel env pull`.
+    expect(
+      parseServerEnv({
+        VERCEL_ENV: "development",
+        DATABASE_OWNER_URL: "postgresql://owner:pw@localhost:5432/db",
+      }).DATABASE_OWNER_URL,
+    ).toBeDefined();
+  });
+
+  it("checks the owner's URL as the site's, without echoing it", () => {
+    const url = "postgresql://owner:pw@localhost:5432/portfolio";
+    expect(parseServerEnv({ DATABASE_OWNER_URL: url }).DATABASE_OWNER_URL).toBe(
+      url,
+    );
+
+    const error = captureEnvError(() =>
+      parseServerEnv({
+        DATABASE_OWNER_URL: "postgres://u:s3cr3t-pw@ho%20st.neon.tech/db",
+      }),
+    );
+    expect(error.message).toContain("DATABASE_OWNER_URL");
+    expect(error.message).not.toContain("s3cr3t-pw");
+  });
+
   it("rejects a non-Postgres database URL without echoing its credentials", () => {
     const error = captureEnvError(() =>
       parseServerEnv({ DATABASE_URL: "https://app:s3cr3t-pw@example.com/db" }),

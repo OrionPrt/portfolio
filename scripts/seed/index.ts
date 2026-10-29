@@ -19,10 +19,14 @@ async function main(): Promise<void> {
       `db:seed: warning: ${String(placeholders)} "${PLACEHOLDER}" placeholders remain, and show on the site.\n`,
     );
   }
-  await runWithDatabase("db:seed", async ({ db }) => {
-    await seedDatabase(db, content);
-    return `upserted (skills: ${String(content.skills.length)}, projects: ${String(content.projects.length)}, tiles: ${String(content.tiles.length)}).`;
-  });
+  await runWithDatabase(
+    "db:seed",
+    async ({ db }) => {
+      await seedDatabase(db, content);
+      return `upserted (skills: ${String(content.skills.length)}, projects: ${String(content.projects.length)}, tiles: ${String(content.tiles.length)}).`;
+    },
+    "owner",
+  );
 }
 
 void main();

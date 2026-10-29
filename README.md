@@ -20,7 +20,7 @@ cp .env.example .env.local   # every variable is validated at startup
 pnpm dev                     # http://localhost:3000
 ```
 
-Pages read PostgreSQL. Set `DATABASE_URL` in `.env.local` to a Neon database, or to a local one, which the app and scripts reach with plain Postgres:
+Pages read PostgreSQL. Set `DATABASE_URL` in `.env.local` to a Neon database, or to a local one, which the app and scripts reach with plain Postgres. Locally one user does for everything; on Neon, the site connects as a role limited to data changes, and the owner's string goes in `DATABASE_OWNER_URL` ([deployment](docs/deploy.md#database-roles)):
 
 ```bash
 docker run -d --name portfolio-pg -e POSTGRES_HOST_AUTH_METHOD=trust -e POSTGRES_DB=portfolio -p 5432:5432 postgres:18.6-alpine
@@ -44,14 +44,15 @@ Without a database the site still runs, with a notice where content would be.
 | `pnpm test:coverage`      | Unit tests with coverage, 80 % minimum on every metric                |
 | `pnpm e2e`                | End-to-end tests (Playwright) against the production build            |
 | `pnpm db:generate`        | Generate a SQL migration from the Drizzle schema                      |
-| `pnpm db:migrate`         | Apply pending migrations to `DATABASE_URL`                            |
-| `pnpm db:seed`            | Upsert the content of `scripts/seed/content.ts`                       |
+| `pnpm db:migrate`         | Apply pending migrations, as the owner (`DATABASE_OWNER_URL`)         |
+| `pnpm db:seed`            | Upsert the content of `scripts/seed/content.ts`, as the owner         |
+| `pnpm db:roles`           | Create the site's role (data only) and reset its rights               |
 | `pnpm admin:create`       | Create the admin account, its authenticator enrolled in the terminal  |
 | `pnpm admin:unlock`       | Lift every sign-in lock                                               |
 | `pnpm admin:set-password` | Set a new password, ending every session and lifting every lock       |
 | `pnpm admin:reset-totp`   | Enroll a new authenticator when the phone and recovery codes are lost |
 
-`pnpm e2e` reads the database of `DATABASE_URL`: point it at a local one, migrated and seeded (`DATABASE_URL=postgresql://postgres@localhost:5432/portfolio pnpm e2e`). The admin tests replace its admin account, and refuse to run against any other.
+`pnpm e2e` reads the database of `DATABASE_URL`: point it at a local one, migrated and seeded (`DATABASE_URL=postgresql://postgres@localhost:5432/portfolio pnpm e2e`). The admin tests replace its admin account, and refuse to run against any other. As in CI, the site under test can run as its own role while the tests write as the owner: `DATABASE_OWNER_URL=postgresql://postgres@localhost:5432/portfolio DATABASE_URL=postgresql://portfolio_app@localhost:5432/portfolio pnpm e2e`, after `pnpm db:roles`. The CI also checks passwords: it gives the role one of its own through `APP_DATABASE_PASSWORD`, which `db:roles` accepts for a local database only.
 
 Commits follow [Conventional Commits](https://www.conventionalcommits.org); a pre-commit hook lints and formats staged files.
 
