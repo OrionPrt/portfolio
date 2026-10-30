@@ -147,8 +147,36 @@ describe("listCertifications", () => {
     const result = await repository().listCertifications("fr");
 
     expect(result.ok && result.data).toMatchObject([
-      { slug: "oscp", name: "OSCP", description: "Pentest" },
-      { slug: "older", description: "" },
+      { slug: "oscp", name: "OSCP", description: "Pentest", isExpired: false },
+      { slug: "older", description: "", isExpired: false },
+    ]);
+  });
+
+  it("marks a certification past its expiry day, and keeps listing it", async () => {
+    await testDb.db.insert(certifications).values([
+      {
+        slug: "expired",
+        name: "Expired",
+        issuer: "X",
+        issuedOn: "2020-01-01",
+        expiresOn: "2023-01-01",
+      },
+      {
+        slug: "valid",
+        name: "Valid",
+        issuer: "X",
+        issuedOn: "2021-01-01",
+        expiresOn: "2999-01-01",
+      },
+    ]);
+
+    const result = await repository().listCertifications("fr");
+
+    expect(
+      result.ok && result.data.map(({ slug, isExpired }) => [slug, isExpired]),
+    ).toEqual([
+      ["valid", false],
+      ["expired", true],
     ]);
   });
 });

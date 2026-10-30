@@ -15,6 +15,7 @@ describe("sitemapEntries", () => {
       "https://orion.dev/fr/competences",
       "https://orion.dev/fr/projets",
       "https://orion.dev/fr/experiences",
+      "https://orion.dev/fr/parcours",
       "https://orion.dev/fr/contact",
       "https://orion.dev/fr/projets/portfolio",
       "https://orion.dev/fr/experiences/acme",
@@ -22,7 +23,7 @@ describe("sitemapEntries", () => {
   });
 
   it("links each URL to its other languages", () => {
-    expect(entries[6]?.alternates?.languages).toEqual({
+    expect(entries[7]?.alternates?.languages).toEqual({
       fr: "https://orion.dev/fr/projets/portfolio",
       en: "https://orion.dev/en/projects/portfolio",
     });

@@ -7,6 +7,7 @@ import { Link, usePathname } from "@/i18n/navigation";
 const SECTIONS = [
   ["/projects", "projects"],
   ["/experiences", "experiences"],
+  ["/journey", "journey"],
   ["/skills", "skills"],
   ["/about", "about"],
   ["/contact", "contact"],

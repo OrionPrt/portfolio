@@ -14,15 +14,7 @@ export const EMPLOYMENT_TYPES = [
   "freelance",
 ] as const;
 
-export const SOCIAL_KINDS = [
-  "github",
-  "linkedin",
-  "email",
-  "hackthebox",
-  "rootme",
-  "tryhackme",
-  "website",
-] as const;
+export const SOCIAL_KINDS = ["github", "linkedin", "email", "website"] as const;
 
 export const TILE_KINDS = [
   "identity",

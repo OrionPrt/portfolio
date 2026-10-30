@@ -14,6 +14,8 @@ const ROUTED_PREFIXES: readonly string[] = ["/api/", "/.well-known/"];
 export const ROUTED_PATHS: ReadonlySet<string> = new Set([
   "/api/csp-report",
   "/api/admin/media",
+  // The daily purge, called by Vercel's cron (ADR-0009).
+  "/api/cron/daily",
   // Images stored on the local disk, in development and E2E (P6c).
   "/api/media/[...path]",
 ]);

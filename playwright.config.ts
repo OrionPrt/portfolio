@@ -1,5 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
+import { E2E_CRON_SECRET } from "./e2e/support/cron";
 import { isLocalDatabase } from "./src/db/local";
 
 // Not 3000: the suite must never attach to a running `next dev` instead of the production build.
@@ -52,6 +53,8 @@ export default defineConfig({
           RESEND_API_KEY: "",
           // The site connects as its own role (DATABASE_URL), never as the owner.
           DATABASE_OWNER_URL: "",
+          // The daily cron's bearer token, whatever .env.local holds (e2e/cron.spec.ts).
+          CRON_SECRET: E2E_CRON_SECRET,
         },
         url: baseURL,
         reuseExistingServer: false,

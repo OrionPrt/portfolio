@@ -8,6 +8,7 @@ import type { Locale } from "@/i18n/locales";
 export const VIEW_TRANSITIONS = {
   identity: "identity",
   stack: "stack",
+  journey: "journey",
   contact: "contact",
 } as const;
 

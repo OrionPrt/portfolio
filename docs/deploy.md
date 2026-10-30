@@ -79,6 +79,14 @@ Without the token, production builds and previews refuse uploads: the library sa
 
 `0005_posts` created a blog's tables; the blog was abandoned and `0006_drop_posts` removes them, with their redirects and the home's "latest post" tile ([ADR-0008](adr/0008-markdown.md)). Deploy first, then run `pnpm db:migrate`: the site without the blog ignores the rows `0006` deletes, while the site with it would fail on its missing tables. The command applies both migrations if needed. No new table, so `pnpm db:roles` need not run again.
 
+## Migration 0007 and the daily cron
+
+`0007_platforms` adds the platforms list and the audit log's purge ([ADR-0009](adr/0009-journey-and-retention.md)). Before deploying:
+
+1. Run `pnpm db:migrate`, then `pnpm db:roles`: the site's role gets the new table, and the right to run the purge.
+2. In Vercel, add `CRON_SECRET` (Production, _Sensitive_): at least 32 characters, e.g. `openssl rand -hex 32`. Vercel sends it to the cron declared in `vercel.json`.
+3. Deploy. In Vercel's _Cron Jobs_ settings, `/api/cron/daily` is listed; _Run_ calls it once, and its logs show `cron.purged` with what went. A call without the token answers `401`.
+
 ## Database roles
 
 The site connects as `portfolio_app`, a role limited to data changes: it cannot change the schema, empty a table or rewrite the audit log ([ADR-0004](adr/0004-data-layer.md)). The owner's connection string (Neon's `neondb_owner`) only serves `db:migrate`, `db:seed` and `db:roles`, from your machine; it is never set on Vercel.

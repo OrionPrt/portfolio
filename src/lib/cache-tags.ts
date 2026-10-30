@@ -12,6 +12,7 @@ export const CACHE_TAGS = {
   education: "education",
   certifications: "certifications",
   bento: "bento",
+  platforms: "platforms",
   // On every read that shows an image: an alternative text edited shows at once.
   media: "media",
 } as const;

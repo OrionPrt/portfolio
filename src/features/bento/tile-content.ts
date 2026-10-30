@@ -9,6 +9,7 @@ import type {
   ProfileView,
   SocialLinkView,
 } from "@/features/profile/repository";
+import type { PlatformView } from "@/features/platforms/repository";
 import type { ProjectView } from "@/features/projects/types";
 
 import { EDITABLE_TILE_KINDS } from "./rules";
@@ -21,6 +22,7 @@ export interface HubContent {
   readonly skills: readonly SkillView[];
   readonly education: readonly EducationView[];
   readonly certifications: readonly CertificationView[];
+  readonly platforms: readonly PlatformView[];
 }
 
 /** What one tile shows: the hub renders it, the editor's preview counts it. */
@@ -33,8 +35,9 @@ export type TileContent =
     }
   | { readonly kind: "stack"; readonly skills: readonly SkillView[] }
   | {
+      // Stored as "cyber_stats": the platforms where I train (ADR-0009).
       readonly kind: "cyber_stats";
-      readonly links: readonly SocialLinkView[];
+      readonly platforms: readonly PlatformView[];
     }
   | {
       // Stored as "certifications": the tile has shown education too since
@@ -45,11 +48,6 @@ export type TileContent =
     }
   | { readonly kind: "contact"; readonly links: readonly SocialLinkView[] };
 
-const PLATFORM_KINDS: readonly SocialKind[] = [
-  "hackthebox",
-  "rootme",
-  "tryhackme",
-];
 const CONTACT_KINDS: readonly SocialKind[] = [
   "email",
   "linkedin",
@@ -86,10 +84,10 @@ export function tileContent(
       return content.skills.length > 0
         ? { kind, skills: content.skills }
         : undefined;
-    case "cyber_stats": {
-      const links = linksOf(content.profile, PLATFORM_KINDS);
-      return links.length > 0 ? { kind, links } : undefined;
-    }
+    case "cyber_stats":
+      return content.platforms.length > 0
+        ? { kind, platforms: content.platforms }
+        : undefined;
     case "certifications":
       return content.education.length > 0 || content.certifications.length > 0
         ? {

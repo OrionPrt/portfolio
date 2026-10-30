@@ -1,4 +1,4 @@
-import { MONTH_YEAR, utcDate } from "@/lib/dates";
+import { DAY_MONTH_YEAR, MONTH_YEAR, utcDate } from "@/lib/dates";
 
 import { ADMIN_COPY } from "./copy";
 
@@ -25,6 +25,20 @@ export function formatPeriod(start: string, end: string | null): string {
     formatMonthYear(start),
     end === null ? undefined : formatMonthYear(end),
   );
+}
+
+const DAY = new Intl.DateTimeFormat("fr-FR", DAY_MONTH_YEAR);
+
+/** "30 octobre 2026", for a stored calendar day. */
+export function formatDay(isoDate: string): string {
+  return DAY.format(utcDate(isoDate));
+}
+
+const NUMBER = new Intl.NumberFormat("fr-FR");
+
+/** "12 500", grouped as French writes it. */
+export function formatNumber(value: number): string {
+  return NUMBER.format(value);
 }
 
 // Order matters: Edge and Chrome both say "Safari", Edge also says "Chrome".

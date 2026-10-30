@@ -24,6 +24,7 @@
     "label": "Main navigation",
     "about": "About",
     "skills": "Skills",
+    "journey": "Journey",
     "projects": "Projects",
     "experiences": "Experience",
     "contact": "Contact"
@@ -51,9 +52,6 @@
     "github": "GitHub",
     "linkedin": "LinkedIn",
     "email": "Email",
-    "hackthebox": "Hack The Box",
-    "rootme": "Root-Me",
-    "tryhackme": "TryHackMe",
     "website": "Website"
   },
   "Home": {
@@ -66,6 +64,9 @@
     "stack": "skills",
     "moreSkills": "+{count}",
     "platforms": "platforms",
+    "platformPoints": "{points, number} pts",
+    "platformPointsLabel": "{points, number} points",
+    "platformsReadOn": "as of {date}",
     "journey": "background",
     "journeyEducation": "education",
     "journeyCertification": "certification",
@@ -135,6 +136,23 @@
   "Experience": {
     "label": "experience",
     "stack": "Technologies"
+  },
+  "Journey": {
+    "label": "journey",
+    "title": "Journey",
+    "description": "Education, certifications and training platforms.",
+    "education": "Education",
+    "certifications": "Certifications",
+    "platforms": "Platforms",
+    "issued": "Earned {date}",
+    "expires": "expires {date}",
+    "expired": "expired since {date}",
+    "credentialId": "Credential ID: {id}",
+    "verify": "Verify",
+    "verifyLabel": "Verify the {name} certification",
+    "points": "{points, number} points",
+    "readOn": "as of {date}",
+    "empty": "Nothing to show yet."
   },
   "Contact": {
     "label": "contact",

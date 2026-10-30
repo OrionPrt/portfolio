@@ -9,6 +9,7 @@ import type {
   ToTranslate,
 } from "@/features/admin/dashboard-repository";
 import type { AuditEntry } from "@/features/auth/audit-repository";
+import type { PlatformForEdit } from "@/features/platforms/admin-repository";
 import {
   ADMIN_PATHS,
   certificationPath,
@@ -20,6 +21,7 @@ import type { Result } from "@/lib/result";
 
 import { AuditList } from "./audit-list";
 import { ADMIN_COPY } from "./copy";
+import { formatDay } from "./format";
 
 const COPY = ADMIN_COPY.dashboard;
 const KINDS = ADMIN_COPY.media.usageKinds;
@@ -240,17 +242,35 @@ export function MediaPanel({
   );
 }
 
-/** Where the platforms' collection will report its last run. */
-export function StatsPanel() {
+/** The platforms entered by hand (ADR-0009): how many, and how old their figures. */
+export function PlatformsPanel({
+  platforms,
+}: {
+  readonly platforms: Result<readonly Pick<PlatformForEdit, "updatedOn">[]>;
+}) {
+  const days = platforms.ok
+    ? platforms.data.map((platform) => platform.updatedOn).sort()
+    : undefined;
+  const [oldest] = days ?? [];
   return (
-    <section aria-labelledby="dashboard-stats" className={INFO}>
-      <h2 id="dashboard-stats" className={INFO_TITLE}>
-        {COPY.stats.title}
+    <section aria-labelledby="dashboard-platforms" className={INFO}>
+      <h2 id="dashboard-platforms" className={INFO_TITLE}>
+        {COPY.platforms.title}
       </h2>
-      <p className="text-fg-muted border-line rounded-chip self-start border px-2 py-0.5 font-mono text-xs">
-        {COPY.stats.never}
-      </p>
-      <p className="text-fg-muted text-sm">{COPY.stats.pending}</p>
+      {days === undefined ? (
+        <p className="text-danger text-sm">{COPY.platforms.unavailable}</p>
+      ) : (
+        <>
+          <p className="text-sm">
+            {oldest === undefined
+              ? COPY.platforms.empty
+              : COPY.platforms.summary(days.length, formatDay(oldest))}
+          </p>
+          <Link href={ADMIN_PATHS.platforms} className={`${LINK} text-sm`}>
+            {COPY.platforms.open}
+          </Link>
+        </>
+      )}
     </section>
   );
 }

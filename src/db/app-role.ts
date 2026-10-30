@@ -26,6 +26,12 @@ const WITHHELD: readonly {
 
 const ROLE = `"${APP_ROLE}"`;
 
+/**
+ * The audit log's only deletion: the entries over 12 months old, through a
+ * function that runs with its owner's rights (migration 0007, ADR-0009).
+ */
+const AUDIT_PURGE = 'public."purge_audit_logs"()';
+
 /** 256 bits, URL-safe: it goes in a connection string as it is. */
 const PASSWORD_BYTES = 32;
 
@@ -48,7 +54,7 @@ function qualified(table: string): string {
  * Rights reset, then given: the role reaches the public schema's tables for
  * data only (no TRUNCATE, REFERENCES or TRIGGER), minus the rights withheld,
  * and gets the same data rights on the tables the owner creates later
- * (migrations). No sequence: identity columns need none, so no id is burnt by
+ * (migrations). Of the functions, it may run the audit log's purge alone. No sequence: identity columns need none, so no id is burnt by
  * hand. The migrations' own schema stays closed. Its queries stop on the
  * server when the site's driver gives up on them.
  */
@@ -62,6 +68,10 @@ export function grantStatements(): readonly string[] {
       ({ table, rights }) =>
         `revoke ${rights.join(", ")} on ${qualified(table)} from ${ROLE}`,
     ),
+    `revoke all on all functions in schema public from ${ROLE}`,
+    // PostgreSQL lets everyone run a new function: not the owner's next ones.
+    "alter default privileges revoke execute on functions from public",
+    `grant execute on function ${AUDIT_PURGE} to ${ROLE}`,
     `revoke all on all sequences in schema public from ${ROLE}`,
     `alter default privileges in schema public revoke all on sequences from ${ROLE}`,
     `alter default privileges in schema public grant select, insert, update, delete on tables to ${ROLE}`,
@@ -171,6 +181,12 @@ function excessChecks(): readonly (readonly [string, SQL])[] {
       "TRUNCATE on a table",
       sql`exists (select from pg_tables t where t.schemaname = 'public'
         and has_table_privilege(${role}, format('%I.%I', t.schemaname, t.tablename), 'TRUNCATE'))`,
+    ],
+    [
+      "EXECUTE on an owner's-rights function other than the audit purge",
+      sql`exists (select from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname = 'public' and p.prosecdef and p.proname <> 'purge_audit_logs'
+        and has_function_privilege(${role}, p.oid, 'EXECUTE'))`,
     ],
     [
       "an object of its own",

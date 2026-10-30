@@ -10,6 +10,7 @@ const NOTHING = {
   skills: [],
   education: [],
   certifications: [],
+  platforms: [],
 };
 
 describe("tilesWithoutContent", () => {
@@ -51,12 +52,18 @@ describe("tilesWithoutContent", () => {
   });
 
   it("keeps a tile once it has something to show", () => {
+    const platform = {
+      name: "Root Me",
+      profileUrl: "https://www.root-me.org/me",
+      rank: null,
+      points: 3165,
+      updatedOn: "2026-10-30",
+    };
     const content = {
       ...NOTHING,
       featuredProject: projectView(),
-      profile: profileView({
-        socialLinks: [{ kind: "rootme", url: "https://www.root-me.org/me" }],
-      }),
+      profile: profileView(),
+      platforms: [platform],
     };
 
     expect(tilesWithoutContent(content)).toEqual([
@@ -66,7 +73,7 @@ describe("tilesWithoutContent", () => {
     ]);
     expect(tileContent("cyber_stats", content)).toEqual({
       kind: "cyber_stats",
-      links: [{ kind: "rootme", url: "https://www.root-me.org/me" }],
+      platforms: [platform],
     });
   });
 });

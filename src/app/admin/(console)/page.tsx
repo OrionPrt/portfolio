@@ -5,7 +5,7 @@ import { ADMIN_COPY } from "@/components/admin/copy";
 import {
   ActivitySection,
   MediaPanel,
-  StatsPanel,
+  PlatformsPanel,
   ToDoSection,
 } from "@/components/admin/dashboard-sections";
 import { withDatabase } from "@/db/client";
@@ -13,6 +13,7 @@ import { createDashboardRepository } from "@/features/admin/dashboard-repository
 import { createAuditRepository } from "@/features/auth/audit-repository";
 import { requireAdmin } from "@/features/auth/dal";
 import { getUnreadCount } from "@/features/contact/inbox-queries";
+import { createPlatformsAdminRepository } from "@/features/platforms/admin-repository";
 
 export const metadata: Metadata = { title: ADMIN_COPY.dashboard.title };
 
@@ -27,10 +28,11 @@ const ACTIVITY_SIZE = 8;
 /** Each part reads on its own: one failing leaves the others shown. */
 export default async function AdminHomePage() {
   await requireAdmin();
-  const [unread, content, media, activity] = await Promise.all([
+  const [unread, content, media, platforms, activity] = await Promise.all([
     getUnreadCount(),
     withDatabase((db) => createDashboardRepository(db).contentToDo()),
     withDatabase((db) => createDashboardRepository(db).media()),
+    withDatabase((db) => createPlatformsAdminRepository(db).list()),
     withDatabase((db) =>
       createAuditRepository(db).list({ limit: ACTIVITY_SIZE, offset: 0 }),
     ),
@@ -46,7 +48,7 @@ export default async function AdminHomePage() {
         <ToDoSection unread={unread} content={content} />
         <div className="flex flex-col gap-4">
           <MediaPanel media={media} />
-          <StatsPanel />
+          <PlatformsPanel platforms={platforms} />
         </div>
       </div>
       <ActivitySection activity={activity} />

@@ -17,6 +17,7 @@ import { getFeaturedProject } from "@/features/projects/queries";
 import { localizedAlternates } from "@/features/seo/alternates";
 import { personJsonLd } from "@/features/seo/json-ld";
 import { siteUrl } from "@/features/seo/site-url";
+import { getPlatforms } from "@/features/platforms/queries";
 import { getPathname } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { unwrapOr } from "@/lib/result";
@@ -49,6 +50,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     getSkills(),
     getEducation(locale),
     getCertifications(locale),
+    getPlatforms(),
   ]);
   const [
     tiles,
@@ -58,6 +60,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     skills,
     education,
     certifications,
+    platforms,
   ] = reads;
 
   const owner = unwrapOr(profile, undefined);
@@ -85,6 +88,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           skills: unwrapOr(skills, []),
           education: unwrapOr(education, []),
           certifications: unwrapOr(certifications, []),
+          platforms: unwrapOr(platforms, []),
         }}
       />
     </div>

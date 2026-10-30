@@ -99,7 +99,7 @@ describe("SocialLinksEditor", () => {
       screen.getByRole("region", { name: "Ajouter un lien" }),
     ).getAllByRole("option");
     expect(kinds.map((option) => option.textContent)).not.toContain("GitHub");
-    expect(kinds).toHaveLength(6);
+    expect(kinds).toHaveLength(3);
   });
 });
 

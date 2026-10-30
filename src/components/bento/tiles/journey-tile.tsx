@@ -1,17 +1,19 @@
 import { useLocale, useTranslations } from "next-intl";
-import type { ReactNode } from "react";
+import { ViewTransition, type ReactNode } from "react";
 
 import { Period } from "@/components/content/period";
+import { ArrowIcon } from "@/components/ui/arrow-icon";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { MediaImage } from "@/components/ui/media-image";
 import type {
   CertificationView,
   EducationView,
 } from "@/features/catalog/repository";
+import { VIEW_TRANSITIONS } from "@/features/content/view-names";
 import type { TileSize } from "@/features/content/vocabulary";
 import type { MediaView } from "@/features/media/types";
 
-import { Tile } from "../tile";
+import { Tile, TileLink } from "../tile";
 
 /** What the tile lists at most: the latest education, then certifications. */
 const MAX_ITEMS = 3;
@@ -56,8 +58,8 @@ interface JourneyTileProps {
 }
 
 /**
- * The most recent education, then the latest certifications; the CV (P9)
- * and the certifications page (P8) give them all.
+ * The most recent education, then the latest certifications. Morphs into the
+ * journey page, which lists them all, with the platforms.
  */
 export function JourneyTile({
   size,
@@ -77,52 +79,66 @@ export function JourneyTile({
     shown.some((certification) => certification.badge !== undefined);
 
   return (
-    <Tile size={size} labelledBy={titleId} className="justify-between">
-      <Eyebrow as="h2" id={titleId}>
-        {t("journey")}
-      </Eyebrow>
-      {/* role="list": Safari drops list semantics once list-style is none. */}
-      <ul role="list" className="flex flex-col gap-2">
-        {latest !== undefined && (
-          <JourneyItem
-            image={latest.logo}
-            hasImages={hasImages}
-            kind={t("journeyEducation")}
-          >
-            <span
-              lang={latest.isFallback ? latest.contentLocale : undefined}
-              // Two lines at most, so the hub keeps to one screen; read whole.
-              className="line-clamp-2 font-medium"
+    <ViewTransition
+      name={VIEW_TRANSITIONS.journey}
+      share="morph"
+      default="none"
+    >
+      <Tile
+        size={size}
+        labelledBy={titleId}
+        isInteractive
+        className="justify-between"
+      >
+        <div className="text-fg-muted flex items-center justify-between">
+          <Eyebrow as="h2" id={titleId}>
+            <TileLink href="/journey">{t("journey")}</TileLink>
+          </Eyebrow>
+          <ArrowIcon />
+        </div>
+        {/* role="list": Safari drops list semantics once list-style is none. */}
+        <ul role="list" className="flex flex-col gap-2">
+          {latest !== undefined && (
+            <JourneyItem
+              image={latest.logo}
+              hasImages={hasImages}
+              kind={t("journeyEducation")}
             >
-              {latest.degree}
-            </span>{" "}
-            <span className="text-fg-muted text-sm">
-              {latest.school}
-              {" · "}
-              <span className="whitespace-nowrap">
-                <Period
-                  startedOn={latest.startedOn}
-                  endedOn={latest.endedOn}
-                  isYearOnly
-                />
+              <span
+                lang={latest.isFallback ? latest.contentLocale : undefined}
+                // Two lines at most, so the hub keeps to one screen; read whole.
+                className="line-clamp-2 font-medium"
+              >
+                {latest.degree}
+              </span>{" "}
+              <span className="text-fg-muted text-sm">
+                {latest.school}
+                {" · "}
+                <span className="whitespace-nowrap">
+                  <Period
+                    startedOn={latest.startedOn}
+                    endedOn={latest.endedOn}
+                    isYearOnly
+                  />
+                </span>
               </span>
-            </span>
-          </JourneyItem>
-        )}
-        {shown.map((certification) => (
-          <JourneyItem
-            key={certification.slug}
-            image={certification.badge}
-            hasImages={hasImages}
-            kind={t("journeyCertification")}
-          >
-            <span className="font-medium">{certification.name}</span>{" "}
-            <span className="text-fg-muted text-sm">
-              {certification.issuer}
-            </span>
-          </JourneyItem>
-        ))}
-      </ul>
-    </Tile>
+            </JourneyItem>
+          )}
+          {shown.map((certification) => (
+            <JourneyItem
+              key={certification.slug}
+              image={certification.badge}
+              hasImages={hasImages}
+              kind={t("journeyCertification")}
+            >
+              <span className="font-medium">{certification.name}</span>{" "}
+              <span className="text-fg-muted text-sm">
+                {certification.issuer}
+              </span>
+            </JourneyItem>
+          ))}
+        </ul>
+      </Tile>
+    </ViewTransition>
   );
 }

@@ -26,6 +26,8 @@ beforeEach(async () => {
   await testDb.reset();
   await testDb.exec(`
     drop table if exists later;
+    drop function if exists later_plain();
+    drop function if exists later_definer();
     do $$ begin
       if exists (select from pg_roles where rolname = '${APP_ROLE}') then
         drop owned by ${APP_ROLE};
@@ -94,6 +96,27 @@ describe("ensureAppRole", () => {
     expect(await asApp("update audit_logs set action = 'x.y'")).toMatch(DENIED);
     expect(await asApp("delete from audit_logs")).toMatch(DENIED);
     expect(await asApp("truncate audit_logs")).toMatch(DENIED);
+  });
+
+  it("lets the site purge the audit log of entries over 12 months old, and only those", async () => {
+    await testDb.exec(`
+      insert into audit_logs (action, created_at) values
+        ('content.updated', now() - interval '13 months'),
+        ('content.updated', now() - interval '11 months')`);
+    await ensureAppRole(testDb.db);
+
+    expect(await asApp("select public.purge_audit_logs()")).toBe("ok");
+
+    expect(
+      await testDb.query<{ age: string }>(
+        "select (created_at > now() - interval '12 months')::text as age from audit_logs",
+      ),
+    ).toEqual([{ age: "true" }]);
+    expect(
+      await testDb.query<{ allowed: boolean }>(
+        "select has_function_privilege('public', 'public.purge_audit_logs()', 'execute') as allowed",
+      ),
+    ).toEqual([{ allowed: false }]);
   });
 
   it("runs the site's own writes: an audited deletion, an upsert, a cascade, an actor's event", async () => {
@@ -173,6 +196,25 @@ describe("ensureAppRole", () => {
     await ensureAppRole(testDb.db);
 
     expect(await asApp(statement)).toMatch(/permission denied|must be owner/);
+  });
+
+  it("lets the site run no function a later migration creates", async () => {
+    await ensureAppRole(testDb.db);
+    await testDb.exec(
+      "create function later_plain() returns int language sql as 'select 1'",
+    );
+
+    expect(await asApp("select later_plain()")).toMatch(DENIED);
+  });
+
+  it("refuses to finish while the site could run another owner's-rights function", async () => {
+    await testDb.exec(`
+      create function later_definer() returns int language sql security definer as 'select 1';
+      grant execute on function later_definer() to public;`);
+
+    await expect(ensureAppRole(testDb.db)).rejects.toThrow(
+      /owner's-rights function/,
+    );
   });
 
   it("gives the same rights on the tables a later migration creates", async () => {

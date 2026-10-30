@@ -15,6 +15,7 @@ import {
 import { getCurrentExperience } from "@/features/experiences/queries";
 import { getProfile } from "@/features/profile/queries";
 import { getFeaturedProject } from "@/features/projects/queries";
+import { getPlatforms } from "@/features/platforms/queries";
 import { DEFAULT_LOCALE } from "@/i18n/locales";
 import { all } from "@/lib/result";
 
@@ -38,6 +39,7 @@ async function loadEmptyKinds() {
     getSkills(),
     getEducation(DEFAULT_LOCALE),
     getCertifications(DEFAULT_LOCALE),
+    getPlatforms(),
   ]);
   const content = all(reads);
   if (!content.ok) {
@@ -50,6 +52,7 @@ async function loadEmptyKinds() {
     skills,
     education,
     certifications,
+    platforms,
   ] = content.data;
   return tilesWithoutContent({
     profile,
@@ -58,6 +61,7 @@ async function loadEmptyKinds() {
     skills,
     education,
     certifications,
+    platforms,
   });
 }
 

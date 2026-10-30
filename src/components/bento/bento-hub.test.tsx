@@ -54,7 +54,6 @@ function hub(overrides: Partial<HubData> = {}): HubData {
       socialLinks: [
         { kind: "email", url: "mailto:me@example.com" },
         { kind: "linkedin", url: "https://linkedin.com/in/me" },
-        { kind: "hackthebox", url: "https://app.hackthebox.com/profile/1" },
       ],
     }),
     featuredProject: projectView({
@@ -73,10 +72,29 @@ function hub(overrides: Partial<HubData> = {}): HubData {
         issuer: "OffSec",
         issuedOn: "2025-01-01",
         expiresOn: null,
+        isExpired: false,
         credentialId: null,
         verifyUrl: null,
         description: "",
         badge: undefined,
+        isFallback: false,
+        contentLocale: "fr",
+      },
+    ],
+    platforms: [
+      {
+        name: "Hack The Box",
+        profileUrl: "https://app.hackthebox.com/profile/1",
+        rank: "Pro Hacker",
+        points: 12_500,
+        updatedOn: "2026-10-30",
+      },
+      {
+        name: "Root Me",
+        profileUrl: null,
+        rank: null,
+        points: null,
+        updatedOn: "2026-10-01",
       },
     ],
     ...overrides,
@@ -114,6 +132,7 @@ describe("BentoHub", () => {
           skills: [],
           education: [],
           certifications: [],
+          platforms: [],
         })}
       />,
     );
@@ -184,17 +203,55 @@ describe("BentoHub", () => {
     expect(within(stack).getByText("bas niveau")).toBeVisible();
   });
 
-  it("splits the links between the platforms and contact tiles", () => {
+  it("shows each platform's rank and points, a name linking to its profile, and the oldest reading's day", () => {
     renderWithIntl(<BentoHub data={hub()} />);
 
     const platforms = screen.getByRole("region", { name: "plateformes" });
+    const [htb, rootMe] = within(platforms).getAllByRole("listitem");
+
+    expect(htb).toHaveTextContent("Hack The Box Pro Hacker 12 500 pts");
+    expect(
+      within(platforms).getByRole("link", { name: "Hack The Box" }),
+    ).toHaveAttribute("rel", "noopener noreferrer");
+    expect(rootMe).toHaveTextContent("Root Me");
+    expect(within(rootMe ?? document.body).queryByRole("link")).toBeNull();
+    expect(platforms).toHaveTextContent("relevé le 1 octobre 2026");
+    // "pts" for the eye, "points" for the ear.
+    expect(within(platforms).getByText("12 500 pts")).toHaveAttribute(
+      "aria-hidden",
+      "true",
+    );
+    expect(within(platforms).getByText("12 500 points")).toHaveClass("sr-only");
+  });
+
+  it("shows three platforms on the tile, and says how many more there are", () => {
+    const [platform] = hub().platforms;
+    renderWithIntl(
+      <BentoHub
+        data={hub({
+          platforms: ["A", "B", "C", "D", "E"].map((name) => ({
+            ...(platform ?? {
+              profileUrl: null,
+              rank: null,
+              points: null,
+              updatedOn: "2026-10-30",
+            }),
+            name,
+          })),
+        })}
+      />,
+    );
+    const tile = screen.getByRole("region", { name: "plateformes" });
+
+    expect(within(tile).getAllByRole("listitem")).toHaveLength(3);
+    expect(within(tile).getByText("et 2 autres")).toHaveClass("sr-only");
+  });
+
+  it("gives the contact tile the contact links", () => {
+    renderWithIntl(<BentoHub data={hub()} />);
+
     const contact = screen.getByRole("region", { name: "contact" });
 
-    expect(
-      within(platforms)
-        .getAllByRole("link")
-        .map((link) => link.textContent),
-    ).toEqual(["Hack The Box"]);
     expect(
       within(contact)
         .getAllByRole("link")
@@ -230,6 +287,9 @@ describe("BentoHub", () => {
     );
 
     const tile = screen.getByRole("region", { name: "parcours" });
+    expect(
+      within(tile).getByRole("link", { name: "parcours" }),
+    ).toHaveAttribute("href", "/fr/parcours");
     const [school, certification] = within(tile).getAllByRole("listitem");
     expect(school).toHaveTextContent(
       "formation Expert en technologies de l'information Epitech · 2021 — aujourd'hui",

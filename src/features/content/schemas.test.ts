@@ -8,6 +8,7 @@ import {
   experienceInputSchema,
   httpsUrlSchema,
   isoDateSchema,
+  platformInputSchema,
   projectInputSchema,
   slugSchema,
   socialLinkInputSchema,
@@ -104,6 +105,34 @@ describe("socialLinkInputSchema", () => {
     ["github", "mailto:hello@example.com", false],
   ] as const)("%s link %j is valid → %s", (kind, url, valid) => {
     expect(socialLinkInputSchema.safeParse({ kind, url }).success).toBe(valid);
+  });
+});
+
+describe("platformInputSchema", () => {
+  const PLATFORM = { name: "Hack The Box", updatedOn: "2026-10-30" };
+
+  it("needs a name and a day; profile, rank and points are optional", () => {
+    expect(platformInputSchema.parse(PLATFORM)).toEqual({
+      ...PLATFORM,
+      profileUrl: null,
+      rank: null,
+      points: null,
+    });
+    expect(platformInputSchema.safeParse({ name: " " }).success).toBe(false);
+  });
+
+  it.each([
+    [{ profileUrl: "javascript:alert(1)" }, false],
+    [{ profileUrl: "https://app.hackthebox.com/profile/1" }, true],
+    [{ rank: "Pro Hacker", points: 1250 }, true],
+    [{ points: -1 }, false],
+    [{ points: 1.5 }, false],
+    [{ points: 1_000_000_001 }, false],
+    [{ rank: "x".repeat(TEXT_LIMITS.name + 1) }, false],
+  ] as const)("platform with %j is valid → %s", (fields, valid) => {
+    expect(
+      platformInputSchema.safeParse({ ...PLATFORM, ...fields }).success,
+    ).toBe(valid);
   });
 });
 

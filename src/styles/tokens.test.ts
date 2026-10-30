@@ -22,6 +22,7 @@ const TEXT_PAIRS = [
   ["accent", "surface-muted"],
   ["danger", "ground"],
   ["danger", "surface"],
+  ["warning", "surface"],
 ] as const;
 
 const UI_PAIRS = [

@@ -43,6 +43,7 @@ export const AUDIT_ACTIONS = [
   "content.updated",
   "content.deleted",
   "content.reordered",
+  "retention.purged",
 ] as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];

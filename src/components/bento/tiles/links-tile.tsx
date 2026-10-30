@@ -10,14 +10,14 @@ import { Tile } from "../tile";
 interface LinksTileProps {
   readonly size: TileSize;
   /** Tile kind: scopes the heading id and picks the label. */
-  readonly kind: "contact" | "platforms";
+  readonly kind: "contact";
   readonly links: readonly SocialLinkView[];
   readonly lead?: string;
   /** A call to action, between the lead and the links. */
   readonly action?: ReactNode;
 }
 
-/** Outbound links: how to reach me (contact), where I train (platforms). */
+/** Outbound links: how to reach me. */
 export function LinksTile({ size, kind, links, lead, action }: LinksTileProps) {
   const t = useTranslations("Home");
   const tKinds = useTranslations("SocialKinds");

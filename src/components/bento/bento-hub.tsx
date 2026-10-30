@@ -12,7 +12,7 @@ import { ExperienceTile } from "./tiles/experience-tile";
 import { FeaturedProjectTile } from "./tiles/featured-project-tile";
 import { IdentityTile } from "./tiles/identity-tile";
 import { JourneyTile } from "./tiles/journey-tile";
-import { LinksTile } from "./tiles/links-tile";
+import { PlatformsTile } from "./tiles/platforms-tile";
 import { StackTile } from "./tiles/stack-tile";
 
 export interface HubData extends HubContent {
@@ -44,7 +44,7 @@ function ShownTile({ size, content }: ShownTileProps) {
     case "stack":
       return <StackTile size={size} skills={content.skills} />;
     case "cyber_stats":
-      return <LinksTile size={size} kind="platforms" links={content.links} />;
+      return <PlatformsTile size={size} platforms={content.platforms} />;
     case "certifications":
       return (
         <JourneyTile

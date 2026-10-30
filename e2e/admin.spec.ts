@@ -638,9 +638,16 @@ test("adds an education entry still under way, which the journey tile shows unti
 
   // The most recent education leads the home's journey tile (the seed has none).
   await page.goto("/fr");
-  await expect(page.getByRole("region", { name: "parcours" })).toContainText(
-    `Master ${school} · 2025 — aujourd'hui`,
-  );
+  const tile = page.getByRole("region", { name: "parcours" });
+  await expect(tile).toContainText(`Master ${school} · 2025 — aujourd'hui`);
+  // The tile opens the journey page, which lists it in full.
+  await tile.getByRole("link", { name: "parcours" }).click();
+  await expect(page).toHaveURL((url) => url.pathname === "/fr/parcours");
+  await expect(page).toHaveTitle(/^Parcours/);
+  await expect(
+    page.getByRole("region", { name: "Formation" }).getByRole("listitem"),
+  ).toContainText(`Master ${school} · septembre 2025 — aujourd'hui`);
+  await expectNoAxeViolation(page);
 
   await page.goto("/admin/education");
   await expect(page).toHaveTitle(/^Formation/);
@@ -658,6 +665,56 @@ test("adds an education entry still under way, which the journey tile shows unti
   await expect(row).toHaveCount(0);
   await page.goto("/fr");
   await expect(page.getByText(school)).toHaveCount(0);
+});
+
+test("adds a platform, which the platforms tile and the journey page show until it is deleted", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  const stamp = String(Date.now());
+  const name = `Plateforme E2E ${stamp}`;
+  const profile = "https://app.hackthebox.com/profile/1";
+  await signIn(page);
+
+  await page.goto("/admin/platforms");
+  await expect(page).toHaveTitle(/^Plateformes/);
+  await expectNoAxeViolation(page);
+  const add = page.getByRole("region", { name: "Ajouter une plateforme" });
+  await add.getByRole("textbox", { name: "Nom" }).fill(name);
+  await add.getByRole("textbox", { name: "Lien du profil" }).fill(profile);
+  await add.getByRole("textbox", { name: "Rang ou niveau" }).fill("Pro Hacker");
+  await add.getByRole("textbox", { name: "Points" }).fill("12 500");
+  await add.getByRole("button", { name: "Enregistrer" }).click();
+  const card = page
+    .getByRole("listitem")
+    .filter({ has: page.getByRole("heading", { name }) });
+  await expect(card).toContainText("Pro Hacker · 12 500 points · relevé le");
+
+  // Saved, the platform shows at once on the home's tile, linked to its profile.
+  await page.goto("/fr");
+  const tile = page.getByRole("region", { name: "plateformes" });
+  await expect(tile).toContainText(`${name} Pro Hacker 12 500 pts`);
+  await expect(tile.getByRole("link", { name })).toHaveAttribute(
+    "href",
+    profile,
+  );
+  await page.goto("/fr/parcours");
+  await expect(
+    page.getByRole("region", { name: "Plateformes" }).getByRole("listitem"),
+  ).toContainText(`${name} Pro Hacker · relevé le`);
+  await expectNoAxeViolation(page);
+
+  await page.goto("/admin/platforms");
+  await card.getByRole("button", { name: `Supprimer ${name}` }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Supprimer définitivement" })
+    .click();
+  await expect(card).toHaveCount(0);
+  await page.goto("/fr");
+  await expect(page.getByRole("region", { name: "plateformes" })).toHaveCount(
+    0,
+  );
 });
 
 test("adds an image to the library, shows it as a cover, and deletes it once nothing does", async ({

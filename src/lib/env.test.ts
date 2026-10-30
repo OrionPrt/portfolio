@@ -203,6 +203,7 @@ describe("parseServerEnv — contact form", () => {
     ["IP_HASH_SALT", "too-short-salt"],
     ["UPSTASH_REDIS_REST_URL", "http://eu1-x.upstash.io"],
     ["CONTACT_TO_EMAIL", "not-an-email"],
+    ["CRON_SECRET", "too-short-cron-secret"],
   ])("rejects an invalid %s without echoing it", (name, value) => {
     const error = captureEnvError(() => parseServerEnv({ [name]: value }));
 

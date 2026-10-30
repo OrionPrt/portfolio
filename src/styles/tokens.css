@@ -18,7 +18,7 @@
   --focus: #047857;
   /* Errors: text, and the border of an invalid control. */
   --danger: #b91c1c;
-  /* A warning in Markdown (:::warning): its border, apart from the note's green. */
+  /* A warning: a Markdown :::warning's border, an expired certification's text. */
   --warning: #b45309;
   --dot: rgb(9 9 11 / 0.09);
   color-scheme: light;

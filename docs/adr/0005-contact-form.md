@@ -77,7 +77,7 @@ The sender's address is not verified: a reply goes to whatever was typed. The no
 
 - **Stored:** name, email address, subject, message, locale, user agent (capped at 512 characters) and the keyed hash of the sender's network. The address itself is never stored or logged, and the hash cannot be reversed without the salt.
 - **Logs:** a failed insert is logged with its SQL state and constraint only. Drizzle quotes the values in its error, and Postgres repeats a refused row in its detail, so the error itself is never logged (`runQuery`, option `hasPersonalData`).
-- **Retention:** 12 months, announced under the form. The purge runs from the daily cron (P8).
+- **Retention:** 12 months, announced under the form. The daily cron deletes older messages ([ADR-0009](0009-journey-and-retention.md)).
 - **Status:** each message carries a status (`unread`, `read`, `archived`) for the admin (P6).
 
 ## Alternatives considered

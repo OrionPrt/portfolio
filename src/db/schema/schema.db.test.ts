@@ -6,6 +6,7 @@ import {
   education,
   media,
   mediaTranslations,
+  platforms,
   profile,
   projects,
   projectSkills,
@@ -74,6 +75,7 @@ describe("migrations", () => {
       "login_throttles",
       "media",
       "media_translations",
+      "platforms",
       "profile",
       "profile_translations",
       "project_skills",
@@ -175,6 +177,32 @@ describe("constraints", () => {
     ]);
 
     expect(await testDb.db.select().from(socialLinks)).toHaveLength(2);
+  });
+
+  it.each([
+    [
+      { profileUrl: "http://app.hackthebox.com/profile/1" },
+      "platforms_profile_url_https",
+    ],
+    [{ profileUrl: "javascript:alert(1)" }, "platforms_profile_url_https"],
+    [{ points: -1 }, "platforms_points_positive"],
+  ] as const)("refuses the platform %j", async (platform, constraint) => {
+    await expectRefusedBy(
+      testDb.db
+        .insert(platforms)
+        .values({ name: "Hack The Box", updatedOn: "2026-10-30", ...platform }),
+      constraint,
+    );
+  });
+
+  it("keeps one platform per name, its profile, rank and points optional", async () => {
+    const platform = { name: "Root Me", updatedOn: "2026-10-30" };
+    await testDb.db.insert(platforms).values(platform);
+
+    await expectRefusedBy(
+      testDb.db.insert(platforms).values(platform),
+      "platforms_name_unique",
+    );
   });
 
   it.each([

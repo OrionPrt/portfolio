@@ -12,6 +12,7 @@ const STATIC_PAGES: readonly LocalizedHref[] = [
   "/skills",
   "/projects",
   "/experiences",
+  "/journey",
   "/contact",
 ];
 

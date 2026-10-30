@@ -28,6 +28,7 @@ export const routing = defineRouting({
       fr: "/experiences/[slug]",
       en: "/experiences/[slug]",
     },
+    "/journey": { fr: "/parcours", en: "/journey" },
     "/contact": "/contact",
   },
 });

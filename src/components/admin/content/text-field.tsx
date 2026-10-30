@@ -21,6 +21,8 @@ interface TextFieldProps {
   readonly takenMessage?: string;
   readonly type?: "text" | "url" | "date";
   readonly autoComplete?: string;
+  /** "numeric": a phone shows its number pad. */
+  readonly inputMode?: "numeric";
   /** The text's language, when not the page's ("en" in the French admin). */
   readonly lang?: string;
 }
@@ -38,6 +40,7 @@ export function TextField({
   takenMessage,
   type = "text",
   autoComplete = "off",
+  inputMode,
   lang,
 }: TextFieldProps) {
   const id = useId();
@@ -69,7 +72,8 @@ export function TextField({
             required={isRequired}
             maxLength={maxLength}
             autoComplete={autoComplete}
-            spellCheck={type === "text"}
+            inputMode={inputMode}
+            spellCheck={type === "text" && inputMode === undefined}
             lang={lang}
           />
         )

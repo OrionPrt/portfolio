@@ -8,7 +8,7 @@ Personal portfolio of a software engineer working across fullstack web, DevOps a
 
 Next.js 16 (App Router, Cache Components) · React 19 · TypeScript (strict) · Tailwind CSS 4 · next-intl · PostgreSQL on Neon with Drizzle · Zod · Cloudflare Turnstile · Upstash Redis · Resend · Vitest · Playwright · GitHub Actions · Vercel.
 
-Decisions and their rationale live in [`docs/adr/`](docs/adr): [stack](docs/adr/0001-stack.md), [CSP](docs/adr/0002-csp.md), [hub, transitions and 404s](docs/adr/0003-transitions.md), [data layer](docs/adr/0004-data-layer.md), [contact form](docs/adr/0005-contact-form.md), [admin authentication](docs/adr/0006-auth.md), [admin back office](docs/adr/0007-admin.md), [stored Markdown](docs/adr/0008-markdown.md).
+Decisions and their rationale live in [`docs/adr/`](docs/adr): [stack](docs/adr/0001-stack.md), [CSP](docs/adr/0002-csp.md), [hub, transitions and 404s](docs/adr/0003-transitions.md), [data layer](docs/adr/0004-data-layer.md), [contact form](docs/adr/0005-contact-form.md), [admin authentication](docs/adr/0006-auth.md), [admin back office](docs/adr/0007-admin.md), [stored Markdown](docs/adr/0008-markdown.md), [journey and retention](docs/adr/0009-journey-and-retention.md).
 
 ## Getting started
 

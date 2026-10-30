@@ -104,6 +104,12 @@ const serverSchema = z
         .regex(/^[a-z0-9.-]+(:\d+)?$/, "must be a bare host name")
         .optional(),
     ),
+    // The daily cron's bearer token (ADR-0009): Vercel sends it, the route
+    // compares it. Without it, the cron route refuses every call.
+    CRON_SECRET: z.preprocess(
+      emptyAsUndefined,
+      z.string().min(32, "must be at least 32 characters").max(1000).optional(),
+    ),
     // The site's role (data changes only, ADR-0004). Without it, withDatabase()
     // logs the gap and reads fail as DB_UNAVAILABLE.
     DATABASE_URL: optionalDatabaseUrl(),

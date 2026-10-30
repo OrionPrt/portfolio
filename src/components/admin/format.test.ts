@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   describeUserAgent,
+  formatDay,
   formatMonthYear,
+  formatNumber,
   formatParisDateTime,
 } from "./format";
 
@@ -47,5 +49,13 @@ describe("formatMonthYear", () => {
   it("names a stored day's month, never the day before", () => {
     expect(formatMonthYear("2024-01-01")).toBe("janvier 2024");
     expect(formatMonthYear("2024-12-31")).toBe("décembre 2024");
+  });
+});
+
+describe("formatDay and formatNumber", () => {
+  it("write a stored day and a score as French does", () => {
+    expect(formatDay("2026-10-30")).toBe("30 octobre 2026");
+    // Grouped with a narrow no-break space.
+    expect(formatNumber(12_500)).toBe("12\u202f500");
   });
 });

@@ -24,6 +24,7 @@ export const ADMIN_COPY = {
     experiences: "Expériences",
     education: "Formation",
     certifications: "Certifications",
+    platforms: "Plateformes",
     media: "Médiathèque",
     bento: "Grille d'accueil",
     unreadWord: (count: number) => (count > 1 ? "non lus" : "non lu"),
@@ -121,11 +122,15 @@ export const ADMIN_COPY = {
       open: "Ouvrir la médiathèque",
       unavailable: "La médiathèque n'a pas pu être chargée.",
     },
-    stats: {
-      title: "Statistiques des plateformes",
-      pending:
-        "Leur collecte automatique (Hack The Box, Root Me, TryHackMe) n'est pas encore en place. Son dernier passage, réussi ou non, s'affichera ici.",
-      never: "Aucune collecte",
+    platforms: {
+      title: "Plateformes",
+      summary: (count: number, oldest: string) =>
+        count > 1
+          ? `${String(count)} plateformes, relevées au plus tôt le ${oldest}.`
+          : `1 plateforme, relevée le ${oldest}.`,
+      empty: `Aucune plateforme${NB}: la tuile et la section du Parcours restent cachées.`,
+      open: "Mettre à jour les plateformes",
+      unavailable: "Les plateformes n'ont pas pu être chargées.",
     },
     activity: {
       title: "Activité récente",
@@ -266,9 +271,6 @@ export const ADMIN_COPY = {
       github: "GitHub",
       linkedin: "LinkedIn",
       email: "E-mail",
-      hackthebox: "Hack The Box",
-      rootme: "Root-Me",
-      tryhackme: "TryHackMe",
       website: "Site web",
     },
     url: "Adresse",
@@ -283,6 +285,28 @@ export const ADMIN_COPY = {
     kindTaken: "Ce type de lien existe déjà.",
     allUsed: "Chaque type de lien existe déjà.",
     deleteTitle: (kind: string) => `Supprimer le lien ${kind}${NB}?`,
+  },
+  platforms: {
+    title: "Plateformes",
+    lead: `Les plateformes d'entraînement, dans l'ordre du site. Rien n'est relevé automatiquement${NB}: recopiez rang et points depuis chaque plateforme. La tuile Plateformes et la section du Parcours restent cachées tant que la liste est vide.`,
+    name: "Nom",
+    nameTaken: "Cette plateforme existe déjà.",
+    profileUrl: "Lien du profil",
+    profileUrlHint: "Un lien https:// vers le profil public, ou rien.",
+    profileUrlInvalid: "Un lien https:// complet, sans espace.",
+    rank: "Rang ou niveau",
+    rankHint: `Tel que la plateforme l'écrit${NB}: il ne se traduit pas.`,
+    points: "Points",
+    pointsHint: `Un nombre entier, espaces permis${NB}: 12${NB}500.`,
+    pointsInvalid: "Un nombre entier, positif, sans décimale.",
+    updatedOn: "Relevé le",
+    updatedOnHint: `Le jour où rang et points ont été lus. Vide${NB}: aujourd'hui.`,
+    summary: (parts: readonly string[]) => parts.join(" · "),
+    pointsValue: (points: string) => `${points}${NB}points`,
+    readOn: (date: string) => `relevé le ${date}`,
+    empty: "Aucune plateforme pour l'instant.",
+    add: "Ajouter une plateforme",
+    deleteTitle: (name: string) => `Supprimer la plateforme ${name}${NB}?`,
   },
   skills: {
     title: "Compétences",
@@ -565,7 +589,7 @@ export const ADMIN_COPY = {
       featured_project: "Aucun projet publié n'est mis en avant",
       current_experience: "Aucune expérience en cours n'est publiée",
       stack: "Aucune compétence",
-      cyber_stats: "Aucun lien vers Hack The Box, Root Me ou TryHackMe",
+      cyber_stats: "Aucune plateforme",
       certifications: "Aucune formation ni certification",
     },
     emptyEffect: `${NB}: la tuile n'apparaît pas sur le site.`,
@@ -655,6 +679,7 @@ export const ADMIN_COPY = {
         "content.updated": "Contenu modifié",
         "content.deleted": "Contenu supprimé",
         "content.reordered": "Ordre modifié",
+        "retention.purged": "Purge quotidienne",
       },
       /** What a content event changed; other entities are not named. */
       entities: {
@@ -667,6 +692,7 @@ export const ADMIN_COPY = {
         certification: "certification",
         bento_tile: "grille d'accueil",
         media: "image",
+        platform: "plateforme",
       } as Readonly<Record<string, string>>,
       /** The diff's keys and values, in words; anything else is shown as stored. */
       details: {

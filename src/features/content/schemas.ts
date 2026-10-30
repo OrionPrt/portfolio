@@ -271,6 +271,21 @@ export const certificationInputSchema = z
   .object({ slug: slugSchema, ...certificationFields })
   .refine(certificationDatesInOrder, datesOutOfOrder("expiresOn"));
 
+/** Points an account can hold on a platform: far above any real score. */
+const MAX_POINTS = 1_000_000_000;
+
+/**
+ * A platform as the admin enters it, read on the platform by hand (ADR-0009):
+ * its name and the day it was read; the rest as the platform shows it.
+ */
+export const platformInputSchema = z.object({
+  name: text(TEXT_LIMITS.name),
+  profileUrl: httpsUrlSchema.nullable().default(null),
+  rank: optionalText(TEXT_LIMITS.name),
+  points: z.int().min(0).max(MAX_POINTS).nullable().default(null),
+  updatedOn: isoDateSchema,
+});
+
 /** An image's alternative text, in both languages: neither falls back. */
 export const mediaAltSchema = z.object({
   fr: text(TEXT_LIMITS.alt),
@@ -296,3 +311,4 @@ export type EducationContent = z.output<typeof educationContentSchema>;
 export type CertificationInput = z.output<typeof certificationInputSchema>;
 export type CertificationContent = z.output<typeof certificationContentSchema>;
 export type TileInput = z.output<typeof tileInputSchema>;
+export type PlatformInput = z.output<typeof platformInputSchema>;

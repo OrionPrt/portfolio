@@ -1,4 +1,4 @@
-import { asc, desc, eq } from "drizzle-orm";
+import { asc, desc, eq, sql } from "drizzle-orm";
 
 import { MAX_PAGE_SIZE, MAX_SKILLS } from "@/db/limits";
 import { pickTranslation, runQuery } from "@/db/query";
@@ -56,12 +56,18 @@ export interface CertificationView {
   readonly issuer: string;
   readonly issuedOn: string;
   readonly expiresOn: string | null;
+  /** Past its expiry day, by the database's clock: shown, marked as such. */
+  readonly isExpired: boolean;
   readonly credentialId: string | null;
   readonly verifyUrl: string | null;
   /** Empty when no translation exists: the description is optional. */
   readonly description: string;
   /** Its badge, its text in the page's language. */
   readonly badge: MediaView | undefined;
+  /** True when the description is the other language's. */
+  readonly isFallback: boolean;
+  /** The description's language. */
+  readonly contentLocale: Locale;
 }
 
 export interface TileView {
@@ -86,6 +92,7 @@ type EducationRow = typeof education.$inferSelect & {
 type CertificationRow = typeof certifications.$inferSelect & {
   readonly translations: readonly (typeof certificationTranslations.$inferSelect)[];
   readonly badge: MediaRow | null;
+  readonly isExpired: boolean;
 };
 
 const WITH_TRANSLATIONS = { translations: { limit: LOCALES.length } };
@@ -116,17 +123,20 @@ function toCertificationView(
   row: CertificationRow,
   locale: Locale,
 ): CertificationView {
+  const translation = pickTranslation(row.translations, locale);
   return {
     slug: row.slug,
     name: row.name,
     issuer: row.issuer,
     issuedOn: row.issuedOn,
     expiresOn: row.expiresOn,
+    isExpired: row.isExpired,
     credentialId: row.credentialId,
     verifyUrl: row.verifyUrl,
-    description:
-      pickTranslation(row.translations, locale)?.value.description ?? "",
+    description: translation?.value.description ?? "",
     badge: toMediaView(row.badge, locale),
+    isFallback: translation?.isFallback ?? false,
+    contentLocale: translation?.value.locale ?? locale,
   };
 }
 
@@ -166,6 +176,12 @@ export function createCatalogRepository(db: Database): CatalogRepository {
           orderBy: [desc(certifications.issuedOn), asc(certifications.slug)],
           limit: MAX_PAGE_SIZE,
           with: { ...WITH_TRANSLATIONS, badge: WITH_MEDIA },
+          extras: {
+            isExpired:
+              sql<boolean>`coalesce(${certifications.expiresOn} < current_date, false)`.as(
+                "is_expired",
+              ),
+          },
         });
         return rows.map((row) => toCertificationView(row, locale));
       }),

@@ -17,3 +17,6 @@ export const MAX_LINKED_SKILLS = 30;
 
 /** Images in the library: enough for every cover, logo and badge, and then some. */
 export const MAX_MEDIA = 200;
+
+/** Platforms where I train: a handful, listed whole on the tile and the page. */
+export const MAX_PLATFORMS = 20;

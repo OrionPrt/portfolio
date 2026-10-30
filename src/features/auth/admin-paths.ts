@@ -17,6 +17,7 @@ export const ADMIN_PATHS = {
   newEducation: "/admin/education/new",
   certifications: "/admin/certifications",
   newCertification: "/admin/certifications/new",
+  platforms: "/admin/platforms",
   media: "/admin/media",
   bento: "/admin/bento",
 } as const;

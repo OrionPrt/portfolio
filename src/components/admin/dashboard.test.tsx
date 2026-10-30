@@ -11,7 +11,7 @@ import { err, ok } from "@/lib/result";
 import {
   ActivitySection,
   MediaPanel,
-  StatsPanel,
+  PlatformsPanel,
   ToDoSection,
 } from "./dashboard-sections";
 
@@ -167,13 +167,41 @@ describe("MediaPanel", () => {
   });
 });
 
-describe("StatsPanel", () => {
-  it("keeps the place of the platforms' collection", () => {
-    render(<StatsPanel />);
+describe("PlatformsPanel", () => {
+  const PLATFORM = { updatedOn: "2026-10-30" };
+
+  it("counts the platforms, says when the oldest figures were read, and leads to them", () => {
+    render(
+      <PlatformsPanel
+        platforms={ok([PLATFORM, { updatedOn: "2026-06-01" }])}
+      />,
+    );
+    const panel = screen.getByRole("region", { name: "Plateformes" });
+
+    expect(panel).toHaveTextContent(
+      "2 plateformes, relevées au plus tôt le 1 juin 2026.",
+    );
+    expect(
+      within(panel).getByRole("link", {
+        name: "Mettre à jour les plateformes",
+      }),
+    ).toHaveAttribute("href", "/admin/platforms");
+  });
+
+  it("says what an empty list hides, and when it cannot be read", () => {
+    const { rerender } = render(<PlatformsPanel platforms={ok([])} />);
 
     expect(
-      screen.getByRole("region", { name: "Statistiques des plateformes" }),
-    ).toHaveTextContent("Aucune collecte");
+      screen.getByRole("region", { name: "Plateformes" }),
+    ).toHaveTextContent(
+      "Aucune plateforme : la tuile et la section du Parcours restent cachées.",
+    );
+
+    rerender(<PlatformsPanel platforms={DOWN} />);
+
+    expect(
+      screen.getByText("Les plateformes n'ont pas pu être chargées."),
+    ).toBeVisible();
   });
 });
 

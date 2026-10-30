@@ -13,8 +13,27 @@ export const MONTH_YEAR = {
   timeZone: "UTC",
 } as const satisfies Intl.DateTimeFormatOptions;
 
+/** A full day: "30 octobre 2026". */
+export const DAY_MONTH_YEAR = {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  timeZone: "UTC",
+} as const satisfies Intl.DateTimeFormatOptions;
+
 /** The year alone: where a month would not fit (a tile). */
 export const YEAR = {
   year: "numeric",
   timeZone: "UTC",
 } as const satisfies Intl.DateTimeFormatOptions;
+
+/** The site's own time zone: a day is a day in Paris. */
+export const SITE_TIME_ZONE = "Europe/Paris";
+
+/** Today's date ("2026-10-30") in the site's time zone. */
+export function siteToday(now: Date = new Date()): string {
+  // The Canadian English format is the ISO one: year, month, day.
+  return new Intl.DateTimeFormat("en-CA", { timeZone: SITE_TIME_ZONE }).format(
+    now,
+  );
+}

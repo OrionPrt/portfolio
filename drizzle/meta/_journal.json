@@ -50,6 +50,13 @@
       "when": 1793355246913,
       "tag": "0006_drop_posts",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793357441199,
+      "tag": "0007_platforms",
+      "breakpoints": true
     }
   ]
 }

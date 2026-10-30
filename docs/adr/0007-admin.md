@@ -83,7 +83,7 @@ Implemented in P6d1 (decided on 2026-10-29).
 
 ### A dashboard of what is left to do
 
-Implemented in P6d1 (decided on 2026-10-29). The dashboard lists, entry by entry and each linked to its form: unread messages, English translations missing or partial (measured as the lists measure them), drafts, text still holding the seed's `[À COMPLÉTER]` marker (any column, any language, found by casting each row to text), and entries without their cover, logo or badge. Beside them: the image library against its ceiling and the images nothing shows, and the place of the platforms' statistics (their collection arrives in P8). Below: the latest audit events, content ones naming what they changed. Each part reads on its own, so one failing read leaves the others shown.
+Implemented in P6d1 (decided on 2026-10-29). The dashboard lists, entry by entry and each linked to its form: unread messages, English translations missing or partial (measured as the lists measure them), drafts, text still holding the seed's `[À COMPLÉTER]` marker (any column, any language, found by casting each row to text), and entries without their cover, logo or badge. Beside them: the image library against its ceiling and the images nothing shows, and the platforms entered by hand, with the day their oldest figures were read ([ADR-0009](0009-journey-and-retention.md)). Below: the latest audit events, content ones naming what they changed. Each part reads on its own, so one failing read leaves the others shown.
 
 ### The site writes as a role limited to data
 
