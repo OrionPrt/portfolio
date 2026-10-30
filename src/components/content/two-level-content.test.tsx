@@ -59,7 +59,7 @@ describe("TwoLevelContent", () => {
     expect(details).toHaveAttribute("open");
     expect(
       screen.getByRole("heading", { level: 3, name: "Architecture" }),
-    ).toBeInTheDocument();
+    ).toHaveAttribute("id", "demo-fr-h-architecture");
   });
 
   it("leaves the technical part out when there is none", () => {

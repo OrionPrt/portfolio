@@ -460,33 +460,27 @@ test("publishes, renames and deletes a project: its old address leads to the new
   }
 });
 
-test("writes a post in English only, which both blogs show, coloured, safe, then gone", async ({
+test("shows a project's technical text coloured and safe, whatever it holds", async ({
   page,
 }) => {
   test.setTimeout(120_000);
   const violations = await collectCspViolations(page);
   const stamp = String(Date.now());
-  const slug = `article-e2e-${stamp}`;
-  const title = `E2E post ${stamp}`;
-  const english = (field: string) =>
-    page.getByRole("group", { name: field }).getByLabel("Anglais");
+  const slug = `projet-e2e-markdown-${stamp}`;
+  const title = `Projet Markdown ${stamp}`;
+  const french = (field: string) =>
+    page.getByRole("group", { name: field }).getByLabel(/^Français/);
   await signIn(page);
 
-  await page.goto("/admin/posts/new");
-  await expect(page).toHaveTitle(/^Nouvel article/);
-  await expectNoAxeViolation(page);
-  // A write-up's challenge fields: none for an article.
-  const challenge = page.getByRole("group", { name: "Le challenge" });
-  await expect(challenge).toBeHidden();
-  await page.getByLabel("Type", { exact: true }).selectOption("writeup");
-  await expect(challenge).toBeVisible();
-  await page.getByLabel("Type", { exact: true }).selectOption("article");
-  await expect(challenge).toBeHidden();
+  await page.goto("/admin/projects/new");
   await page.getByLabel("Statut").selectOption("published");
   await page.getByRole("textbox", { name: "Slug" }).fill(slug);
-  await english("Titre").fill(title);
-  await english("Résumé").fill("How it fell.");
-  await english("Texte").fill(
+  await french("Titre").fill(title);
+  await french("Accroche").fill("Une accroche");
+  await french("Contexte").fill("Le contexte");
+  await french("Ce que j'ai fait").fill("Ce qui a été fait");
+  await french("Résultat").fill("Le résultat");
+  await french("Partie technique").fill(
     [
       "## Recon",
       "```c",
@@ -494,38 +488,25 @@ test("writes a post in English only, which both blogs show, coloured, safe, then
       "int main(void) { return 0; }",
       "```",
       ":::warning",
-      "Only on machines you may attack.",
+      "Seulement sur une machine autorisée.",
       ":::",
-      "## Foothold",
       '<script>window.pwned = true</script> <img src=x onerror="window.pwned = true">',
       "[click](javascript:window.pwned=true)",
     ].join("\n\n"),
   );
   await page.getByRole("button", { name: "Enregistrer" }).click();
-  await expect(page).toHaveURL(/\/admin\/posts\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveTitle(/^Modifier un projet/);
 
-  // The French blog lists it, written in English.
-  await page.goto("/fr/blog");
-  await expectNoAxeViolation(page);
-  const card = page.getByRole("article", { name: title });
-  await expect(card).toContainText("en anglais");
-  await card.getByRole("link", { name: title }).click();
-  await expect(page).toHaveURL((url) => url.pathname === `/fr/blog/${slug}`);
-  // A client navigation: its title arrives before axe looks.
-  await expect(page).toHaveTitle(`${title} · Orion`);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveAttribute(
-    "lang",
-    "en",
-  );
+  await expect(async () => {
+    await page.goto(`/fr/projets/${slug}`);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(title);
+  }).toPass({ timeout: 15_000 });
+  await page.getByText("Détails techniques").click();
   const main = page.getByRole("main");
-  await expect(
-    main.getByRole("navigation", { name: "Sommaire" }).getByRole("link"),
-  ).toHaveText(["Recon", "Foothold"]);
   await expect(
     main.locator("pre.shiki span[style*='--shiki-dark']").first(),
   ).toBeVisible();
-  // Named in the text's language, not the page's.
-  await expect(main.getByRole("note")).toContainText("Warning");
+  await expect(main.getByRole("note")).toContainText("Attention");
   await expect(main.getByText("click", { exact: true })).not.toHaveAttribute(
     "href",
   );
@@ -533,11 +514,8 @@ test("writes a post in English only, which both blogs show, coloured, safe, then
     await page.evaluate(() => (window as { pwned?: boolean }).pwned),
   ).toBeUndefined();
   await expectNoAxeViolation(page);
-  await page.goto(`/en/blog/${slug}`);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(title);
 
-  // Deleted: its address leads nowhere.
-  await page.goto("/admin/posts");
+  await page.goto("/admin/projects");
   await page.getByRole("button", { name: `Supprimer ${title}` }).click();
   await page
     .getByRole("dialog")
@@ -546,13 +524,6 @@ test("writes a post in English only, which both blogs show, coloured, safe, then
   await expect(
     page.getByRole("link", { name: `Modifier ${title}` }),
   ).toHaveCount(0);
-  // A miss first: the proxy reloads its lists for a slug it does not know.
-  await expect
-    .poll(async () => {
-      await page.request.get(`/fr/blog/inconnu-${stamp}`);
-      return (await page.request.get(`/fr/blog/${slug}`)).status();
-    })
-    .toBe(404);
   expect(violations).toEqual([]);
 });
 

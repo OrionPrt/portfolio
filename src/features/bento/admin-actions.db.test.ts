@@ -70,7 +70,6 @@ const LAYOUT: readonly TileSetting[] = [
   { kind: "current_experience", size: "md", visible: false },
   { kind: "stack", size: "md", visible: true },
   { kind: "cyber_stats", size: "sm", visible: true },
-  { kind: "latest_post", size: "sm", visible: true },
   { kind: "certifications", size: "sm", visible: false },
   { kind: "contact", size: "sm", visible: true },
 ];
@@ -121,7 +120,7 @@ describe("saveBentoLayoutAction", () => {
         entity_id: "layout",
         diff: {
           tiles:
-            "featured_project:xl, identity:lg, current_experience:md:hidden, stack:md, cyber_stats:sm, latest_post:sm, certifications:sm:hidden, contact:sm",
+            "featured_project:xl, identity:lg, current_experience:md:hidden, stack:md, cyber_stats:sm, certifications:sm:hidden, contact:sm",
         },
       },
     ]);

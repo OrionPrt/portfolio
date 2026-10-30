@@ -13,7 +13,6 @@ import {
 } from "./experiences";
 import { media, mediaTranslations } from "./media";
 import { profile, profileTranslations } from "./profile";
-import { posts, postSkills, postTranslations } from "./posts";
 import { projects, projectSkills, projectTranslations } from "./projects";
 import { skills } from "./skills";
 
@@ -37,37 +36,6 @@ export const profileTranslationsRelations = relations(
 export const skillsRelations = relations(skills, ({ many }) => ({
   projects: many(projectSkills),
   experiences: many(experienceSkills),
-  posts: many(postSkills),
-}));
-
-export const postsRelations = relations(posts, ({ many, one }) => ({
-  translations: many(postTranslations),
-  skills: many(postSkills),
-  cover: one(media, {
-    fields: [posts.coverMediaId],
-    references: [media.id],
-  }),
-}));
-
-export const postTranslationsRelations = relations(
-  postTranslations,
-  ({ one }) => ({
-    post: one(posts, {
-      fields: [postTranslations.postId],
-      references: [posts.id],
-    }),
-  }),
-);
-
-export const postSkillsRelations = relations(postSkills, ({ one }) => ({
-  post: one(posts, {
-    fields: [postSkills.postId],
-    references: [posts.id],
-  }),
-  skill: one(skills, {
-    fields: [postSkills.skillId],
-    references: [skills.id],
-  }),
 }));
 
 export const projectsRelations = relations(projects, ({ many, one }) => ({

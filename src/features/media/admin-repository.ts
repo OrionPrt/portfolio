@@ -11,8 +11,6 @@ import {
   experienceTranslations,
   media,
   mediaTranslations,
-  posts,
-  postTranslations,
   profileTranslations,
   projects,
   projectTranslations,
@@ -44,12 +42,7 @@ export interface NewMedia {
 /** What shows an image: deleting it waits until none does. */
 export interface MediaUsage {
   readonly kind:
-    | "project"
-    | "experience"
-    | "education"
-    | "certification"
-    | "profile"
-    | "post";
+    "project" | "experience" | "education" | "certification" | "profile";
   readonly id: string;
   readonly label: string;
   /** Named in its Markdown (`media:<id>`), rather than its cover, logo or badge. */
@@ -89,15 +82,12 @@ const USAGE_COUNT = sql<number>`(
   + (select count(*) from ${experiences} where ${experiences.logoMediaId} = ${media.id})
   + (select count(*) from ${education} where ${education.logoMediaId} = ${media.id})
   + (select count(*) from ${certifications} where ${certifications.badgeMediaId} = ${media.id})
-  + (select count(*) from ${posts} where ${posts.coverMediaId} = ${media.id})
   + (select count(distinct ${projectTranslations.projectId}) from ${projectTranslations}
      where ${CITES(projectTranslations.technicalMd, ROW_REFERENCE)})
   + (select count(distinct ${experienceTranslations.experienceId}) from ${experienceTranslations}
      where ${CITES(experienceTranslations.technicalMd, ROW_REFERENCE)})
   + (select count(distinct ${profileTranslations.profileId}) from ${profileTranslations}
      where ${CITES(profileTranslations.aboutMd, ROW_REFERENCE)})
-  + (select count(distinct ${postTranslations.postId}) from ${postTranslations}
-     where ${CITES(postTranslations.bodyMd, ROW_REFERENCE)})
 )::int`;
 
 /** The narrowest variant: a list's or a picker's thumbnail. */
@@ -137,58 +127,36 @@ function projectTitles() {
   return alias(projectTranslations, "named");
 }
 
-/** A post's title in the default language, else its slug: it may have no French. */
-function postLabel() {
-  const named = alias(postTranslations, "post_named");
-  return {
-    named,
-    label: sql<string>`coalesce(${named.title}, ${posts.slug})`,
-    join: and(eq(named.postId, posts.id), eq(named.locale, DEFAULT_LOCALE)),
-  };
-}
-
 /** The entries showing the image as their cover, logo or badge. */
 async function imageUsages(db: Database, id: string) {
   const named = projectTitles();
-  const post = postLabel();
-  const [project, experience, school, certification, cover] = await Promise.all(
-    [
-      db
-        .select({ id: projects.id, label: named.title })
-        .from(projects)
-        .leftJoin(
-          named,
-          and(
-            eq(named.projectId, projects.id),
-            eq(named.locale, DEFAULT_LOCALE),
-          ),
-        )
-        .where(eq(projects.coverMediaId, id)),
-      db
-        .select({ id: experiences.id, label: experiences.company })
-        .from(experiences)
-        .where(eq(experiences.logoMediaId, id)),
-      db
-        .select({ id: education.id, label: education.school })
-        .from(education)
-        .where(eq(education.logoMediaId, id)),
-      db
-        .select({ id: certifications.id, label: certifications.name })
-        .from(certifications)
-        .where(eq(certifications.badgeMediaId, id)),
-      db
-        .select({ id: posts.id, label: post.label })
-        .from(posts)
-        .leftJoin(post.named, post.join)
-        .where(eq(posts.coverMediaId, id)),
-    ],
-  );
+  const [project, experience, school, certification] = await Promise.all([
+    db
+      .select({ id: projects.id, label: named.title })
+      .from(projects)
+      .leftJoin(
+        named,
+        and(eq(named.projectId, projects.id), eq(named.locale, DEFAULT_LOCALE)),
+      )
+      .where(eq(projects.coverMediaId, id)),
+    db
+      .select({ id: experiences.id, label: experiences.company })
+      .from(experiences)
+      .where(eq(experiences.logoMediaId, id)),
+    db
+      .select({ id: education.id, label: education.school })
+      .from(education)
+      .where(eq(education.logoMediaId, id)),
+    db
+      .select({ id: certifications.id, label: certifications.name })
+      .from(certifications)
+      .where(eq(certifications.badgeMediaId, id)),
+  ]);
   return [
     ...usagesFrom("project", false, project),
     ...usagesFrom("experience", false, experience),
     ...usagesFrom("education", false, school),
     ...usagesFrom("certification", false, certification),
-    ...usagesFrom("post", false, cover),
   ];
 }
 
@@ -196,8 +164,7 @@ async function imageUsages(db: Database, id: string) {
 async function textUsages(db: Database, id: string) {
   const reference = sql`${mediaReference(id)}`;
   const named = projectTitles();
-  const post = postLabel();
-  const [project, experience, about, body] = await Promise.all([
+  const [project, experience, about] = await Promise.all([
     db
       .select({ id: projects.id, label: named.title })
       .from(projects)
@@ -225,21 +192,11 @@ async function textUsages(db: Database, id: string) {
       })
       .from(profileTranslations)
       .where(CITES(profileTranslations.aboutMd, reference)),
-    db
-      .select({ id: posts.id, label: post.label })
-      .from(posts)
-      .leftJoin(post.named, post.join)
-      .where(
-        sql`exists (select 1 from ${postTranslations}
-          where ${postTranslations.postId} = ${posts.id}
-          and ${CITES(postTranslations.bodyMd, reference)})`,
-      ),
   ]);
   return [
     ...usagesFrom("project", true, project),
     ...usagesFrom("experience", true, experience),
     ...usagesFrom("profile", true, about),
-    ...usagesFrom("post", true, body),
   ];
 }
 

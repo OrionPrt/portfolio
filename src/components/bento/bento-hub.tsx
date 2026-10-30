@@ -12,7 +12,6 @@ import { ExperienceTile } from "./tiles/experience-tile";
 import { FeaturedProjectTile } from "./tiles/featured-project-tile";
 import { IdentityTile } from "./tiles/identity-tile";
 import { JourneyTile } from "./tiles/journey-tile";
-import { LatestPostTile } from "./tiles/latest-post-tile";
 import { LinksTile } from "./tiles/links-tile";
 import { StackTile } from "./tiles/stack-tile";
 
@@ -56,8 +55,6 @@ function ShownTile({ size, content }: ShownTileProps) {
       );
     case "contact":
       return <ContactTile size={size} links={content.links} />;
-    case "latest_post":
-      return <LatestPostTile size={size} post={content.post} />;
   }
 }
 

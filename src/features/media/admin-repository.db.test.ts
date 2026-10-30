@@ -169,36 +169,6 @@ describe("media admin repository", () => {
     expect(listed.ok && listed.data[0]?.usageCount).toBe(3);
   });
 
-  it("counts a post that shows it as its cover or in its text, named by its title or slug", async () => {
-    await repository().create(image());
-    await testDb.exec(
-      `insert into posts (id, slug, cover_media_id)
-       values ('1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed', 'covered', '${ID}');
-       insert into posts (id, slug) values ('2c9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed', 'cited');
-       insert into post_translations (post_id, locale, title, excerpt, body_md)
-       values ('2c9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed', 'fr', 'Cité', 'e', '![x](media:${ID})')`,
-    );
-
-    const found = await repository().find(ID);
-    const listed = await repository().list();
-
-    expect(found.ok && found.data?.usages).toEqual([
-      {
-        kind: "post",
-        id: "1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed",
-        label: "covered",
-        inText: false,
-      },
-      {
-        kind: "post",
-        id: "2c9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed",
-        label: "Cité",
-        inText: true,
-      },
-    ]);
-    expect(listed.ok && listed.data[0]?.usageCount).toBe(2);
-  });
-
   it("changes the alternative texts, or says the image is gone", async () => {
     await repository().create(image());
 

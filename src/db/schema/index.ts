@@ -4,7 +4,6 @@ export * from "./contact";
 export * from "./credentials";
 export * from "./enums";
 export * from "./media";
-export * from "./posts";
 export * from "./experiences";
 export * from "./profile";
 export * from "./projects";

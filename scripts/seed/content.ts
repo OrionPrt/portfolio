@@ -167,17 +167,16 @@ export const SEED_CONTENT: SeedContentInput = {
   // The home hub, in reading order. Sizes: sm 1×1, md 2×1, lg 1×2, xl 2×2 on a
   // four-column grid. A tile without content hides itself: the experience
   // tile without a current position, the journey tile without education or
-  // certification, the platforms tile without a profile. Latest post and CV
-  // stay hidden until the blog (P7) and the generated CV (P9) exist.
+  // certification, the platforms tile without a profile. The CV stays hidden
+  // until it is generated (P9).
   tiles: [
     { kind: "identity", size: "xl", sortOrder: 0 },
     { kind: "featured_project", size: "xl", sortOrder: 1 },
     { kind: "current_experience", size: "sm", sortOrder: 2 },
     { kind: "stack", size: "md", sortOrder: 3 },
     { kind: "cyber_stats", size: "sm", sortOrder: 4 },
-    { kind: "latest_post", size: "sm", sortOrder: 5, visible: false },
-    { kind: "certifications", size: "sm", sortOrder: 6 },
-    { kind: "cv", size: "sm", sortOrder: 7, visible: false },
-    { kind: "contact", size: "sm", sortOrder: 8 },
+    { kind: "certifications", size: "sm", sortOrder: 5 },
+    { kind: "cv", size: "sm", sortOrder: 6, visible: false },
+    { kind: "contact", size: "sm", sortOrder: 7 },
   ],
 };

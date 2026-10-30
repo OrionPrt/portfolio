@@ -1,4 +1,4 @@
-import { DAY_MONTH_YEAR, MONTH_YEAR, utcDate } from "@/lib/dates";
+import { MONTH_YEAR, utcDate } from "@/lib/dates";
 
 import { ADMIN_COPY } from "./copy";
 
@@ -17,13 +17,6 @@ const MONTH = new Intl.DateTimeFormat("fr-FR", MONTH_YEAR);
 /** "janvier 2024", for a stored calendar day. */
 export function formatMonthYear(isoDate: string): string {
   return MONTH.format(utcDate(isoDate));
-}
-
-const DAY = new Intl.DateTimeFormat("fr-FR", DAY_MONTH_YEAR);
-
-/** "30 octobre 2026", for a stored calendar day. */
-export function formatDay(isoDate: string): string {
-  return DAY.format(utcDate(isoDate));
 }
 
 /** "janvier 2024 – aujourd'hui" while under way (no end). */

@@ -34,7 +34,6 @@ const GROUPS: readonly {
       { href: ADMIN_PATHS.profile, label: NAV.profile },
       { href: ADMIN_PATHS.links, label: NAV.links },
       { href: ADMIN_PATHS.projects, label: NAV.projects },
-      { href: ADMIN_PATHS.posts, label: NAV.posts },
       { href: ADMIN_PATHS.experiences, label: NAV.experiences },
       { href: ADMIN_PATHS.education, label: NAV.education },
       { href: ADMIN_PATHS.certifications, label: NAV.certifications },

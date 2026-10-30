@@ -6,8 +6,6 @@ import {
   education,
   media,
   mediaTranslations,
-  posts,
-  postTranslations,
   profile,
   projects,
   projectSkills,
@@ -76,9 +74,6 @@ describe("migrations", () => {
       "login_throttles",
       "media",
       "media_translations",
-      "post_skills",
-      "post_translations",
-      "posts",
       "profile",
       "profile_translations",
       "project_skills",
@@ -303,85 +298,5 @@ describe("constraints", () => {
       .where(eq(projects.id, project?.id ?? ""));
     await testDb.db.delete(media).where(eq(media.id, mediaId));
     expect(await testDb.db.select().from(mediaTranslations)).toEqual([]);
-  });
-});
-
-describe("posts", () => {
-  const WRITEUP = {
-    slug: "a-box",
-    kind: "writeup" as const,
-    platform: "hackthebox" as const,
-  };
-
-  it("names a write-up's platform", async () => {
-    await expectRefusedBy(
-      testDb.db.insert(posts).values({ slug: "a-box", kind: "writeup" }),
-      "posts_writeup_platform",
-    );
-  });
-
-  it("keeps a live challenge's write-up unpublished", async () => {
-    const published = {
-      ...WRITEUP,
-      status: "published" as const,
-      publishedOn: "2026-10-30",
-    };
-    await expectRefusedBy(
-      testDb.db.insert(posts).values(published),
-      "posts_writeup_disclosable",
-    );
-
-    await testDb.db
-      .insert(posts)
-      .values({ ...published, retiredOn: "2026-09-01" });
-    await testDb.db
-      .insert(posts)
-      .values({ ...published, slug: "allowed", isDisclosureAllowed: true });
-    expect(await testDb.db.select().from(posts)).toHaveLength(2);
-  });
-
-  it("gives an article no challenge, and a published post its day", async () => {
-    await expectRefusedBy(
-      testDb.db
-        .insert(posts)
-        .values({ slug: "an-article", platform: "rootme" }),
-      "posts_article_no_challenge",
-    );
-    await expectRefusedBy(
-      testDb.db
-        .insert(posts)
-        .values({ slug: "an-article", status: "published" }),
-      "posts_published_on_set",
-    );
-  });
-
-  it("deletes its translations with it", async () => {
-    const [post] = await testDb.db
-      .insert(posts)
-      .values({ slug: "an-article" })
-      .returning({ id: posts.id });
-    await testDb.db.insert(postTranslations).values({
-      postId: post?.id ?? "",
-      locale: "en",
-      title: "Title",
-      excerpt: "Excerpt",
-      bodyMd: "Body",
-    });
-
-    await testDb.db.delete(posts);
-
-    expect(await testDb.db.select().from(postTranslations)).toEqual([]);
-  });
-
-  it("keeps an image while a post shows it as its cover", async () => {
-    const [image] = await newMedia();
-    await testDb.db
-      .insert(posts)
-      .values({ slug: "an-article", coverMediaId: image?.id ?? null });
-
-    await expectRefusedBy(
-      testDb.db.delete(media).where(eq(media.id, image?.id ?? "")),
-      "posts_cover_media_id_media_id_fk",
-    );
   });
 });

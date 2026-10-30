@@ -2,12 +2,9 @@ import { pgEnum } from "drizzle-orm/pg-core";
 
 import {
   CONTENT_STATUSES,
-  DIFFICULTIES,
   ENTRY_COLLECTIONS,
   EMPLOYMENT_TYPES,
   MESSAGE_STATUSES,
-  PLATFORMS,
-  POST_KINDS,
   SKILL_DOMAINS,
   SOCIAL_KINDS,
   TILE_KINDS,
@@ -36,12 +33,6 @@ export const tileKindEnum = pgEnum("tile_kind", TILE_KINDS);
 export const tileSizeEnum = pgEnum("tile_size", TILE_SIZES);
 
 export const messageStatusEnum = pgEnum("message_status", MESSAGE_STATUSES);
-
-export const postKindEnum = pgEnum("post_kind", POST_KINDS);
-
-export const platformEnum = pgEnum("platform", PLATFORMS);
-
-export const difficultyEnum = pgEnum("difficulty", DIFFICULTIES);
 
 export const sessionStageEnum = pgEnum("session_stage", SESSION_STAGES);
 

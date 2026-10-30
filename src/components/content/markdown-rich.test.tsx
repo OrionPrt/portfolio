@@ -3,7 +3,6 @@ import { beforeAll, describe, expect, it } from "vitest";
 import type { HighlighterCore } from "shiki/core";
 
 import { loadHighlighter } from "@/features/content/highlighter";
-import { outlineOf } from "@/features/content/markdown-outline";
 
 import { Markdown } from "./markdown";
 
@@ -86,10 +85,10 @@ describe("Markdown directives", () => {
   });
 });
 
-describe("Markdown anchors and outline", () => {
+describe("Markdown anchors", () => {
   const SOURCE = "## Recon\n\n### Ports\n\n## Recon\n\nText";
 
-  it("gives headings prefixed ids, the ones the table of contents links to", () => {
+  it("gives headings prefixed ids, a repeated one numbered", () => {
     const { container } = render(
       <Markdown source={SOURCE} headingIdPrefix="fr-" />,
     );
@@ -98,9 +97,6 @@ describe("Markdown anchors and outline", () => {
     );
 
     expect(ids).toEqual(["fr-recon", "fr-ports", "fr-recon-1"]);
-    expect(
-      outlineOf(SOURCE, "fr-").headings.map((heading) => heading.id),
-    ).toEqual(ids);
   });
 
   it("gives no ids unless asked", () => {
@@ -195,7 +191,7 @@ describe("Markdown against injection", () => {
       <Markdown
         source={CORPUS}
         highlighter={highlighter}
-        headingIdPrefix="post-x-fr-h-"
+        headingIdPrefix="project-x-fr-h-"
       />,
     );
     const elements = [...container.querySelectorAll("*")];

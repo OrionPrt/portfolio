@@ -46,6 +46,7 @@ export function AboutView({ profile, images }: AboutViewProps) {
               source={profile.aboutMd}
               topLevel={2}
               images={images}
+              headingIdPrefix={`${idPrefix}-h-`}
               locale={profile.contentLocale}
             />
           )}

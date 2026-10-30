@@ -26,7 +26,6 @@
     "skills": "Skills",
     "projects": "Projects",
     "experiences": "Experience",
-    "blog": "Blog",
     "contact": "Contact"
   },
   "Domains": {
@@ -70,7 +69,6 @@
     "journey": "background",
     "journeyEducation": "education",
     "journeyCertification": "certification",
-    "latestPost": "latest post",
     "contact": "contact",
     "contactLead": "A question, a project, a role?",
     "moreSkillsLabel": "and {count} more",
@@ -192,37 +190,5 @@
     "note": "Note",
     "warning": "Warning",
     "details": "Details"
-  },
-  "Blog": {
-    "label": "blog",
-    "title": "Blog",
-    "description": "Articles and write-ups: offensive security, low-level, web and DevOps.",
-    "empty": "No post published yet.",
-    "count": "{count, plural, =0 {No posts} one {# post} other {# posts}}",
-    "kinds": {
-      "article": "article",
-      "writeup": "write-up"
-    },
-    "platforms": {
-      "hackthebox": "Hack The Box",
-      "rootme": "Root Me",
-      "tryhackme": "TryHackMe",
-      "ctf": "CTF"
-    },
-    "difficulties": {
-      "easy": "easy",
-      "medium": "medium",
-      "hard": "hard",
-      "insane": "insane"
-    },
-    "readingTime": "{minutes} min read",
-    "retiredOn": "Challenge retirement: <time>{date}</time>",
-    "onlyIn": "{language, select, fr {in French} en {in English} other {in another language}}",
-    "toc": "Contents",
-    "neighbours": "More posts",
-    "previous": "Previous post",
-    "next": "Next post",
-    "all": "All posts",
-    "skills": "Skills"
   }
 }

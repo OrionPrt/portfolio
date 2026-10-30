@@ -1,11 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  personJsonLd,
-  postJsonLd,
-  projectJsonLd,
-  serializeJsonLd,
-} from "./json-ld";
+import { personJsonLd, projectJsonLd, serializeJsonLd } from "./json-ld";
 
 describe("serializeJsonLd", () => {
   it("cannot close the script element it is written into", () => {
@@ -79,39 +74,5 @@ describe("projectJsonLd", () => {
 
     expect(schema["@type"]).toBe("CreativeWork");
     expect(schema).not.toHaveProperty("codeRepository");
-  });
-});
-
-describe("postJsonLd", () => {
-  const POST = {
-    headline: "Pwning a box",
-    description: "How it fell.",
-    url: "https://orion.dev/en/blog/a-box",
-    language: "en" as const,
-    datePublished: "2026-10-30",
-    authorName: "Orion",
-    keywords: ["Rust", "Linux"],
-    image: undefined,
-  };
-
-  it("describes a blog post, its page, day and author", () => {
-    expect(postJsonLd(POST)).toEqual({
-      "@context": "https://schema.org",
-      "@type": "BlogPosting",
-      headline: "Pwning a box",
-      description: "How it fell.",
-      url: "https://orion.dev/en/blog/a-box",
-      mainEntityOfPage: "https://orion.dev/en/blog/a-box",
-      inLanguage: "en",
-      datePublished: "2026-10-30",
-      author: { "@type": "Person", name: "Orion" },
-      keywords: "Rust, Linux",
-    });
-  });
-
-  it("names its cover when it has one", () => {
-    expect(
-      postJsonLd({ ...POST, image: "https://s.blob.example/c.webp" }),
-    ).toMatchObject({ image: "https://s.blob.example/c.webp" });
   });
 });

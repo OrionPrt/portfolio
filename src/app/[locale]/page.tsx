@@ -13,7 +13,6 @@ import {
 } from "@/features/catalog/queries";
 import { getCurrentExperience } from "@/features/experiences/queries";
 import { getProfile } from "@/features/profile/queries";
-import { getLatestPost } from "@/features/posts/queries";
 import { getFeaturedProject } from "@/features/projects/queries";
 import { localizedAlternates } from "@/features/seo/alternates";
 import { personJsonLd } from "@/features/seo/json-ld";
@@ -50,7 +49,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     getSkills(),
     getEducation(locale),
     getCertifications(locale),
-    getLatestPost(locale),
   ]);
   const [
     tiles,
@@ -60,7 +58,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     skills,
     education,
     certifications,
-    latestPost,
   ] = reads;
 
   const owner = unwrapOr(profile, undefined);
@@ -88,7 +85,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           skills: unwrapOr(skills, []),
           education: unwrapOr(education, []),
           certifications: unwrapOr(certifications, []),
-          latestPost: unwrapOr(latestPost, undefined),
         }}
       />
     </div>

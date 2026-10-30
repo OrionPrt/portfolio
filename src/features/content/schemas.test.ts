@@ -8,7 +8,6 @@ import {
   experienceInputSchema,
   httpsUrlSchema,
   isoDateSchema,
-  postInputSchema,
   projectInputSchema,
   slugSchema,
   socialLinkInputSchema,
@@ -318,90 +317,4 @@ describe("date order", () => {
       ]);
     },
   );
-});
-
-describe("postInputSchema", () => {
-  const ENGLISH = {
-    title: "Pwning a box",
-    excerpt: "How it fell.",
-    bodyMd: "## Recon\n\nNmap first.",
-  };
-
-  function post(overrides: Record<string, unknown> = {}) {
-    return { slug: "a-box", translations: { en: ENGLISH }, ...overrides };
-  }
-
-  function problems(input: unknown) {
-    const parsed = postInputSchema.safeParse(input);
-    return parsed.success
-      ? []
-      : parsed.error.issues.map((issue) => issue.path.join("."));
-  }
-
-  it("takes a post in one language, any of them", () => {
-    expect(postInputSchema.safeParse(post()).success).toBe(true);
-    expect(
-      postInputSchema.safeParse(post({ translations: { fr: ENGLISH } }))
-        .success,
-    ).toBe(true);
-  });
-
-  it("refuses a post without any language, under one name", () => {
-    expect(problems(post({ translations: {} }))).toEqual([
-      "translations.language",
-    ]);
-  });
-
-  it("needs a body and an excerpt in each language given", () => {
-    expect(
-      problems(post({ translations: { en: { ...ENGLISH, bodyMd: " " } } })),
-    ).toEqual(["translations.en.bodyMd"]);
-  });
-
-  it("dates a published post", () => {
-    expect(problems(post({ status: "published" }))).toEqual(["publishedOn"]);
-    expect(
-      problems(post({ status: "published", publishedOn: "2026-10-30" })),
-    ).toEqual([]);
-  });
-
-  it("names a write-up's platform", () => {
-    expect(problems(post({ kind: "writeup" }))).toEqual(["platform"]);
-  });
-
-  it("keeps a live challenge's write-up unpublished, unless it is retired or allowed", () => {
-    const published = {
-      kind: "writeup",
-      platform: "hackthebox",
-      status: "published",
-      publishedOn: "2026-10-30",
-    };
-
-    expect(problems(post(published))).toEqual(["retiredOn"]);
-    expect(problems(post({ ...published, retiredOn: "2026-09-01" }))).toEqual(
-      [],
-    );
-    expect(problems(post({ ...published, isDisclosureAllowed: true }))).toEqual(
-      [],
-    );
-  });
-
-  it("drops a challenge's details from an article", () => {
-    const parsed = postInputSchema.parse(
-      post({
-        kind: "article",
-        platform: "rootme",
-        difficulty: "hard",
-        retiredOn: "2026-01-01",
-        isDisclosureAllowed: true,
-      }),
-    );
-
-    expect(parsed).toMatchObject({
-      platform: null,
-      difficulty: null,
-      retiredOn: null,
-      isDisclosureAllowed: false,
-    });
-  });
 });

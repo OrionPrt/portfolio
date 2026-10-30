@@ -19,10 +19,6 @@ export function experienceTransitionName(slug: string): string {
   return `experience-${slug}`;
 }
 
-export function postTransitionName(slug: string): string {
-  return `post-${slug}`;
-}
-
 /** The id of a skill on the skills page, linked from every skill badge. */
 export function skillAnchor(slug: string, locale: Locale): string {
   return `skill-${slug}-${locale}`;

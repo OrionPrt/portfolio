@@ -28,9 +28,6 @@ export const routing = defineRouting({
       fr: "/experiences/[slug]",
       en: "/experiences/[slug]",
     },
-    // Articles and write-ups: one word in both languages.
-    "/posts": "/blog",
-    "/posts/[slug]": "/blog/[slug]",
     "/contact": "/contact",
   },
 });

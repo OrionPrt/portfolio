@@ -19,7 +19,6 @@ const STORED: readonly TileSetting[] = [
   { kind: "current_experience", size: "sm", visible: true },
   { kind: "stack", size: "md", visible: true },
   { kind: "cyber_stats", size: "sm", visible: false },
-  { kind: "latest_post", size: "sm", visible: false },
   { kind: "certifications", size: "sm", visible: true },
   { kind: "contact", size: "sm", visible: true },
 ];
@@ -80,7 +79,6 @@ describe("editableLayout", () => {
       "current_experience",
       "stack",
       "cyber_stats",
-      "latest_post",
       "certifications",
     ]);
     expect(layout[2]).toEqual({
@@ -128,7 +126,6 @@ describe("layoutFromSent", () => {
       "current_experience",
       "stack",
       "cyber_stats",
-      "latest_post",
       "certifications",
     ]);
     expect(layout[0]?.size).toBe("sm");

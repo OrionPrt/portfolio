@@ -60,11 +60,7 @@ describe("loadPublishedSlugs", () => {
     expect(await loadPublishedSlugs()).toEqual({
       ok: true,
       data: {
-        published: {
-          projects: ["portfolio"],
-          experiences: ["acme"],
-          posts: [],
-        },
+        published: { projects: ["portfolio"], experiences: ["acme"] },
         redirects: [
           {
             collection: "projects",

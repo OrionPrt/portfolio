@@ -75,6 +75,7 @@ export function TwoLevelContent({
             <RichMarkdown
               source={technicalMd}
               images={images}
+              headingIdPrefix={`${idPrefix}-h-`}
               locale={lang ?? locale}
             />
           </div>

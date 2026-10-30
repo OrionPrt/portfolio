@@ -75,9 +75,9 @@ The image library (`/admin/media`, [ADR-0007](adr/0007-admin.md)) keeps its file
 
 Without the token, production builds and previews refuse uploads: the library says the service is unavailable, and the logs show `media.storage_not_configured`. Development and the E2E suite store images under `.media/` (gitignored), served by the app itself.
 
-## Blog
+## Migrations 0005 and 0006
 
-The blog (`/fr/blog`, `/en/blog`, [ADR-0008](adr/0008-markdown.md)) needs migration `0005_posts`: run `pnpm db:migrate`, then `pnpm db:roles` so the site's role reaches the new tables, before deploying. Posts are written in the admin (`/admin/posts`); the home's "latest post" tile shows once one is published and the tile is ticked in `/admin/bento`.
+`0005_posts` created a blog's tables; the blog was abandoned and `0006_drop_posts` removes them, with their redirects and the home's "latest post" tile ([ADR-0008](adr/0008-markdown.md)). Deploy first, then run `pnpm db:migrate`: the site without the blog ignores the rows `0006` deletes, while the site with it would fail on its missing tables. The command applies both migrations if needed. No new table, so `pnpm db:roles` need not run again.
 
 ## Database roles
 

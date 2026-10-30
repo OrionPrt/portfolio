@@ -7,7 +7,6 @@ import type { TileKind } from "@/features/content/vocabulary";
 import {
   COVER,
   experienceView,
-  postSummary,
   profileView,
   projectView,
 } from "../../../test/fixtures/views";
@@ -21,7 +20,6 @@ const ALL_TILES: readonly TileView[] = (
     "current_experience",
     "stack",
     "cyber_stats",
-    "latest_post",
     "certifications",
     "cv",
     "contact",
@@ -68,7 +66,6 @@ function hub(overrides: Partial<HubData> = {}): HubData {
     currentExperience: experienceView(),
     skills: SKILLS,
     education: [EPITECH],
-    latestPost: postSummary(),
     certifications: [
       {
         slug: "oscp",
@@ -102,7 +99,6 @@ describe("BentoHub", () => {
       "experience-acme-title-fr",
       "stack-title-fr",
       "platforms-title-fr",
-      "latest-post-a-box-title-fr",
       "journey-title-fr",
       "contact-title-fr",
     ]);
@@ -118,7 +114,6 @@ describe("BentoHub", () => {
           skills: [],
           education: [],
           certifications: [],
-          latestPost: undefined,
         })}
       />,
     );

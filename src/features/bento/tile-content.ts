@@ -9,7 +9,6 @@ import type {
   ProfileView,
   SocialLinkView,
 } from "@/features/profile/repository";
-import type { PostSummary } from "@/features/posts/types";
 import type { ProjectView } from "@/features/projects/types";
 
 import { EDITABLE_TILE_KINDS } from "./rules";
@@ -22,7 +21,6 @@ export interface HubContent {
   readonly skills: readonly SkillView[];
   readonly education: readonly EducationView[];
   readonly certifications: readonly CertificationView[];
-  readonly latestPost: PostSummary | undefined;
 }
 
 /** What one tile shows: the hub renders it, the editor's preview counts it. */
@@ -45,8 +43,7 @@ export type TileContent =
       readonly education: readonly EducationView[];
       readonly certifications: readonly CertificationView[];
     }
-  | { readonly kind: "contact"; readonly links: readonly SocialLinkView[] }
-  | { readonly kind: "latest_post"; readonly post: PostSummary };
+  | { readonly kind: "contact"; readonly links: readonly SocialLinkView[] };
 
 const PLATFORM_KINDS: readonly SocialKind[] = [
   "hackthebox",
@@ -104,10 +101,6 @@ export function tileContent(
     case "contact":
       // Always shown: the contact form needs no published link.
       return { kind, links: linksOf(content.profile, CONTACT_KINDS) };
-    case "latest_post":
-      return content.latestPost === undefined
-        ? undefined
-        : { kind, post: content.latestPost };
     case "cv":
       // The generated CV (P9) does not exist yet.
       return undefined;

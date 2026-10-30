@@ -9,11 +9,7 @@ import {
 } from "./slug-registry";
 
 const SLUGS: SlugLists = {
-  published: {
-    projects: ["portfolio", "new-name"],
-    experiences: ["acme"],
-    posts: ["a-box"],
-  },
+  published: { projects: ["portfolio", "new-name"], experiences: ["acme"] },
   redirects: [
     { collection: "projects", fromSlug: "old-name", toSlug: "new-name" },
     // Its target is a draft: the old address is gone.

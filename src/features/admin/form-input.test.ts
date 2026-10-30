@@ -41,16 +41,6 @@ describe("textList", () => {
 describe("translationsFrom", () => {
   const KEYS = ["headline", "lookingFor"] as const;
 
-  it("leaves out the default language too when no language is required", () => {
-    expect(
-      translationsFrom(
-        { "fr.headline": " ", "en.headline": "Hello", "en.lookingFor": "" },
-        KEYS,
-        { optional: ["lookingFor"], isAnyLocaleOptional: true },
-      ),
-    ).toEqual({ en: { headline: "Hello", lookingFor: null } });
-  });
-
   it("groups each locale's fields, an optional empty one as null", () => {
     expect(
       translationsFrom(

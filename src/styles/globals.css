@@ -59,8 +59,7 @@
     line-height: 1.7;
   }
 
-  /* A post's sections (## under the page's h1): the table of contents leads
-     here, so the heading clears the top of the window. */
+  /* A text's sections (## under the page's h1, on the About page). */
   .markdown :where(h2) {
     margin-top: 1rem;
     font-size: 1.375rem;
@@ -69,6 +68,7 @@
     line-height: 1.25;
   }
 
+  /* A heading an anchor leads to clears the top of the window. */
   .markdown :where(h2, h3, h4) {
     scroll-margin-top: 1.5rem;
   }
@@ -199,13 +199,6 @@
   :where(.dark) .markdown :where(.shiki, .shiki span) {
     color: var(--shiki-dark);
   }
-}
-
-/* A post's challenge fields, for a write-up only: hidden while the post is an
-   article, which drops them anyway. Without :has(), they show with their hint. */
-form:has(select[name="kind"] option[value="article"]:checked)
-  [data-writeup-only] {
-  display: none;
 }
 
 /* Two rules: a browser that does not know view-transition pseudo-elements

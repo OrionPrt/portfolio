@@ -44,7 +44,7 @@ export function createBentoAdminRepository(db: Database) {
 
     /**
      * The tiles in their new order, in one statement. Those not built yet
-     * (the blog, the CV) keep their row: they stay hidden.
+     * (the CV) keep their row: they stay hidden.
      */
     save: (layout: readonly TileSetting[]): Promise<Result<SaveOutcome>> =>
       runQuery("bento.admin_write_failed", async () => {

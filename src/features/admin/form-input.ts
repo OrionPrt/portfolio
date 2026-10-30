@@ -25,28 +25,22 @@ export function blankToNull(value: string | undefined): string | null {
   return value === undefined || value.trim() === "" ? null : value;
 }
 
-interface TranslationsOptions<K extends string> {
-  readonly optional?: readonly K[];
-  /** No language required (a post): the default one left blank is left out too. */
-  readonly isAnyLocaleOptional?: boolean;
-}
-
 /**
  * Each locale's fields, named `<locale>.<key>` in the form. A blank optional
  * field reads as null. Another locale left blank is left out, so the site
  * falls back to the default one; the default locale is always there, so its
- * missing fields report themselves, unless no language is required.
+ * missing fields report themselves.
  */
 export function translationsFrom<K extends string>(
   fields: Readonly<Record<string, string>>,
   keys: readonly K[],
-  { optional = [], isAnyLocaleOptional = false }: TranslationsOptions<K> = {},
+  { optional = [] }: { readonly optional?: readonly K[] } = {},
 ): Partial<Record<Locale, Record<K, string | null>>> {
   const valueOf = (locale: Locale, key: K) => fields[`${locale}.${key}`] ?? "";
   return Object.fromEntries(
     LOCALES.flatMap((locale) => {
       const isBlank = keys.every((key) => valueOf(locale, key).trim() === "");
-      if ((locale !== DEFAULT_LOCALE || isAnyLocaleOptional) && isBlank) {
+      if (locale !== DEFAULT_LOCALE && isBlank) {
         return [];
       }
       const values = Object.fromEntries(

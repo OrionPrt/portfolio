@@ -15,7 +15,7 @@ describe("hasFencedCode", () => {
 });
 
 describe("loadHighlighter", () => {
-  it("knows the languages a write-up shows: web, diff and Dockerfile among them", async () => {
+  it("knows the languages a technical text shows: web, diff and Dockerfile among them", async () => {
     const highlighter = await loadHighlighter();
 
     expect(highlighter.getLoadedLanguages()).toEqual(
