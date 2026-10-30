@@ -1,6 +1,6 @@
 # ADR-0007 — Admin back office
 
-- **Status:** Accepted; implemented slice by slice (P6a, P6b and P6c done, P6d to come)
+- **Status:** Accepted; implemented slice by slice (P6a to P6d)
 - **Date:** 2026-10-26
 - **Phase:** P6
 

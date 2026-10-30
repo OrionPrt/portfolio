@@ -1,4 +1,5 @@
 import type { ExperienceView } from "@/features/experiences/repository";
+import type { PostSummary, PostView } from "@/features/posts/types";
 import type { ProfileView } from "@/features/profile/repository";
 import type { ProjectView } from "@/features/projects/types";
 
@@ -76,6 +77,33 @@ export function experienceView(
     logo: undefined,
     isFallback: false,
     contentLocale: "fr",
+    ...overrides,
+  };
+}
+
+export function postSummary(overrides: Partial<PostSummary> = {}): PostSummary {
+  return {
+    slug: "a-box",
+    kind: "writeup",
+    platform: "hackthebox",
+    difficulty: "hard",
+    publishedOn: "2026-10-01",
+    title: "Pwning a box",
+    excerpt: "How it fell, step by step.",
+    skills: [],
+    cover: undefined,
+    locales: ["fr"],
+    isFallback: false,
+    contentLocale: "fr",
+    ...overrides,
+  };
+}
+
+export function postView(overrides: Partial<PostView> = {}): PostView {
+  return {
+    ...postSummary(),
+    bodyMd: "## Recon\n\nNmap first.\n\n## Foothold\n\nThen a shell.",
+    retiredOn: "2026-09-01",
     ...overrides,
   };
 }

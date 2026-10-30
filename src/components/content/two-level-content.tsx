@@ -1,9 +1,10 @@
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 import type { StorySummary } from "@/features/content/types";
 import type { MediaById } from "@/features/media/types";
+import type { Locale } from "@/i18n/locales";
 
-import { Markdown } from "./markdown";
+import { RichMarkdown } from "./rich-markdown";
 
 interface TwoLevelContentProps {
   /** Scopes heading ids: other locales' copies of the page stay mounted. */
@@ -11,7 +12,7 @@ interface TwoLevelContentProps {
   readonly summary: StorySummary;
   readonly technicalMd: string;
   /** `lang` of the stored text when it falls back to another language. */
-  readonly lang?: string;
+  readonly lang?: Locale;
   /** The library's images the technical text shows. */
   readonly images?: MediaById;
 }
@@ -29,6 +30,7 @@ export function TwoLevelContent({
   images,
 }: TwoLevelContentProps) {
   const t = useTranslations("TwoLevel");
+  const locale = useLocale();
   const essentialsId = `${idPrefix}-essentials`;
   const steps = [
     ["context", summary.context],
@@ -70,7 +72,11 @@ export function TwoLevelContent({
             </span>
           </summary>
           <div lang={lang} className="border-line border-t p-5">
-            <Markdown source={technicalMd} images={images} />
+            <RichMarkdown
+              source={technicalMd}
+              images={images}
+              locale={lang ?? locale}
+            />
           </div>
         </details>
       )}

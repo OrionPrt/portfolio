@@ -10,6 +10,7 @@ const NOTHING = {
   skills: [],
   education: [],
   certifications: [],
+  latestPost: undefined,
 };
 
 describe("tilesWithoutContent", () => {
@@ -19,6 +20,7 @@ describe("tilesWithoutContent", () => {
       "current_experience",
       "stack",
       "cyber_stats",
+      "latest_post",
       "certifications",
     ]);
   });
@@ -62,6 +64,7 @@ describe("tilesWithoutContent", () => {
     expect(tilesWithoutContent(content)).toEqual([
       "current_experience",
       "stack",
+      "latest_post",
       "certifications",
     ]);
     expect(tileContent("cyber_stats", content)).toEqual({

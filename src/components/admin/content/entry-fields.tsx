@@ -194,17 +194,21 @@ interface BilingualFieldsProps<K extends string> {
   readonly fields: readonly TranslatedField<K>[];
   /** The stored languages; undefined for a new entry. */
   readonly translations: Translations<K> | undefined;
+  /** False where each language stands alone (a post): nothing is "to translate". */
+  readonly isTranslation?: boolean;
 }
 
 /** Each field in both languages, in the order given. */
 export function BilingualFields<K extends string>({
   fields,
   translations,
+  isTranslation = true,
 }: BilingualFieldsProps<K>) {
   return fields.map((field) => (
     <BilingualField
       key={field.name}
       {...field}
+      isTranslation={isTranslation}
       initial={Object.fromEntries(
         LOCALES.map((locale) => [
           locale,

@@ -2,7 +2,7 @@ import { logger } from "@/lib/logger";
 import type { Result } from "@/lib/result";
 
 import type { SlugRedirect } from "./redirects-repository";
-import type { EntryCollection } from "./vocabulary";
+import { ENTRY_COLLECTIONS, type EntryCollection } from "./vocabulary";
 
 export type PublishedSlugs = Readonly<
   Record<EntryCollection, readonly string[]>
@@ -56,15 +56,15 @@ function toKnown(lists: SlugLists): Known {
         .filter((redirect) => redirect.collection === collection)
         .map((redirect) => [redirect.fromSlug, redirect.toSlug]),
     );
+  const byCollection = <T>(of: (collection: EntryCollection) => T) =>
+    Object.fromEntries(
+      ENTRY_COLLECTIONS.map((collection) => [collection, of(collection)]),
+    ) as Record<EntryCollection, T>;
   return {
-    published: {
-      projects: new Set(lists.published.projects),
-      experiences: new Set(lists.published.experiences),
-    },
-    redirects: {
-      projects: redirectsOf("projects"),
-      experiences: redirectsOf("experiences"),
-    },
+    published: byCollection(
+      (collection) => new Set(lists.published[collection]),
+    ),
+    redirects: byCollection(redirectsOf),
   };
 }
 

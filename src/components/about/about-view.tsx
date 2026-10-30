@@ -1,7 +1,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import { ViewTransition } from "react";
 
-import { Markdown } from "@/components/content/markdown";
+import { RichMarkdown } from "@/components/content/rich-markdown";
 import { ViewShell } from "@/components/content/view-shell";
 import { VIEW_TRANSITIONS } from "@/features/content/view-names";
 import type { MediaById } from "@/features/media/types";
@@ -42,7 +42,12 @@ export function AboutView({ profile, images }: AboutViewProps) {
         <div lang={lang} className="flex max-w-prose flex-col gap-6">
           <p className="text-lg leading-relaxed">{profile.pitch}</p>
           {profile.aboutMd.trim() !== "" && (
-            <Markdown source={profile.aboutMd} topLevel={2} images={images} />
+            <RichMarkdown
+              source={profile.aboutMd}
+              topLevel={2}
+              images={images}
+              locale={profile.contentLocale}
+            />
           )}
         </div>
         <dl className="grid gap-6 sm:grid-cols-3">

@@ -14,6 +14,7 @@ import {
   certificationPath,
   educationPath,
   experiencePath,
+  postPath,
   projectPath,
 } from "@/features/auth/admin-paths";
 import type { Result } from "@/lib/result";
@@ -43,6 +44,7 @@ const ENTRY_PATHS: Readonly<Record<EntryKind, (id: string) => string>> = {
   experience: experiencePath,
   education: educationPath,
   certification: certificationPath,
+  post: postPath,
 };
 
 type GroupName = keyof typeof COPY.groups;

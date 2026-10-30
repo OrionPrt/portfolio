@@ -75,6 +75,10 @@ The image library (`/admin/media`, [ADR-0007](adr/0007-admin.md)) keeps its file
 
 Without the token, production builds and previews refuse uploads: the library says the service is unavailable, and the logs show `media.storage_not_configured`. Development and the E2E suite store images under `.media/` (gitignored), served by the app itself.
 
+## Blog
+
+The blog (`/fr/blog`, `/en/blog`, [ADR-0008](adr/0008-markdown.md)) needs migration `0005_posts`: run `pnpm db:migrate`, then `pnpm db:roles` so the site's role reaches the new tables, before deploying. Posts are written in the admin (`/admin/posts`); the home's "latest post" tile shows once one is published and the tile is ticked in `/admin/bento`.
+
 ## Database roles
 
 The site connects as `portfolio_app`, a role limited to data changes: it cannot change the schema, empty a table or rewrite the audit log ([ADR-0004](adr/0004-data-layer.md)). The owner's connection string (Neon's `neondb_owner`) only serves `db:migrate`, `db:seed` and `db:roles`, from your machine; it is never set on Vercel.

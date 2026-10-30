@@ -15,6 +15,7 @@
   --color-control-border: var(--control-border);
   --color-focus: var(--focus);
   --color-danger: var(--danger);
+  --color-warning: var(--warning);
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
@@ -56,6 +57,20 @@
     flex-direction: column;
     gap: 1rem;
     line-height: 1.7;
+  }
+
+  /* A post's sections (## under the page's h1): the table of contents leads
+     here, so the heading clears the top of the window. */
+  .markdown :where(h2) {
+    margin-top: 1rem;
+    font-size: 1.375rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+  }
+
+  .markdown :where(h2, h3, h4) {
+    scroll-margin-top: 1.5rem;
   }
 
   .markdown :where(h3, h4, h5, h6) {
@@ -136,6 +151,61 @@
     padding: 0.375rem 0.75rem;
     text-align: left;
   }
+
+  /* Directives (ADR-0008): a note, a warning, a disclosure. */
+  .markdown :where(.callout) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    border: 1px solid var(--line);
+    border-left-width: 3px;
+    border-radius: 10px;
+    background: var(--surface);
+    padding: 0.875rem 1rem;
+  }
+
+  .markdown :where([data-callout="note"]) {
+    border-left-color: var(--accent);
+  }
+
+  .markdown :where([data-callout="warning"]) {
+    border-left-color: var(--warning);
+  }
+
+  /* A disclosure's content sits in ::details-content, which the flex gap of
+     .callout does not reach: its blocks are spaced one by one. */
+  .markdown :where(details.callout > :not(summary) + *) {
+    margin-top: 0.5rem;
+  }
+
+  .markdown :where(.callout-title, summary) {
+    font-weight: 600;
+  }
+
+  .markdown :where(summary) {
+    cursor: pointer;
+  }
+
+  .markdown :where(details[open] > summary) {
+    margin-bottom: 0.25rem;
+  }
+
+  /* Shiki's two themes as CSS variables: the page's theme picks one set. The
+     block keeps the site's own background. */
+  .markdown :where(.shiki, .shiki span) {
+    color: var(--shiki-light);
+  }
+
+  :where(.dark) .markdown :where(.shiki, .shiki span) {
+    color: var(--shiki-dark);
+  }
+}
+
+/* A post's challenge fields, for a write-up only: hidden while the post is an
+   article, which drops them anyway. Without :has(), they show with their hint. */
+form:has(select[name="kind"] option[value="article"]:checked)
+  [data-writeup-only] {
+  display: none;
 }
 
 /* Two rules: a browser that does not know view-transition pseudo-elements

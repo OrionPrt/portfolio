@@ -109,6 +109,11 @@ interface BilingualFieldProps {
   readonly isRequired?: boolean;
   readonly maxLength?: number;
   readonly hint?: string;
+  /**
+   * Whether the other language translates the default one, flagged while it
+   * is missing; false where each language stands alone (a post).
+   */
+  readonly isTranslation?: boolean;
 }
 
 /**
@@ -123,6 +128,7 @@ export function BilingualField({
   isRequired = false,
   maxLength,
   hint,
+  isTranslation = true,
 }: BilingualFieldProps) {
   const hintId = useId();
   // What the controls start from: after a refusal, what was sent.
@@ -155,6 +161,7 @@ export function BilingualField({
             isRequired={isRequired}
             maxLength={maxLength}
             showsToTranslate={
+              isTranslation &&
               locale !== DEFAULT_LOCALE &&
               isBlank[locale] &&
               !isBlank[DEFAULT_LOCALE]

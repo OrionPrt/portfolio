@@ -8,6 +8,7 @@ import {
   educationPath,
   experiencePath,
   mediaPath,
+  postPath,
   projectPath,
 } from "@/features/auth/admin-paths";
 import type {
@@ -70,6 +71,7 @@ const PATHS: Readonly<Record<MediaUsage["kind"], (id: string) => string>> = {
   certification: certificationPath,
   // One profile: its page has no id.
   profile: () => ADMIN_PATHS.profile,
+  post: postPath,
 };
 
 interface MediaUsagesProps {

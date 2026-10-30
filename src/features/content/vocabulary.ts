@@ -41,7 +41,15 @@ export const TILE_SIZES = ["sm", "md", "lg", "xl"] as const;
 export const MESSAGE_STATUSES = ["unread", "read", "archived"] as const;
 
 /** Collections whose entries live under /<collection>/[slug]: they have slugs to redirect. */
-export const ENTRY_COLLECTIONS = ["projects", "experiences"] as const;
+export const ENTRY_COLLECTIONS = ["projects", "experiences", "posts"] as const;
+
+/** An article, or a write-up: how a challenge or a machine was solved. */
+export const POST_KINDS = ["article", "writeup"] as const;
+
+/** Where a write-up's challenge comes from. */
+export const PLATFORMS = ["hackthebox", "rootme", "tryhackme", "ctf"] as const;
+
+export const DIFFICULTIES = ["easy", "medium", "hard", "insane"] as const;
 
 export type SkillDomain = (typeof SKILL_DOMAINS)[number];
 export type ContentStatus = (typeof CONTENT_STATUSES)[number];
@@ -51,3 +59,6 @@ export type SocialKind = (typeof SOCIAL_KINDS)[number];
 export type TileKind = (typeof TILE_KINDS)[number];
 export type TileSize = (typeof TILE_SIZES)[number];
 export type MessageStatus = (typeof MESSAGE_STATUSES)[number];
+export type PostKind = (typeof POST_KINDS)[number];
+export type Platform = (typeof PLATFORMS)[number];
+export type Difficulty = (typeof DIFFICULTIES)[number];

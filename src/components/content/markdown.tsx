@@ -1,11 +1,22 @@
-import type { ReactNode } from "react";
+import rehypeShikiFromHighlighter from "@shikijs/rehype/core";
+import type { CSSProperties, ReactNode } from "react";
 import ReactMarkdown, {
   type Components,
   type ExtraProps,
 } from "react-markdown";
+import rehypeSlug from "rehype-slug";
+import remarkDirective from "remark-directive";
 import remarkGfm from "remark-gfm";
+import type { HighlighterCore } from "shiki/core";
+import type { Pluggable, PluggableList } from "unified";
 
 import { MediaImage } from "@/components/ui/media-image";
+import { CODE_THEMES } from "@/features/content/highlighter";
+import {
+  CALLOUT_KINDS,
+  remarkCallouts,
+  type CalloutKind,
+} from "@/features/content/markdown-directives";
 import { safeMarkdownUrl } from "@/features/content/safe-url";
 import { mediaIdOf } from "@/features/media/references";
 import type { MediaById, MediaView } from "@/features/media/types";
@@ -24,6 +35,23 @@ interface ChildrenProps {
   readonly children?: ReactNode;
 }
 
+interface HeadingProps extends ChildrenProps {
+  /** rehype-slug's, when the page asks for anchors. */
+  readonly id?: string;
+  /** GFM's footnotes label their section with a heading only screen readers see. */
+  readonly className?: string;
+}
+
+/** What a callout says when its Markdown gives it no title: the page's language. */
+export type CalloutLabels = Readonly<Record<CalloutKind, string>>;
+
+/** The words a caller gives no others for: the site's default language. */
+const FRENCH_LABELS: CalloutLabels = {
+  note: "Note",
+  warning: "Attention",
+  details: "Détails",
+};
+
 const HEADING_TAGS = ["h2", "h3", "h4", "h5", "h6"] as const;
 
 /** The tag for a Markdown heading, shifted under the page's own headings. */
@@ -34,8 +62,12 @@ function headingTag(topLevel: TopLevel, markdownLevel: number) {
 
 function headingFor(topLevel: TopLevel, markdownLevel: number) {
   const Tag = headingTag(topLevel, markdownLevel);
-  return function Heading({ children }: ChildrenProps) {
-    return <Tag>{children}</Tag>;
+  return function Heading({ id, className, children }: HeadingProps) {
+    return (
+      <Tag id={id} className={className === "sr-only" ? className : undefined}>
+        {children}
+      </Tag>
+    );
   };
 }
 
@@ -147,20 +179,89 @@ function BlockImage({
   );
 }
 
-/** The components for one set of images: built once per set, so a re-render keeps them. */
-const COMPONENTS = new WeakMap<
-  MarkdownImages,
-  Partial<Record<TopLevel, Components>>
->();
+function isCallout(value: unknown): value is Exclude<CalloutKind, "details"> {
+  return value === "note" || value === "warning";
+}
 
-function componentsOf(topLevel: TopLevel, images: MarkdownImages): Components {
-  const built = COMPONENTS.get(images) ?? {};
-  const components = built[topLevel] ?? componentsFor(topLevel, images);
-  COMPONENTS.set(images, { ...built, [topLevel]: components });
+/** The first element a rendered node holds: a callout's title, a summary. */
+function firstElement(node: Element | undefined): Element | undefined {
+  const first = node?.children.find((child) => child.type === "element");
+  return first?.type === "element" ? first : undefined;
+}
+
+interface CalloutProps extends ChildrenProps {
+  readonly kind: Exclude<CalloutKind, "details">;
+  readonly node: Element | undefined;
+  readonly labels: CalloutLabels;
+}
+
+/** A note or a warning, set apart from the text, titled by its kind if not by its author. */
+function Callout({ kind, node, labels, children }: CalloutProps) {
+  const hasTitle =
+    firstElement(node)?.properties.dataCalloutTitle !== undefined;
+  return (
+    <div role="note" className="callout" data-callout={kind}>
+      {!hasTitle && <p className="callout-title">{labels[kind]}</p>}
+      {children}
+    </div>
+  );
+}
+
+interface DisclosureProps extends ChildrenProps {
+  readonly node: Element | undefined;
+  readonly labels: CalloutLabels;
+}
+
+/** A disclosure: its summary from the Markdown's label, else the page's word. */
+function Disclosure({ node, labels, children }: DisclosureProps) {
+  return (
+    <details className="callout" data-callout="details">
+      {firstElement(node)?.tagName !== "summary" && (
+        <summary>{labels.details}</summary>
+      )}
+      {children}
+    </details>
+  );
+}
+
+interface ComponentOptions {
+  readonly topLevel: TopLevel;
+  readonly images: MarkdownImages;
+  readonly labels: CalloutLabels;
+}
+
+/**
+ * The components for one set of images, level and labels: built once, so a
+ * re-render keeps them (a client preview would remount its images otherwise).
+ */
+const COMPONENTS = new WeakMap<MarkdownImages, Map<string, Components>>();
+
+function componentsOf(options: ComponentOptions): Components {
+  const { topLevel, images, labels } = options;
+  const key = [topLevel, ...CALLOUT_KINDS.map((kind) => labels[kind])].join(
+    "|",
+  );
+  const built = COMPONENTS.get(images);
+  const cached = built?.get(key);
+  if (cached !== undefined) {
+    return cached;
+  }
+  const components = componentsFor(options);
+  COMPONENTS.set(images, new Map([...(built ?? []), [key, components]]));
   return components;
 }
 
-function componentsFor(topLevel: TopLevel, images: MarkdownImages): Components {
+/** Shiki's class and colour variables: the only attributes a code block keeps. */
+interface PreProps extends ChildrenProps {
+  readonly className?: string;
+  readonly style?: CSSProperties;
+}
+
+function componentsFor({
+  topLevel,
+  images,
+  labels,
+}: ComponentOptions): Components {
   return {
     h1: headingFor(topLevel, 1),
     h2: headingFor(topLevel, 2),
@@ -171,6 +272,9 @@ function componentsFor(topLevel: TopLevel, images: MarkdownImages): Components {
     // The library's images only (ADR-0007): an outside one, or one the
     // library no longer has, shows its description instead.
     p: ({ node, children }) => {
+      if (node?.properties.dataCalloutTitle !== undefined) {
+        return <p className="callout-title">{children}</p>;
+      }
       const image = loneImage(node);
       return image === undefined ? (
         <p>{children}</p>
@@ -178,6 +282,22 @@ function componentsFor(topLevel: TopLevel, images: MarkdownImages): Components {
         <BlockImage element={image} images={images} />
       );
     },
+    // Directives (ADR-0008): a callout, else a plain block around its content.
+    div: ({ node, children }) => {
+      const kind = node?.properties.dataCallout;
+      return isCallout(kind) ? (
+        <Callout kind={kind} node={node} labels={labels}>
+          {children}
+        </Callout>
+      ) : (
+        <div>{children}</div>
+      );
+    },
+    details: ({ node, children }) => (
+      <Disclosure node={node} labels={labels}>
+        {children}
+      </Disclosure>
+    ),
     img: ({ src, alt }) => <InlineImage src={src} alt={alt} images={images} />,
     a: ({ node, href, children }) =>
       // A link left with nothing to show (an image without text) is dropped.
@@ -194,7 +314,11 @@ function componentsFor(topLevel: TopLevel, images: MarkdownImages): Components {
         </a>
       ),
     // Wide code and tables scroll: keyboard users must reach them too.
-    pre: ({ children }) => <pre tabIndex={0}>{children}</pre>,
+    pre: ({ className, style, children }: PreProps) => (
+      <pre className={className} style={style} tabIndex={0}>
+        {children}
+      </pre>
+    ),
     table: ({ children }) => <table tabIndex={0}>{children}</table>,
   };
 }
@@ -208,31 +332,75 @@ function markdownUrl(url: string, key: string): string {
 
 const NO_IMAGES: MarkdownImages = {};
 
+/** Code lines longer than this are not coloured. */
+const MAX_HIGHLIGHTED_LINE = 2000;
+
 interface MarkdownProps {
   readonly source: string;
   /** The level Markdown's top headings take: right under the enclosing heading. */
   readonly topLevel?: TopLevel;
   /** The library's images the text shows (`media:<id>`), loaded with it. */
   readonly images?: MarkdownImages;
+  /**
+   * Gives the headings ids, for a table of contents: prefixed, so the copies
+   * of the page other languages keep mounted never share one.
+   */
+  readonly headingIdPrefix?: string;
+  /** Colours code blocks; without it, they stay plain. */
+  readonly highlighter?: HighlighterCore;
+  readonly labels?: CalloutLabels;
+}
+
+function rehypePluginsFor(
+  headingIdPrefix: string | undefined,
+  highlighter: HighlighterCore | undefined,
+): PluggableList {
+  const anchors: Pluggable = [rehypeSlug, { prefix: headingIdPrefix }];
+  const colours: Pluggable = [
+    rehypeShikiFromHighlighter,
+    highlighter,
+    {
+      themes: CODE_THEMES,
+      // Colours as CSS variables: the theme switch picks one set.
+      defaultColor: false,
+      defaultLanguage: "text",
+      fallbackLanguage: "text",
+      // A line past this is left plain: no pathological line holds a render.
+      tokenizeMaxLineLength: MAX_HIGHLIGHTED_LINE,
+    },
+  ];
+  return [
+    ...(headingIdPrefix === undefined ? [] : [anchors]),
+    ...(highlighter === undefined ? [] : [colours]),
+  ];
 }
 
 /**
  * Renders stored Markdown (GFM) without raw HTML: tags in the source are
- * dropped, links only keep https, mailto and same-site URLs, and images come
- * from the library only (`![text](media:<id> "Caption")`).
+ * dropped, links only keep https, mailto and same-site URLs, images come from
+ * the library only (`![text](media:<id> "Caption")`), and the only directives
+ * are `:::note`, `:::warning` and `:::details` (ADR-0008).
  */
 export function Markdown({
   source,
   topLevel = 3,
   images = NO_IMAGES,
+  headingIdPrefix,
+  highlighter,
+  labels = FRENCH_LABELS,
 }: MarkdownProps) {
   return (
     <div className="markdown">
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
+        remarkPlugins={[remarkGfm, remarkDirective, remarkCallouts]}
+        rehypePlugins={rehypePluginsFor(headingIdPrefix, highlighter)}
+        // Footnotes' ids follow the headings': each copy of the page its own.
+        remarkRehypeOptions={{
+          clobberPrefix: headingIdPrefix ?? "user-content-",
+        }}
         skipHtml
         urlTransform={markdownUrl}
-        components={componentsOf(topLevel, images)}
+        components={componentsOf({ topLevel, images, labels })}
       >
         {source}
       </ReactMarkdown>

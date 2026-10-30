@@ -1,10 +1,16 @@
 import { screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { COVER, experienceView } from "../../../test/fixtures/views";
 import { renderWithIntl } from "../../../test/render";
 import { ExperienceCard } from "./experience-card";
 import { ExperienceDetail } from "./experience-detail";
+
+// An async server component: the plain renderer stands in for it under jsdom.
+vi.mock(
+  "@/components/content/rich-markdown",
+  () => import("../../../test/mocks/rich-markdown"),
+);
 
 /** The element whose whole text is `text`, even when split across <time> children. */
 function period(text: string) {

@@ -71,3 +71,32 @@ export function projectJsonLd(project: ProjectInput): JsonLd {
     ...(project.repoUrl === null ? {} : { codeRepository: project.repoUrl }),
   };
 }
+
+interface PostInput {
+  readonly headline: string;
+  readonly description: string;
+  readonly url: string;
+  readonly language: Locale;
+  readonly datePublished: string;
+  readonly authorName: string;
+  readonly keywords: readonly string[];
+  /** The cover's absolute URL, if it has one. */
+  readonly image: string | undefined;
+}
+
+/** An article or a write-up. */
+export function postJsonLd(post: PostInput): JsonLd {
+  return {
+    "@context": SCHEMA_ORG,
+    "@type": "BlogPosting",
+    headline: post.headline,
+    description: post.description,
+    url: post.url,
+    mainEntityOfPage: post.url,
+    inLanguage: post.language,
+    datePublished: post.datePublished,
+    author: { "@type": "Person", name: post.authorName },
+    keywords: post.keywords.join(", "),
+    ...(post.image === undefined ? {} : { image: post.image }),
+  };
+}

@@ -9,6 +9,7 @@ const SECTIONS = [
   ["/experiences", "experiences"],
   ["/skills", "skills"],
   ["/about", "about"],
+  ["/posts", "blog"],
   ["/contact", "contact"],
 ] as const;
 

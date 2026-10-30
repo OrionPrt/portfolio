@@ -57,6 +57,10 @@ interface SelectFieldProps {
   readonly hint?: string;
   /** What another entry already holds: "Ce type de lien existe déjà." */
   readonly takenMessage?: string;
+  /** What the field expects, when refused: "Un write-up indique sa plateforme." */
+  readonly invalidMessage?: string;
+  /** False when an empty option stands for "none". */
+  readonly isRequired?: boolean;
 }
 
 export function SelectField({
@@ -66,6 +70,8 @@ export function SelectField({
   options,
   hint,
   takenMessage,
+  invalidMessage,
+  isRequired = true,
 }: SelectFieldProps) {
   const id = useId();
   const { value, problem } = useField(name, initial);
@@ -74,7 +80,7 @@ export function SelectField({
       id={id}
       label={label}
       hint={hint}
-      error={messageOf(problem, undefined, takenMessage)}
+      error={messageOf(problem, invalidMessage, takenMessage)}
     >
       {(control) => (
         // Keyed by its value: React applies a select's defaultValue at mount only.
@@ -83,7 +89,7 @@ export function SelectField({
           {...control}
           name={name}
           defaultValue={value}
-          required
+          required={isRequired}
         >
           {options.map(([optionValue, optionLabel]) => (
             <option key={optionValue} value={optionValue}>

@@ -1,11 +1,17 @@
 import { screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { COVER, projectView } from "../../../test/fixtures/views";
 import { renderWithIntl } from "../../../test/render";
 import { ProjectCard } from "./project-card";
 import { ProjectDetail } from "./project-detail";
 import { ProjectFiltersForm } from "./project-filters-form";
+
+// An async server component: the plain renderer stands in for it under jsdom.
+vi.mock(
+  "@/components/content/rich-markdown",
+  () => import("../../../test/mocks/rich-markdown"),
+);
 
 describe("ProjectDetail", () => {
   it("shows the project, its links, period and technologies", () => {

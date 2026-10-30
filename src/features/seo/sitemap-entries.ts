@@ -12,6 +12,7 @@ const STATIC_PAGES: readonly LocalizedHref[] = [
   "/skills",
   "/projects",
   "/experiences",
+  "/posts",
   "/contact",
 ];
 
@@ -43,6 +44,9 @@ export function sitemapEntries(
     ),
     ...slugs.experiences.map((slug) =>
       entry(base, { pathname: "/experiences/[slug]", params: { slug } }),
+    ),
+    ...slugs.posts.map((slug) =>
+      entry(base, { pathname: "/posts/[slug]", params: { slug } }),
     ),
   ];
 }

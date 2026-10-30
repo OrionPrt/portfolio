@@ -1,4 +1,9 @@
-import { CACHE_TAGS, experienceTag, projectTag } from "@/lib/cache-tags";
+import {
+  CACHE_TAGS,
+  experienceTag,
+  postTag,
+  projectTag,
+} from "@/lib/cache-tags";
 
 export type ContentEntity =
   | "profile"
@@ -9,7 +14,8 @@ export type ContentEntity =
   | "education"
   | "certification"
   | "bento_tile"
-  | "media";
+  | "media"
+  | "post";
 
 export interface ContentChange {
   readonly entity: ContentEntity;
@@ -29,6 +35,14 @@ const LIST_TAGS: Readonly<Record<ContentEntity, string>> = {
   certification: CACHE_TAGS.certifications,
   bento_tile: CACHE_TAGS.bento,
   media: CACHE_TAGS.media,
+  post: CACHE_TAGS.posts,
+};
+
+/** The entities with a page of their own, by slug. */
+const PAGE_TAGS: Partial<Record<ContentEntity, (slug: string) => string>> = {
+  project: projectTag,
+  experience: experienceTag,
+  post: postTag,
 };
 
 /** The cache tags a change makes stale: the entity's list, and each page it has. */
@@ -36,12 +50,7 @@ export function tagsFor({
   entity,
   slugs = [],
 }: ContentChange): readonly string[] {
-  const pageTag =
-    entity === "project"
-      ? projectTag
-      : entity === "experience"
-        ? experienceTag
-        : undefined;
+  const pageTag = PAGE_TAGS[entity];
   const pages = pageTag === undefined ? [] : slugs.map(pageTag);
   return [...new Set([LIST_TAGS[entity], ...pages])];
 }

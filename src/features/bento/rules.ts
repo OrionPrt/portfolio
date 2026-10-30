@@ -28,7 +28,7 @@ export const TILE_RULES: Readonly<Record<TileKind, TileRule>> = {
   current_experience: { sizes: ["sm", "md", "lg"], availability: "optional" },
   stack: { sizes: ["md", "lg", "xl"], availability: "optional" },
   cyber_stats: { sizes: ["sm", "md"], availability: "optional" },
-  latest_post: { sizes: ["sm", "md", "lg"], availability: "coming" },
+  latest_post: { sizes: ["sm", "md", "lg"], availability: "optional" },
   certifications: { sizes: ["sm", "md", "lg"], availability: "optional" },
   cv: { sizes: ["sm", "md"], availability: "coming" },
   contact: { sizes: ["sm", "md"], availability: "optional" },

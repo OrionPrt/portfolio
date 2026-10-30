@@ -1,10 +1,16 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NextIntlClientProvider } from "next-intl";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import messages from "../../../messages/fr.json";
 import { TwoLevelContent } from "./two-level-content";
+
+// An async server component: the plain renderer stands in for it under jsdom.
+vi.mock(
+  "@/components/content/rich-markdown",
+  () => import("../../../test/mocks/rich-markdown"),
+);
 
 const SUMMARY = {
   context: "Le contexte.",

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   experienceTransitionName,
+  postTransitionName,
   projectTransitionName,
   skillAnchor,
   VIEW_TRANSITIONS,
@@ -11,6 +12,7 @@ describe("view-transition names", () => {
   it("pair a tile with its full-screen view under one name per entry", () => {
     expect(projectTransitionName("demo")).toBe("project-demo");
     expect(experienceTransitionName("acme")).toBe("experience-acme");
+    expect(postTransitionName("a-box")).toBe("post-a-box");
     expect(projectTransitionName("a")).not.toBe(projectTransitionName("b"));
   });
 

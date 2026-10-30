@@ -12,6 +12,7 @@ export const CACHE_TAGS = {
   education: "education",
   certifications: "certifications",
   bento: "bento",
+  posts: "posts",
   // On every read that shows an image: an alternative text edited shows at once.
   media: "media",
 } as const;
@@ -24,4 +25,9 @@ export function projectTag(slug: string): string {
 /** One experience's page; `experiences` covers the lists. */
 export function experienceTag(slug: string): string {
   return `experience:${slug}`;
+}
+
+/** One post's page; `posts` covers the lists. */
+export function postTag(slug: string): string {
+  return `post:${slug}`;
 }

@@ -26,6 +26,7 @@
     "skills": "Compétences",
     "projects": "Projets",
     "experiences": "Expériences",
+    "blog": "Blog",
     "contact": "Contact"
   },
   "Domains": {
@@ -69,6 +70,7 @@
     "journey": "parcours",
     "journeyEducation": "formation",
     "journeyCertification": "certification",
+    "latestPost": "dernier article",
     "contact": "contact",
     "contactLead": "Une question, une mission, un poste ?",
     "moreSkillsLabel": "et {count} autres",
@@ -185,5 +187,42 @@
     "title": "Une erreur est survenue",
     "description": "Tu peux réessayer, ou revenir un peu plus tard.",
     "retry": "Réessayer"
+  },
+  "Markdown": {
+    "note": "Note",
+    "warning": "Attention",
+    "details": "Détails"
+  },
+  "Blog": {
+    "label": "blog",
+    "title": "Blog",
+    "description": "Articles et write-ups : sécurité offensive, bas niveau, web et DevOps.",
+    "empty": "Aucun article publié pour le moment.",
+    "count": "{count, plural, =0 {Aucun article} one {# article} other {# articles}}",
+    "kinds": {
+      "article": "article",
+      "writeup": "write-up"
+    },
+    "platforms": {
+      "hackthebox": "Hack The Box",
+      "rootme": "Root Me",
+      "tryhackme": "TryHackMe",
+      "ctf": "CTF"
+    },
+    "difficulties": {
+      "easy": "facile",
+      "medium": "moyen",
+      "hard": "difficile",
+      "insane": "extrême"
+    },
+    "readingTime": "{minutes} min de lecture",
+    "retiredOn": "Retrait du challenge : <time>{date}</time>",
+    "onlyIn": "{language, select, fr {en français} en {en anglais} other {dans une autre langue}}",
+    "toc": "Sommaire",
+    "neighbours": "Autres articles",
+    "previous": "Article précédent",
+    "next": "Article suivant",
+    "all": "Tous les articles",
+    "skills": "Compétences"
   }
 }

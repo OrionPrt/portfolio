@@ -19,6 +19,7 @@ const STORED: readonly TileSetting[] = [
   { kind: "current_experience", size: "sm", visible: true },
   { kind: "stack", size: "md", visible: true },
   { kind: "cyber_stats", size: "sm", visible: false },
+  { kind: "latest_post", size: "sm", visible: false },
   { kind: "certifications", size: "sm", visible: true },
   { kind: "contact", size: "sm", visible: true },
 ];
@@ -52,9 +53,9 @@ describe("TILE_RULES", () => {
     }
   });
 
-  it("keeps the blog and the CV out of the editor until they exist", () => {
+  it("keeps the CV out of the editor until it exists", () => {
     expect(EDITABLE_TILE_KINDS).toEqual(
-      TILE_KINDS.filter((kind) => kind !== "latest_post" && kind !== "cv"),
+      TILE_KINDS.filter((kind) => kind !== "cv"),
     );
     expect(TILE_RULES.identity.availability).toBe("always");
   });
@@ -79,6 +80,7 @@ describe("editableLayout", () => {
       "current_experience",
       "stack",
       "cyber_stats",
+      "latest_post",
       "certifications",
     ]);
     expect(layout[2]).toEqual({
@@ -126,6 +128,7 @@ describe("layoutFromSent", () => {
       "current_experience",
       "stack",
       "cyber_stats",
+      "latest_post",
       "certifications",
     ]);
     expect(layout[0]?.size).toBe("sm");

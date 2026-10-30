@@ -8,6 +8,8 @@ export const TEXT_LIMITS = {
   tagline: 200,
   summary: 800,
   seo: 160,
+  /** A post's summary: its list entry, and its description for search engines. */
+  excerpt: 300,
   markdown: 50_000,
   url: 2048,
   /** An image's alternative text: a sentence, not a caption. */

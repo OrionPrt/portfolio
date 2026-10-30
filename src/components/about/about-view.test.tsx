@@ -1,9 +1,15 @@
 import { screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { profileView } from "../../../test/fixtures/views";
 import { renderWithIntl } from "../../../test/render";
 import { AboutView } from "./about-view";
+
+// An async server component: the plain renderer stands in for it under jsdom.
+vi.mock(
+  "@/components/content/rich-markdown",
+  () => import("../../../test/mocks/rich-markdown"),
+);
 
 describe("AboutView", () => {
   it("presents the owner, the facts given and where to find them", () => {

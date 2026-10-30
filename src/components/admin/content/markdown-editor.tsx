@@ -1,6 +1,13 @@
 "use client";
 
-import { lazy, Suspense, useMemo, useRef, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentType,
+} from "react";
 
 import type { ControlProps } from "@/components/ui/form-field";
 import {
@@ -15,15 +22,22 @@ import { announce } from "../announce";
 import { ADMIN_COPY } from "../copy";
 import { insertBlock } from "./markdown-insert";
 import { MarkdownImageInserter } from "./markdown-image-inserter";
+import type { PreviewProps } from "./markdown-preview";
 import { useMediaOptions } from "./media-options";
 
 const COPY = ADMIN_COPY.content.markdown;
 
-// Loaded on the first preview: the editor itself does not need the renderer.
-const Markdown = lazy(() =>
-  import("@/components/content/markdown").then((module) => ({
-    default: module.Markdown,
-  })),
+/** What the preview shows when its code cannot be fetched (a tab left open across a deploy). */
+function PreviewUnavailable() {
+  return <p className="text-fg-muted">{COPY.previewFailed}</p>;
+}
+
+// Loaded on the first preview, with the highlighter: the editor itself needs
+// neither. A failed load leaves the form, and the text typed, in place.
+const Markdown = lazy<ComponentType<PreviewProps>>(() =>
+  import("./markdown-preview")
+    .then((module) => module.loadPreview())
+    .catch(() => ({ default: PreviewUnavailable })),
 );
 
 interface MarkdownEditorProps {
@@ -190,7 +204,12 @@ export function MarkdownEditor({
             <p className="text-fg-muted">{COPY.empty}</p>
           ) : (
             <Suspense fallback={null}>
-              <Markdown source={text} topLevel={2} images={images} />
+              <Markdown
+                source={text}
+                topLevel={2}
+                images={images}
+                locale={lang}
+              />
             </Suspense>
           )}
         </div>

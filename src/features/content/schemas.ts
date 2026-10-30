@@ -5,9 +5,13 @@ import { DEFAULT_LOCALE, LOCALES } from "@/i18n/locales";
 import { MAX_SLUG_LENGTH, SLUG_PATTERN } from "@/lib/slug";
 
 import { TEXT_LIMITS } from "./limits";
+import { POST_LANGUAGE_FIELD } from "./post-fields";
 import {
   CONTENT_STATUSES,
+  DIFFICULTIES,
   EMPLOYMENT_TYPES,
+  PLATFORMS,
+  POST_KINDS,
   SKILL_DOMAINS,
   SOCIAL_KINDS,
   TILE_KINDS,
@@ -279,6 +283,79 @@ export const mediaAltSchema = z.object({
 
 export type MediaAlt = z.output<typeof mediaAltSchema>;
 
+const postTranslationSchema = z.object({
+  title: text(TEXT_LIMITS.title),
+  excerpt: text(TEXT_LIMITS.excerpt),
+  bodyMd: text(TEXT_LIMITS.markdown),
+});
+
+/**
+ * A post: in one language or both, neither required (ADR-0008). A write-up
+ * names its platform, and is published only once its challenge is retired or
+ * its write-up allowed; an article carries none of that (dropped, not refused).
+ */
+export const postInputSchema = z
+  .object({
+    slug: slugSchema,
+    kind: z.enum(POST_KINDS).default("article"),
+    status: z.enum(CONTENT_STATUSES).default("draft"),
+    publishedOn: isoDateSchema.nullable().default(null),
+    platform: z.enum(PLATFORMS).nullable().default(null),
+    difficulty: z.enum(DIFFICULTIES).nullable().default(null),
+    retiredOn: isoDateSchema.nullable().default(null),
+    isDisclosureAllowed: z.boolean().default(false),
+    coverMediaId: mediaIdSchema,
+    skills: skillSlugsSchema,
+    translations: z
+      .partialRecord(z.enum(LOCALES), postTranslationSchema.optional())
+      .refine(
+        (translations) =>
+          LOCALES.some((locale) => translations[locale] !== undefined),
+        { message: "a post needs one language", path: [POST_LANGUAGE_FIELD] },
+      ),
+  })
+  .superRefine((post, context) => {
+    if (post.status === "published" && post.publishedOn === null) {
+      context.addIssue({
+        code: "custom",
+        message: "a published post has a publication date",
+        path: ["publishedOn"],
+      });
+    }
+    if (post.kind !== "writeup") {
+      return;
+    }
+    if (post.platform === null) {
+      context.addIssue({
+        code: "custom",
+        message: "a write-up names its platform",
+        path: ["platform"],
+      });
+    }
+    if (
+      post.status === "published" &&
+      post.retiredOn === null &&
+      !post.isDisclosureAllowed
+    ) {
+      context.addIssue({
+        code: "custom",
+        message: "a live challenge's write-up stays unpublished",
+        path: ["retiredOn"],
+      });
+    }
+  })
+  .transform((post) =>
+    post.kind === "writeup"
+      ? post
+      : {
+          ...post,
+          platform: null,
+          difficulty: null,
+          retiredOn: null,
+          isDisclosureAllowed: false,
+        },
+  );
+
 export const tileInputSchema = z.object({
   kind: z.enum(TILE_KINDS),
   size: z.enum(TILE_SIZES).default("md"),
@@ -296,3 +373,4 @@ export type EducationContent = z.output<typeof educationContentSchema>;
 export type CertificationInput = z.output<typeof certificationInputSchema>;
 export type CertificationContent = z.output<typeof certificationContentSchema>;
 export type TileInput = z.output<typeof tileInputSchema>;
+export type PostInput = z.output<typeof postInputSchema>;

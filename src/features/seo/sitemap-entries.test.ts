@@ -6,6 +6,7 @@ describe("sitemapEntries", () => {
   const entries = sitemapEntries(new URL("https://orion.dev"), {
     projects: ["portfolio"],
     experiences: ["acme"],
+    posts: ["a-box"],
   });
 
   it("lists every page and published entry once, under its French URL", () => {
@@ -15,14 +16,16 @@ describe("sitemapEntries", () => {
       "https://orion.dev/fr/competences",
       "https://orion.dev/fr/projets",
       "https://orion.dev/fr/experiences",
+      "https://orion.dev/fr/blog",
       "https://orion.dev/fr/contact",
       "https://orion.dev/fr/projets/portfolio",
       "https://orion.dev/fr/experiences/acme",
+      "https://orion.dev/fr/blog/a-box",
     ]);
   });
 
   it("links each URL to its other languages", () => {
-    expect(entries[6]?.alternates?.languages).toEqual({
+    expect(entries[7]?.alternates?.languages).toEqual({
       fr: "https://orion.dev/fr/projets/portfolio",
       en: "https://orion.dev/en/projects/portfolio",
     });

@@ -36,6 +36,10 @@ import {
   type ProfileForEdit,
 } from "@/features/profile/admin-repository";
 import {
+  createPostsAdminRepository,
+  type PostListEntry,
+} from "@/features/posts/admin-repository";
+import {
   createProjectsAdminRepository,
   type ProjectListEntry,
 } from "@/features/projects/admin-repository";
@@ -44,7 +48,7 @@ import { all, map, type Result } from "@/lib/result";
 import { translationStateAgainst, type TranslationState } from "./completeness";
 
 export type EntryKind =
-  "profile" | "project" | "experience" | "education" | "certification";
+  "profile" | "project" | "experience" | "education" | "certification" | "post";
 
 /** An entry the dashboard links to. */
 export interface EntryRef {
@@ -170,6 +174,7 @@ const FLAGGED = sql.join(
 
 interface ContentLists {
   readonly projects: readonly ProjectListEntry[];
+  readonly posts: readonly PostListEntry[];
   readonly experiences: readonly ExperienceListEntry[];
   readonly education: readonly EducationListEntry[];
   readonly certifications: readonly CertificationListEntry[];
@@ -211,6 +216,14 @@ function listed(lists: ContentLists): readonly Listed[] {
       id: entry.id,
       label: entry.title,
       english: entry.english,
+      isDraft: entry.status === "draft",
+    })),
+    // A post is written in the languages chosen for it: none is "to translate".
+    ...lists.posts.map((entry) => ({
+      kind: "post" as const,
+      id: entry.id,
+      label: entry.title,
+      english: "complete" as const,
       isDraft: entry.status === "draft",
     })),
     ...lists.experiences.map((entry) => ({
@@ -297,12 +310,22 @@ export function createDashboardRepository(db: Database) {
         createCertificationsAdminRepository(db).list(),
         createProfileAdminRepository(db).read(),
         flagged(),
+        createPostsAdminRepository(db).list(),
       ]);
       return map(
         all(reads),
-        ([projectList, experienceList, schools, badges, owner, rows]) =>
+        ([
+          projectList,
+          experienceList,
+          schools,
+          badges,
+          owner,
+          rows,
+          postList,
+        ]) =>
           contentToDoOf({
             projects: projectList,
+            posts: postList,
             experiences: experienceList,
             education: schools,
             certifications: badges,
